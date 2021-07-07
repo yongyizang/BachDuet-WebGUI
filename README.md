@@ -1,6 +1,9 @@
 # BachDuet Web GUI
 A Web GUI for BachDuet.
+
 Still under development. Basically nothing has been done. It doesn't work at all. Don't install BachDuet. BachDuet is not ready! He will suffer! It's not his decision to be born!
+
+This project is based on [this repo](https://github.com/sustained/sforzando), with many modifications.
 
 ## What's Done Now?
 - Keyboard UI, with Oct Up and Down.
@@ -10,8 +13,9 @@ Still under development. Basically nothing has been done. It doesn't work at all
 ## TODOs
 - [BUG] Keyboard UI does not trigger the active state when in demo playback.
 - [BUG] Piano samples are lagging in sample triggering. It appears now all samples are loaded for every change.
-- [IMPROVEMENT] Add a sufficient amount of commenting in codes.
+- [IMPROVEMENT] Add a sufficient amount of commenting in codes, before the project turns into a pile of chaotic mess.
 - [IMPROVEMENT] Add Metronome feature. Right now it's just a dummy button.
+- [IMPROVEMENT] Add piano roll.
 - [IMPROVEMENT] Replace the piano sample with full range and better sounding. This sounds like shit.
 - [IMPROVEMENT] Write a good button style.
 - [IMPROVEMENT] Try to integrate Vuex for global status management.
