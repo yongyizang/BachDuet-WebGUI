@@ -10,16 +10,20 @@ This project is based on [this repo](https://github.com/sustained/sforzando), wi
 - Demo Playback, playing back midi.
 - Piano instrument, along with other samplers (cello and violin) available.
 
-## TODOs
+## TODOs (immediate)
 - [BUG] Keyboard UI does not trigger the active state when in demo playback.
 - [BUG] Piano samples are lagging in sample triggering. It appears now all samples are loaded for every change.
 - [IMPROVEMENT] Add a sufficient amount of commenting in codes, before the project turns into a pile of chaotic mess.
-- [IMPROVEMENT] Add Metronome feature. Right now it's just a dummy button.
-- [IMPROVEMENT] Add piano roll.
 - [IMPROVEMENT] Replace the piano sample with full range and better sounding. This sounds like shit.
 - [IMPROVEMENT] Write a good button style.
-- [IMPROVEMENT] Try to integrate Vuex for global status management.
-- [IMPROVEMENT] Implement a new view with capability of playing with keyboard. Restrict the on-screen keyboard with 2 octaves in this mode. Handle the change by a new url: `/internal-mode`
+
+## Next Steps
+- Add Metronome feature. Right now it's just a dummy button.
+- Add piano roll. (Should the piano roll "Auto-Roll")? [pixi-piano-roll repo](https://github.com/mjhasbach/pixi-piano-roll)
+- Add a function for MIDI device selection, test external midi device connectivity.
+- Migrate old code into the project. functions: global ticks (timer), keyboard entry event.
+- Try to integrate Vuex for global status management of the `piano-state` map.
+- Implement a new view, "Internal Mode," with capability of playing with only computer keyboard. Restrict the on-screen keyboard with 2 octaves in this mode. Handle the change by a new url: `/internal-mode`. If there's no midi device detected, auto prompt user to use internal mode.
 
 ## How to run?
 
