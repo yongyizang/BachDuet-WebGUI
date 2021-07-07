@@ -24,6 +24,7 @@ This project is based on [this repo](https://github.com/sustained/sforzando), wi
 - Migrate old code into the project. functions: global ticks (timer), keyboard entry event.
 - Try to integrate Vuex for global status management of the `piano-state` map.
 - Implement a new view, "Internal Mode," with capability of playing with only computer keyboard. Restrict the on-screen keyboard with 2 octaves in this mode. Handle the change by a new url: `/internal-mode`. If there's no midi device detected, auto prompt user to use internal mode.
+- Phone view support. Add a router page for diversion, get clientWindowHeight and its width, then diverse into different urls. If it's a phone, then prompt for turning to landscape with special need for bigger keys on keyboard. Don't display the piano roll in this mode.
 
 ## How to run?
 
