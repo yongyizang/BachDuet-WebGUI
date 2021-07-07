@@ -6,8 +6,8 @@ Vue.use(VueRouter)
 const routes = [
   {
     path: "/",
-      name: "piano",
-      component: () => import(/* webpackChunkName: "piano" */ "../views/Piano.vue")
+      name: "main",
+      component: () => import(/* webpackChunkName: "main" */ "../views/main.vue")
   },
 ]
 
