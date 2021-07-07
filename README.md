@@ -10,6 +10,7 @@ Still under development. Basically nothing has been done. It doesn't work at all
 ## TODOs
 - [BUG] Keyboard UI does not trigger the active state when in demo playback.
 - [BUG] Piano samples are lagging in sample triggering. It appears now all samples are loaded for every change.
+- [IMPROVEMENT] Add a sufficient amount of commenting in codes.
 - [IMPROVEMENT] Add Metronome feature. Right now it's just a dummy button.
 - [IMPROVEMENT] Replace the piano sample with full range and better sounding. This sounds like shit.
 - [IMPROVEMENT] Write a good button style.
