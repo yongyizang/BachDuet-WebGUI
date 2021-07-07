@@ -19,6 +19,7 @@ This project is based on [this repo](https://github.com/sustained/sforzando), wi
 - [IMPROVEMENT] Replace the piano sample with full range and better sounding. This sounds like shit.
 - [IMPROVEMENT] Write a good button style.
 - [IMPROVEMENT] Try to integrate Vuex for global status management.
+- [IMPROVEMENT] Implement a new view with capability of playing with keyboard. Restrict the on-screen keyboard with 2 octaves in this mode. Handle the change by a new url: `/internal-mode`
 
 ## How to run?
 
