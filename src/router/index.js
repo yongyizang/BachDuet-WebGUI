@@ -1,15 +1,14 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import mainView from '../views/mainView.vue'
 
 Vue.use(VueRouter)
 
 const routes = [
   {
-    path: '/',
-    name: 'Main',
-    component: mainView
-  }
+    path: "/",
+      name: "piano",
+      component: () => import(/* webpackChunkName: "piano" */ "../views/Piano.vue")
+  },
 ]
 
 const router = new VueRouter({

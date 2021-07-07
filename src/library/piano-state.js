@@ -1,5 +1,5 @@
 import Vue from "vue"
-import { createRange } from "./createRange"
+import { createRange } from "./music"
 
 const notes = createRange("A0", "C8")
 

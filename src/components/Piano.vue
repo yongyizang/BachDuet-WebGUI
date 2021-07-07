@@ -15,6 +15,8 @@
 </template>
 
 <script>
+import * as Tone from 'tone'
+import Instruments from "@/library/instruments";
 import { clamp } from "@/library/math"
 import pianoState from "@/library/piano-state"
 
@@ -82,6 +84,7 @@ export default {
   },
 
   created() {
+
     if (typeof this.noteStart === "string") {
       this.offsets.noteStart = WHITE_KEYS.indexOf(this.noteStart)
     } else {
@@ -110,6 +113,7 @@ export default {
 
   methods: {
     playNote(note) {
+      
       console.log(note)
     }
   },
@@ -131,6 +135,17 @@ export default {
     },
 
     toggleActive(note) {
+      Tone.start();
+      Tone.context.lookAhead = 0;
+      const instruments = new Instruments();
+
+    instruments.createSampler("piano", (piano) => {
+      piano.release = 2;
+      piano.toDestination();
+      piano.triggerAttackRelease(note, 0.1, Tone.context.currentTime);
+    });
+
+      
       pianoState[note] === true ? pianoState[note] = false : pianoState[note] = true
     },
 
@@ -263,17 +278,21 @@ ul {
 
 .keyboard {
   width: 100vw;
-  height: calc(260px - calc(var(--octaves) * 10px));
+  height: 200px;
   overflow-x: hidden;
 }
 
 .keyboard ul {
-  height: 100%;
-  width: 100%;
+  height: calc(100% - 40px);
+  width: 96%;
+  padding-top:40px;
+  padding-left:2%;
+  padding-right:2%;
   list-style-type: none;
   display: grid;
   grid-template-columns: repeat(calc(var(--keys) * 3), 1fr);
   grid-template-rows: repeat(3, 1fr);
+  background:linear-gradient(to bottom right,rgba(0,0,0,0.3),rgba(0,0,0,0)),url(https://s3-us-west-2.amazonaws.com/s.cdpn.io/187/vwood.png);
 }
 
 li {
@@ -296,6 +315,13 @@ li.black span {
 .white {
   grid-row: 1 / span 3;
   z-index: 2;
+  box-shadow:-1px 0 0 rgba(255,255,255,0.8) inset,0 0 5px #ccc inset,0 0 3px rgba(0,0,0,0.2);
+  background:linear-gradient(to bottom,#eee 0%,#fff 100%)
+}
+
+.white:active {
+  box-shadow:2px 0 3px rgba(0,0,0,0.1) inset,-5px 5px 20px rgba(0,0,0,0.2) inset,0 0 3px rgba(0,0,0,0.2);
+  background:linear-gradient(to bottom,#fff 0%,#e9e9e9 100%)
 }
 
 .black {
@@ -303,6 +329,13 @@ li.black span {
   background-color: black;
   color: white;
   z-index: 3;
+  box-shadow:-1px -1px 2px rgba(255,255,255,0.2) inset,0 -5px 2px 3px rgba(0,0,0,0.6) inset,0 2px 4px rgba(0,0,0,0.5);
+  background:linear-gradient(45deg,#222 0%,#555 100%)
+}
+
+.black:active {
+  box-shadow:-1px -1px 2px rgba(255,255,255,0.2) inset,0 -2px 2px 3px rgba(0,0,0,0.6) inset,0 1px 2px rgba(0,0,0,0.5);
+  background:linear-gradient(to right,#444 0%,#222 100%)
 }
 
 .blank {

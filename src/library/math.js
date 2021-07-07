@@ -33,7 +33,7 @@ export function polarToCartesian(radius, theta) {
   Convert a cartesian coordinate (x, y) to polar (r, θ).
 */
 export function cartesianToPolar(x, y) {
-  [x, y] = normalisePoint(x, y)
+  ;[x, y] = normalisePoint(x, y)
 
   const radius = Math.sqrt(x ** 2, y ** 2)
   const theta = Math.atan2(y, x)
