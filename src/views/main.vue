@@ -7,7 +7,9 @@
       :octave-start="keyboardUIoctaveStart"
       :octave-end="keyboardUIoctaveEnd"
     />
-    <button @click="togglePlayback">DEMO PLAYBACK</button>
+    <button @click="togglePlayback">
+      {{ playbackMessage }}
+    </button>
     <!-- logic handled by template. -->
     <div class="octaveControls">
       <button class="octs" v-if="keyboardUIoctaveEnd !== 8" @click="transposeOctUp">
@@ -46,6 +48,7 @@ export default {
       keyboardUIoctaveEnd: 6,
       metronomeStatus: false,
       metronomeMessage: "METRONOME ON",
+      playbackMessage: "Start Playback",
       playing: false,
     };
   },
@@ -73,7 +76,6 @@ export default {
         } else {
           octaves = 7;
         }
-        console.log(octaves);
         this.keyboardUIoctaveEnd = this.keyboardUIoctaveStart + octaves;
         // force keyboardUI re-render itself.
         this.keyboardUIKey += 1;
@@ -103,8 +105,10 @@ export default {
       Tone.start();
       if (this.playing) {
         Transport.pause();
+        this.playbackMessage = "Start Playback";
       } else {
         Transport.start();
+        this.playbackMessage = "Pause Playback";
       }
       this.playing = !this.playing;
     },
@@ -136,7 +140,14 @@ export default {
 
     instruments.createSampler("piano", (piano) => {
       piano.release = 2;
-      piano.toMaster();
+
+      // A bare minimum room reverb.
+      const reverb = new Tone.Reverb({
+        predelay: 0.125,
+        decay: 1.3,
+        wet: 0.5
+      });
+      piano.chain(reverb, Tone.Destination);
 
       const now = Tone.now() + 0.5;
       Midi.fromUrl("/audio/midi/demo.mid")
