@@ -8,6 +8,9 @@ const noteMap = notes.reduce((map, note) => {
   return map
 }, {})
 
+// noteMap is noted as observable.
+// Vue is going to observe it and update it in real-time!
+// (TODO) implement this using Vuex
 const pianoState = new Vue.observable(noteMap)
 
 export default pianoState

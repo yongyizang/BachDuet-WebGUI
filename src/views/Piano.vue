@@ -7,8 +7,10 @@
       :octave-start="keyboardUIoctaveStart"
       :octave-end="keyboardUIoctaveEnd"
     />
-    <button @click="togglePlayback">DEMO PLAYBACK</button>
-    <!-- logic handled by template. -->
+    <button @click="togglePlayback">
+      {{ playbackMessage }}
+    </button>
+    <!-- logic handled by this file for decoupling purposes. -->
     <div class="octaveControls">
       <button class="octs" v-if="keyboardUIoctaveEnd !== 8" @click="transposeOctUp">
         OCT UP
@@ -33,6 +35,7 @@ import { Midi } from "@tonejs/midi";
 import Piano from "@/components/Piano.vue";
 import Instruments from "@/library/instruments";
 import pianoState, { reset } from "@/library/piano-state";
+import pianoRoll from "@/components/pianoRoll.vue";
 
 export default {
   name: "piano-view",
@@ -46,6 +49,7 @@ export default {
       keyboardUIoctaveEnd: 6,
       metronomeStatus: false,
       metronomeMessage: "METRONOME ON",
+      playbackMessage: "Start THE Playback",
       playing: false,
     };
   },
@@ -103,8 +107,10 @@ export default {
       Tone.start();
       if (this.playing) {
         Transport.pause();
+        this.playbackMessage = "Start THE Playback";
       } else {
         Transport.start();
+        this.playbackMessage = "Pause THE Playback";
       }
       this.playing = !this.playing;
     },
