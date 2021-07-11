@@ -1,5 +1,6 @@
 <template>
   <div class="home">
+    <div id="pianoScores"></div>
     <div id="pianoRoll"></div>
     <!-- This could be further customized -->
     <piano
@@ -9,9 +10,7 @@
       :octave-start="keyboardUIoctaveStart"
       :octave-end="keyboardUIoctaveEnd"
     />
-    <button @click="togglePlayback">
-      {{ playbackMessage }}
-    </button>
+    
     <!-- logic handled by this file for decoupling purposes. -->
     <div class="octaveControls">
       <button
@@ -33,6 +32,9 @@
       <button class="octs" @click="toggleMetronome">
         {{ metronomeMessage }}
       </button>
+      <button class="octs" @click="togglePlayback">
+      {{ playbackMessage }}
+    </button>
     </div>
   </div>
 </template>
@@ -46,10 +48,14 @@ import Piano from "@/components/Piano.vue";
 import Instruments from "@/library/instruments";
 import pianoState, { reset } from "@/library/piano-state";
 import pianoRoll from "pixi-piano-roll";
+import Vex from 'vexflow';
 
+const scoreHeight = 400;
+
+// Initialize pianoRoll's View.
 var pianoRollView = pianoRoll({
   width: document.body.clientWidth,
-  height: document.body.clientHeight - 200 - 300,
+  height: document.body.clientHeight - 200 - scoreHeight,
   pianoKeyWidth: 40,
   noteColor: 0xdb000f,
   gridLineColor: 0x333333,
@@ -163,6 +169,48 @@ export default {
   mounted() {
     document.getElementById("pianoRoll").appendChild(pianoRollView.view);
 
+    const VF = Vex.Flow;
+
+    // Create an SVG renderer and attach it to the DIV element named "boo".
+    var VFdiv = document.getElementById("pianoScores")
+    var VFrenderer = new VF.Renderer(VFdiv, VF.Renderer.Backends.SVG);
+
+    // Size our SVG:
+    VFrenderer.resize(this.screenWidth, scoreHeight);
+
+    // And get a drawing context:
+    var VFcontext = VFrenderer.getContext();
+
+    // Create a stave at position 10, 40 of width 400 on the canvas.
+    var VFstave1 = new VF.Stave(30, 10, this.screenWidth - 60);
+    VFstave1.addClef("treble").addTimeSignature("4/4");
+    var VFstave2 = new VF.Stave(30, 100, this.screenWidth - 60);
+    VFstave2.addClef("bass").addTimeSignature("4/4");
+
+    // Create a stave at position 10, 40 of width 400 on the canvas.
+    var VFstave3 = new VF.Stave(30, 180, this.screenWidth - 60);
+    VFstave3.addClef("treble").addTimeSignature("4/4");
+    var VFstave4 = new VF.Stave(30, 260, this.screenWidth - 60);
+    VFstave4.addClef("bass").addTimeSignature("4/4");
+
+
+    var lineLeft = new Vex.Flow.StaveConnector(VFstave1, VFstave2).setType(1);
+    var brace = new Vex.Flow.StaveConnector(VFstave1, VFstave2).setType(3); // 3 = brace
+
+    var lineLeft2 = new Vex.Flow.StaveConnector(VFstave3, VFstave4).setType(1);
+    var brace2 = new Vex.Flow.StaveConnector(VFstave3, VFstave4).setType(3); // 3 = brace
+
+    // Connect it to the rendering context and draw!
+    VFstave1.setContext(VFcontext).draw();
+    VFstave2.setContext(VFcontext).draw();
+    VFstave3.setContext(VFcontext).draw();
+    VFstave4.setContext(VFcontext).draw();
+    lineLeft.setContext(VFcontext).draw();
+    brace.setContext(VFcontext).draw();
+    lineLeft2.setContext(VFcontext).draw();
+    brace2.setContext(VFcontext).draw();
+
+
     const that = this;
     window.onresize = () => {
       return (() => {
@@ -265,5 +313,18 @@ export default {
   margin: 0;
   position: absolute;
   bottom: 196px;
+}
+
+#pianoScores {
+  z-index:1;
+  background-image:url('/paper-texture.jpg');
+  background-repeat:no-repeat;
+  background-size:cover;
+  background-position:center;
+  width: 100%;
+  position: fixed;
+  top: 0;
+  -webkit-box-shadow: 0px 8px 16px -6px #000000; 
+  box-shadow: 0px 8px 16px -6px #000000;
 }
 </style>
