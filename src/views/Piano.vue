@@ -1,7 +1,9 @@
 <template>
   <div class="home">
+    <div id="pianoRoll"></div>
     <!-- This could be further customized -->
     <piano
+      id="pianoKeyboard"
       class="pianoKeyboard"
       :key="keyboardUIKey"
       :octave-start="keyboardUIoctaveStart"
@@ -12,10 +14,18 @@
     </button>
     <!-- logic handled by this file for decoupling purposes. -->
     <div class="octaveControls">
-      <button class="octs" v-if="keyboardUIoctaveEnd !== 8" @click="transposeOctUp">
+      <button
+        class="octs"
+        v-if="keyboardUIoctaveEnd !== 8"
+        @click="transposeOctUp"
+      >
         OCT UP
       </button>
-      <button class="octs" v-if="keyboardUIoctaveStart !== 0" @click="transposeOctDown">
+      <button
+        class="octs"
+        v-if="keyboardUIoctaveStart !== 0"
+        @click="transposeOctDown"
+      >
         OCT DOWN
       </button>
     </div>
@@ -29,13 +39,36 @@
 
 
 <script>
-import * as Tone from 'tone'
+import * as Tone from "tone";
 import { Buffer, Sequence, Transport, Event, Draw, context } from "tone";
 import { Midi } from "@tonejs/midi";
 import Piano from "@/components/Piano.vue";
 import Instruments from "@/library/instruments";
 import pianoState, { reset } from "@/library/piano-state";
-import pianoRoll from "@/components/pianoRoll.vue";
+import pianoRoll from "pixi-piano-roll";
+
+var pianoRollView = pianoRoll({
+  width: document.body.clientWidth,
+  height: document.body.clientHeight - 200 - 300,
+  pianoKeyWidth: 40,
+  noteColor: 0xdb000f,
+  gridLineColor: 0x333333,
+  backgroundColor: 0x1a0002,
+  bpm: 140,
+  antialias: true,
+  zoom: 4,
+  resolution: 15,
+  time: "0:0:0",
+  renderer: "WebGLRenderer",
+  noteFormat: "String",
+  noteData: [
+    ["0:0:0", "C4", "2n"],
+    ["0:0:0", "D4", "2n"],
+    ["0:0:0", "E4", "2n"],
+    ["0:2:0", "B4", "4n"],
+    ["0:15:0", "A#0", "4n"],
+  ],
+});
 
 export default {
   name: "piano-view",
@@ -43,7 +76,7 @@ export default {
   data() {
     return {
       screenWidth: document.body.clientWidth,
-      ScreenHeight: document.body.clientHeight,
+      screenHeight: document.body.clientHeight,
       keyboardUIKey: 0,
       keyboardUIoctaveStart: 1,
       keyboardUIoctaveEnd: 6,
@@ -81,6 +114,7 @@ export default {
         this.keyboardUIoctaveEnd = this.keyboardUIoctaveStart + octaves;
         // force keyboardUI re-render itself.
         this.keyboardUIKey += 1;
+        pianoRollView.width = newValue;
       },
     },
     keyboardUIoctaveStart: {
@@ -96,11 +130,11 @@ export default {
       // Right now it only updates the message.
       // Easy to customize into doing other stuff in the future.
       if (this.metronomeStatus) {
-        this.metronomeMessage = "METRONOME ON"
+        this.metronomeMessage = "METRONOME ON";
       } else {
-        this.metronomeMessage = "METRONOME OFF"
+        this.metronomeMessage = "METRONOME OFF";
       }
-      this.metronomeStatus = !this.metronomeStatus
+      this.metronomeStatus = !this.metronomeStatus;
     },
 
     togglePlayback() {
@@ -127,6 +161,8 @@ export default {
   },
 
   mounted() {
+    document.getElementById("pianoRoll").appendChild(pianoRollView.view);
+
     const that = this;
     window.onresize = () => {
       return (() => {
@@ -193,26 +229,41 @@ export default {
 </script>
 
 <style scoped>
+
 .pianoKeyboard {
+  z-index:1;
   position: fixed;
   bottom: 0;
+  border-radius: 2px;
+  -webkit-box-shadow: 0px 3px 19px 8px rgba(0,0,0,0.68); 
+  box-shadow: 0px 3px 19px 8px rgba(0,0,0,0.68);
 }
 
 .octaveControls {
+  z-index:3;
   position: fixed;
   right: 30px;
   bottom: 170px;
 }
 
 .timingControls {
+  z-index:3;
   position: fixed;
   left: 30px;
   bottom: 170px;
 }
 
 .octs {
-  background-color:rgba(0,0,0,0);
-  color:white;
-  padding:5px;
+  background-color: rgba(0, 0, 0, 0);
+  color: white;
+  padding: 5px;
+}
+
+#pianoRoll {
+  z-index: 0;
+  padding: 0;
+  margin: 0;
+  position: absolute;
+  bottom: 196px;
 }
 </style>
