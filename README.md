@@ -2,6 +2,8 @@
 A Web GUI for BachDuet.
 Still under development. Basically nothing has been done. It doesn't work at all. Don't install BachDuet. BachDuet is not ready! He will suffer! It's not his decision to be born!
 
+Documentation could be found [here](Documentation.md).
+
 ## What's Done Now?
 - Keyboard UI, with Oct Up and Down.
 - Demo Playback, playing back midi.
