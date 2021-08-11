@@ -15,6 +15,7 @@ html, body {
   background-color: white;
   padding: 0;
   margin: 0;
+  height: 100%;
 }
 
 </style>

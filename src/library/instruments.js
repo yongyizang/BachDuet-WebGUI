@@ -1,10 +1,13 @@
 import { createRange } from "./music"
 import { Sampler } from "tone"
 
+// Define the set of notes.
 const NOTES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
 
+// Define the instrument samples' base URL. this should be where all samples are stored.
 export const INSTRUMENT_BASE_URL = "/audio/samples/"
 
+// Define the ranges of each instrument (as samples provided)
 export const SAMPLE_RANGES = {
   bassElectric: ["A#2", "G5"],
   bassoon: ["A1", "G3"],
@@ -41,8 +44,13 @@ export default class Instruments {
   }
 
   generateSampleMaps() {
+    // To each entry in the const SAMPLE_RANGES dict provided above,
+    // This function tries to create a map of sample.
     for (const [instrument, [from, to]] of Object.entries(SAMPLE_RANGES)) {
       this.sampleMaps[instrument] = createRange(from, to).reduce((map, note) => {
+        // You could see here, that the name of notes has to be in this format.
+        // For example, C#4 should be Cs4.mp3
+        // TODO: replace mp3 to more web-friendly content
         map[note.name] = note.name.replace("#", "s") + ".mp3"
         return map
       }, {})
@@ -63,14 +71,16 @@ export default class Instruments {
 
   createSampler(instrument, callback) {
     if (!INSTRUMENT_NAMES.includes(instrument)) {
-      throw new Error(`Invalid instrument - ${instrument}.`)
+      throw new Error(`Invalid instrument - ${instrument}. We don't currently support this instrument.`)
       return
     }
 
+    // If the callback paramenter is not a function, see it as an empty function.
     if (typeof callback !== "function") {
       callback = () => {}
     }
 
+    // Creates a sampler.
     const sampler = new Sampler(
       this.sampleMaps[instrument],
       () => callback(sampler),

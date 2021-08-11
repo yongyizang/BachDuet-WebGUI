@@ -1,21 +1,28 @@
 <template>
   <div class="home">
-    <!-- This could be further customized -->
-    <piano
+    <div id="pianoScores"></div>
+    <keyboardUI
+      id="pianoKeyboard"
       class="pianoKeyboard"
       :key="keyboardUIKey"
       :octave-start="keyboardUIoctaveStart"
       :octave-end="keyboardUIoctaveEnd"
     />
-    <button @click="togglePlayback">
-      {{ playbackMessage }}
-    </button>
-    <!-- logic handled by template. -->
+
+    <!-- logic handled by this file for decoupling purposes. -->
     <div class="octaveControls">
-      <button class="octs" v-if="keyboardUIoctaveEnd !== 8" @click="transposeOctUp">
+      <button
+        class="octs"
+        v-if="keyboardUIoctaveEnd !== 8"
+        @click="transposeOctUp"
+      >
         OCT UP
       </button>
-      <button class="octs" v-if="keyboardUIoctaveStart !== 0" @click="transposeOctDown">
+      <button
+        class="octs"
+        v-if="keyboardUIoctaveStart !== 0"
+        @click="transposeOctDown"
+      >
         OCT DOWN
       </button>
     </div>
@@ -23,38 +30,70 @@
       <button class="octs" @click="toggleMetronome">
         {{ metronomeMessage }}
       </button>
+      <button class="octs" @click="togglePlayback">
+      {{ playbackMessage }}
+    </button>
+    <span style="color:white">Set BPM As:<input id="bpm"/></span>
     </div>
   </div>
 </template>
 
 
 <script>
-import * as Tone from 'tone'
+import * as Tone from "tone";
 import { Buffer, Sequence, Transport, Event, Draw, context } from "tone";
 import { Midi } from "@tonejs/midi";
-import Piano from "@/components/Piano.vue";
+import keyboardUI from "@/components/keyboardUI.vue";
+import * as Metronome from "@/library/Metronome";
 import Instruments from "@/library/instruments";
 import pianoState, { reset } from "@/library/piano-state";
+import Vex from 'vexflow';
+
+const userMap = [
+  // Here, we store all users name in the current order of keys.
+  'user1'
+]
+
+// Initialize Piano Sampler 1. This is for User.
+// Initialize is done within the UI Component. See components/keyboardUI.vue
+// For every user in userMap, we create a sampler, which sends to a separate bus.
+// Then, for each user, we create another "AI" piano sampler, which also, sends to a separate bus.
+// This is done by changing the "piano.toDestination()" code, which should determine which bus it got send to.
+const AISampler = new Instruments().createSampler("piano", (piano) => {
+    piano.release = 2;
+    piano.toDestination();
+});
+
+// Initialize Metronome Sampler.
+// Bugs here.
+// const metronomeSampler = new Instruments().createSampler("metronome", (metronome) => {
+//     metronome.release = 2;
+//     metronome.toDestination();
+// });
+
+const scoreHeight = 400;
+
 
 export default {
-  name: "piano-view",
+  name: "main",
 
   data() {
     return {
+      BPM: 60,
       screenWidth: document.body.clientWidth,
-      ScreenHeight: document.body.clientHeight,
+      screenHeight: document.body.clientHeight,
       keyboardUIKey: 0,
       keyboardUIoctaveStart: 1,
       keyboardUIoctaveEnd: 6,
       metronomeStatus: false,
       metronomeMessage: "METRONOME ON",
-      playbackMessage: "Start Playback",
+      playbackMessage: "Start THE Playback",
       playing: false,
     };
   },
 
   components: {
-    Piano,
+    keyboardUI,
   },
 
   watch: {
@@ -94,6 +133,14 @@ export default {
       // Right now it only updates the message.
       // Easy to customize into doing other stuff in the future.
       if (this.metronomeStatus) {
+        this.metronomeMessage = "METRONOME ON";
+        Metronome.stop();
+      } else {
+        this.metronomeMessage = "METRONOME OFF";
+        Metronome.setBPM(this.BPM);
+        Metronome.start();
+      }
+      this.metronomeStatus = !this.metronomeStatus;
         this.metronomeMessage = "METRONOME ON"
       } else {
         this.metronomeMessage = "METRONOME OFF"
@@ -105,10 +152,10 @@ export default {
       Tone.start();
       if (this.playing) {
         Transport.pause();
-        this.playbackMessage = "Start Playback";
+        this.playbackMessage = "Start THE Playback";
       } else {
         Transport.start();
-        this.playbackMessage = "Pause Playback";
+        this.playbackMessage = "Pause THE Playback";
       }
       this.playing = !this.playing;
     },
@@ -125,6 +172,47 @@ export default {
   },
 
   mounted() {
+    const VF = Vex.Flow;
+
+    // Create an SVG renderer and attach it to the DIV element named "boo".
+    var VFdiv = document.getElementById("pianoScores")
+    var VFrenderer = new VF.Renderer(VFdiv, VF.Renderer.Backends.SVG);
+
+    // Size our SVG:
+    VFrenderer.resize(this.screenWidth, scoreHeight);
+
+    // And get a drawing context:
+    var VFcontext = VFrenderer.getContext();
+
+    // Create a stave at position 10, 40 of width 400 on the canvas.
+    var VFstave1 = new VF.Stave(30, 10, this.screenWidth - 60);
+    VFstave1.addClef("treble").addTimeSignature("4/4");
+    var VFstave2 = new VF.Stave(30, 100, this.screenWidth - 60);
+    VFstave2.addClef("bass").addTimeSignature("4/4");
+
+    // Create a stave at position 10, 40 of width 400 on the canvas.
+    var VFstave3 = new VF.Stave(30, 180, this.screenWidth - 60);
+    VFstave3.addClef("treble").addTimeSignature("4/4");
+    var VFstave4 = new VF.Stave(30, 260, this.screenWidth - 60);
+    VFstave4.addClef("bass").addTimeSignature("4/4");
+
+
+    var lineLeft = new Vex.Flow.StaveConnector(VFstave1, VFstave2).setType(1);
+    var brace = new Vex.Flow.StaveConnector(VFstave1, VFstave2).setType(3); // 3 = brace
+
+    var lineLeft2 = new Vex.Flow.StaveConnector(VFstave3, VFstave4).setType(1);
+    var brace2 = new Vex.Flow.StaveConnector(VFstave3, VFstave4).setType(3); // 3 = brace
+
+    // Connect it to the rendering context and draw!
+    VFstave1.setContext(VFcontext).draw();
+    VFstave2.setContext(VFcontext).draw();
+    VFstave3.setContext(VFcontext).draw();
+    VFstave4.setContext(VFcontext).draw();
+    lineLeft.setContext(VFcontext).draw();
+    brace.setContext(VFcontext).draw();
+    lineLeft2.setContext(VFcontext).draw();
+    brace2.setContext(VFcontext).draw();
+    
     const that = this;
     window.onresize = () => {
       return (() => {
@@ -140,6 +228,7 @@ export default {
 
     instruments.createSampler("piano", (piano) => {
       piano.release = 2;
+      piano.toDestination();
 
       // A bare minimum room reverb.
       const reverb = new Tone.Reverb({
@@ -198,26 +287,54 @@ export default {
 </script>
 
 <style scoped>
+
 .pianoKeyboard {
+  z-index:1;
   position: fixed;
   bottom: 0;
+  border-radius: 2px;
+  -webkit-box-shadow: 0px 3px 19px 8px rgba(0,0,0,0.68); 
+  box-shadow: 0px 3px 19px 8px rgba(0,0,0,0.68);
 }
 
 .octaveControls {
+  z-index:3;
   position: fixed;
   right: 30px;
   bottom: 170px;
 }
 
 .timingControls {
+  z-index:3;
   position: fixed;
   left: 30px;
   bottom: 170px;
 }
 
 .octs {
-  background-color:rgba(0,0,0,0);
-  color:white;
-  padding:5px;
+  background-color: rgba(0, 0, 0, 0);
+  color: white;
+  padding: 5px;
+}
+
+#pianoRoll {
+  z-index: 0;
+  padding: 0;
+  margin: 0;
+  position: absolute;
+  bottom: 196px;
+}
+
+#pianoScores {
+  z-index:1;
+  background-image:url('/paper-texture.jpg');
+  background-repeat:no-repeat;
+  background-size:cover;
+  background-position:center;
+  width: 100%;
+  position: fixed;
+  top: 0;
+  -webkit-box-shadow: 0px 8px 16px -6px #000000; 
+  box-shadow: 0px 8px 16px -6px #000000;
 }
 </style>
