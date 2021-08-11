@@ -4,14 +4,12 @@ import {bpm} from"./Metronome"
 /*
 time interval
  */
-var intervalId = null;
-export default intervalId
+export var intervalId = null;
 
 /*
 Queue two store the last note of the 16th note interval
  */
-var queueTwo = [];
-export default queueTwo
+export var queueTwo = [];
 
 /*
 Schedule printing note base on interval

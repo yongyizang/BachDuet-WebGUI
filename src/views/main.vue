@@ -1,9 +1,7 @@
 <template>
   <div class="home">
     <div id="pianoScores"></div>
-    <div id="pianoRoll"></div>
-    <!-- This could be further customized -->
-    <piano
+    <keyboardUI
       id="pianoKeyboard"
       class="pianoKeyboard"
       :key="keyboardUIKey"
@@ -35,6 +33,7 @@
       <button class="octs" @click="togglePlayback">
       {{ playbackMessage }}
     </button>
+    <span style="color:white">Set BPM As:<input id="bpm"/></span>
     </div>
   </div>
 </template>
@@ -44,43 +43,43 @@
 import * as Tone from "tone";
 import { Buffer, Sequence, Transport, Event, Draw, context } from "tone";
 import { Midi } from "@tonejs/midi";
-import Piano from "@/components/Piano.vue";
+import keyboardUI from "@/components/keyboardUI.vue";
+import * as Metronome from "@/library/Metronome";
 import Instruments from "@/library/instruments";
 import pianoState, { reset } from "@/library/piano-state";
-import pianoRoll from "pixi-piano-roll";
 import Vex from 'vexflow';
+
+const userMap = [
+  // Here, we store all users name in the current order of keys.
+  'user1'
+]
+
+// Initialize Piano Sampler 1. This is for User.
+// Initialize is done within the UI Component. See components/keyboardUI.vue
+// For every user in userMap, we create a sampler, which sends to a separate bus.
+// Then, for each user, we create another "AI" piano sampler, which also, sends to a separate bus.
+// This is done by changing the "piano.toDestination()" code, which should determine which bus it got send to.
+const AISampler = new Instruments().createSampler("piano", (piano) => {
+    piano.release = 2;
+    piano.toDestination();
+});
+
+// Initialize Metronome Sampler.
+// Bugs here.
+// const metronomeSampler = new Instruments().createSampler("metronome", (metronome) => {
+//     metronome.release = 2;
+//     metronome.toDestination();
+// });
 
 const scoreHeight = 400;
 
-// Initialize pianoRoll's View.
-var pianoRollView = pianoRoll({
-  width: document.body.clientWidth,
-  height: document.body.clientHeight - 200 - scoreHeight,
-  pianoKeyWidth: 40,
-  noteColor: 0xdb000f,
-  gridLineColor: 0x333333,
-  backgroundColor: 0x1a0002,
-  bpm: 140,
-  antialias: true,
-  zoom: 4,
-  resolution: 15,
-  time: "0:0:0",
-  renderer: "WebGLRenderer",
-  noteFormat: "String",
-  noteData: [
-    ["0:0:0", "C4", "2n"],
-    ["0:0:0", "D4", "2n"],
-    ["0:0:0", "E4", "2n"],
-    ["0:2:0", "B4", "4n"],
-    ["0:15:0", "A#0", "4n"],
-  ],
-});
 
 export default {
-  name: "piano-view",
+  name: "main",
 
   data() {
     return {
+      BPM: 60,
       screenWidth: document.body.clientWidth,
       screenHeight: document.body.clientHeight,
       keyboardUIKey: 0,
@@ -94,7 +93,7 @@ export default {
   },
 
   components: {
-    Piano,
+    keyboardUI,
   },
 
   watch: {
@@ -120,7 +119,6 @@ export default {
         this.keyboardUIoctaveEnd = this.keyboardUIoctaveStart + octaves;
         // force keyboardUI re-render itself.
         this.keyboardUIKey += 1;
-        pianoRollView.width = newValue;
       },
     },
     keyboardUIoctaveStart: {
@@ -137,8 +135,11 @@ export default {
       // Easy to customize into doing other stuff in the future.
       if (this.metronomeStatus) {
         this.metronomeMessage = "METRONOME ON";
+        Metronome.stop();
       } else {
         this.metronomeMessage = "METRONOME OFF";
+        Metronome.setBPM(this.BPM);
+        Metronome.start();
       }
       this.metronomeStatus = !this.metronomeStatus;
     },
@@ -167,7 +168,6 @@ export default {
   },
 
   mounted() {
-    document.getElementById("pianoRoll").appendChild(pianoRollView.view);
 
     const VF = Vex.Flow;
 
@@ -226,7 +226,7 @@ export default {
 
     instruments.createSampler("piano", (piano) => {
       piano.release = 2;
-      piano.toMaster();
+      piano.toDestination();
 
       const now = Tone.now() + 0.5;
       Midi.fromUrl("/audio/midi/demo.mid")

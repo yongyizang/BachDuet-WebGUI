@@ -1,3 +1,9 @@
+<!--
+    This is the vue component of Piano Keyboard UI.
+
+    It automatically generates the correct amount of keys, with a default piano sampler.
+-->
+
 <template>
   <div class="keyboard" :style="style">
     <ul>
@@ -5,7 +11,8 @@
         v-for="(key, index) in keys"
         :key="index"
         :style="key.style"
-        @click="toggleActive(key.name)"
+        @mousedown="toggleAttack(key.name)"
+        @mouseup="toggleRelease(key.name)"
         :class="[...key.class, {active: noteActive(key.name)}]"
       >
         <span>{{ key.name }}</span>
@@ -31,6 +38,15 @@ const MIN_OCTAVE = 0
 const MAX_OCTAVE = 8
 const MIN_NOTE = 0
 const MAX_NOTE = 6
+const SAMPLER_RELEASE = 2;
+
+Tone.start();
+Tone.context.lookAhead = 0;
+
+const pianoSampler = new Instruments().createSampler("piano", (piano) => {
+    piano.release = SAMPLER_RELEASE;
+    piano.toDestination();
+});
 
 export default {
   props: {
@@ -111,12 +127,12 @@ export default {
     }
   },
 
-  methods: {
-    playNote(note) {
+  // methods: {
+  //   playNote(note) {
       
-      console.log(note)
-    }
-  },
+  //     console.log(note)
+  //   }
+  // },
 
   data() {
     return {
@@ -131,22 +147,20 @@ export default {
 
   methods: {
     noteActive(note) {
+      // If the note is active, the state of that note is true.
       return pianoState[note] === true
     },
 
-    toggleActive(note) {
-      Tone.start();
-      Tone.context.lookAhead = 0;
-      const instruments = new Instruments();
+    toggleAttack(note) {
+      // Trigger the sampler.
+       pianoSampler.triggerAttack(note, Tone.now());
+      // Change the global piano-state.
+      pianoState[note] = true;
+    },
 
-    instruments.createSampler("piano", (piano) => {
-      piano.release = 2;
-      piano.toDestination();
-      piano.triggerAttackRelease(note, 0.1, Tone.context.currentTime);
-    });
-
-      
-      pianoState[note] === true ? pianoState[note] = false : pianoState[note] = true
+    toggleRelease(note) {
+      pianoSampler.triggerRelease(note, Tone.now());
+      pianoState[note] = false;
     },
 
     calculateOctave(n) {
@@ -292,7 +306,7 @@ ul {
   display: grid;
   grid-template-columns: repeat(calc(var(--keys) * 3), 1fr);
   grid-template-rows: repeat(3, 1fr);
-  background:linear-gradient(to bottom right,rgba(0,0,0,0.3),rgba(0,0,0,0)),url(https://s3-us-west-2.amazonaws.com/s.cdpn.io/187/vwood.png);
+  background:linear-gradient(to bottom right,rgba(0,0,0,0.3),rgba(0,0,0,0)),url('/vwood.png');
 }
 
 li {

@@ -1,29 +1,11 @@
 # BachDuet Web GUI
 A Web GUI for BachDuet.
+ 
 Still under development. Basically nothing has been done. It doesn't work at all. Don't install BachDuet. BachDuet is not ready! He will suffer! It's not his decision to be born!
 
 Documentation could be found [here](Documentation.md).
 
-## What's Done Now?
-- Keyboard UI, with Oct Up and Down.
-- Demo Playback, playing back midi.
-- Piano instrument, along with other samplers (cello and violin) available.
-
-## TODOs
-- [BUG] Keyboard UI does not trigger the active state when in demo playback.
-- [BUG] Piano samples are lagging in sample triggering. It appears now all samples are loaded for every change.
-- [IMPROVEMENT] Add Metronome feature. Right now it's just a dummy button.
-- [IMPROVEMENT] Replace the piano sample with full range and better sounding. This sounds like shit.
-- [IMPROVEMENT] Write a good button style.
-
-## Next Steps
-- Add Metronome feature. Right now it's just a dummy button.
-- Add piano roll. [pixi-piano-roll repo](https://github.com/mjhasbach/pixi-piano-roll) It doesn't need to slide back, just constantly sliding forward with a function of exporting historical midi data. When it does, spits a file from the server.
-- Add a function for MIDI device selection, test external midi device connectivity.
-- Migrate old code into the project. functions: global ticks (timer), keyboard entry event.
-- Try to integrate Vuex for global status management of the `piano-state` map.
-- Implement a new view, "Internal Mode," with capability of playing with only computer keyboard. Restrict the on-screen keyboard with 2 octaves in this mode. Handle the change by a new url: `/internal-mode`. If there's no midi device detected, auto prompt user to use internal mode.
-- Phone view support. Add a router page for diversion, get clientWindowHeight and its width, then diverse into different urls. If it's a phone, then prompt for turning to landscape with special need for bigger keys on keyboard. Don't display the piano roll in this mode.
+For TODOs & Next steps, please visit [here](TODOs.md).
 
 ## How to run?
 
@@ -46,8 +28,6 @@ npm run build
 ```
 
 ## How's the project organized?
-In short it's a silly little standard Vue project.
-
 ---
 
 ### Routing
@@ -83,7 +63,7 @@ Why is understanding this important? By understanding this, we could gain insigh
 
 ---
 
-### library, components
+### library
 All files in `/src/library` are independent. They are only dependent on a few libraries like Tone.js, which they introduce individually.
 -  `instruments.js` provides utilities of defining sampler instruments.
 - `math.js` provides helpful math utilities.
@@ -92,11 +72,13 @@ All files in `/src/library` are independent. They are only dependent on a few li
 
 ---
 
-Currently there's only one component, `Piano.vue`. It defines a standard piano keyboard object. However, for decoupling purposes, the logic of changing octaves and automatic resizing are done in the main view, `/src/views/main.vue`.
+### UI Components
 
-The Piano component can be introduced in with the following grammar:
+The UI is made up of 3 parts: a keyboard, a musical-game-style note indicator and a more traditional, score-styled note indicator. Currently, we only have implementation on the Keyboard UI (`keyboardUI.vue`).
+
+The Keyboard UI component can be introduced in with the following grammar:
 ```
-import Piano from "@/components/Piano.vue";
+import Piano from "@/components/keyboardUI.vue";
 ```
 
 ```
