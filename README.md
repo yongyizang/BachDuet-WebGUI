@@ -7,6 +7,7 @@ Documentation could be found [here](Documentation.md).
 
 For TODOs & Next steps, please visit [here](TODOs.md).
 
+
 ## How to run?
 
 ### Project setup
@@ -28,6 +29,7 @@ npm run build
 ```
 
 ## How's the project organized?
+
 ---
 
 ### Routing
@@ -64,6 +66,7 @@ Why is understanding this important? By understanding this, we could gain insigh
 ---
 
 ### library
+
 All files in `/src/library` are independent. They are only dependent on a few libraries like Tone.js, which they introduce individually.
 -  `instruments.js` provides utilities of defining sampler instruments.
 - `math.js` provides helpful math utilities.
@@ -72,6 +75,7 @@ All files in `/src/library` are independent. They are only dependent on a few li
 
 ---
 
+
 ### UI Components
 
 The UI is made up of 3 parts: a keyboard, a musical-game-style note indicator and a more traditional, score-styled note indicator. Currently, we only have implementation on the Keyboard UI (`keyboardUI.vue`).
@@ -79,6 +83,7 @@ The UI is made up of 3 parts: a keyboard, a musical-game-style note indicator an
 The Keyboard UI component can be introduced in with the following grammar:
 ```
 import Piano from "@/components/keyboardUI.vue";
+
 ```
 
 ```
@@ -86,6 +91,4 @@ import Piano from "@/components/keyboardUI.vue";
       :octave-start="keyboardUIoctaveStart"
       :octave-end="keyboardUIoctaveEnd"
     />
-```
 
-### Service Worker

@@ -8,7 +8,7 @@
       :octave-start="keyboardUIoctaveStart"
       :octave-end="keyboardUIoctaveEnd"
     />
-    
+
     <!-- logic handled by this file for decoupling purposes. -->
     <div class="octaveControls">
       <button
@@ -115,7 +115,6 @@ export default {
         } else {
           octaves = 7;
         }
-        console.log(octaves);
         this.keyboardUIoctaveEnd = this.keyboardUIoctaveStart + octaves;
         // force keyboardUI re-render itself.
         this.keyboardUIKey += 1;
@@ -142,6 +141,11 @@ export default {
         Metronome.start();
       }
       this.metronomeStatus = !this.metronomeStatus;
+        this.metronomeMessage = "METRONOME ON"
+      } else {
+        this.metronomeMessage = "METRONOME OFF"
+      }
+      this.metronomeStatus = !this.metronomeStatus
     },
 
     togglePlayback() {
@@ -168,7 +172,6 @@ export default {
   },
 
   mounted() {
-
     const VF = Vex.Flow;
 
     // Create an SVG renderer and attach it to the DIV element named "boo".
@@ -209,8 +212,7 @@ export default {
     brace.setContext(VFcontext).draw();
     lineLeft2.setContext(VFcontext).draw();
     brace2.setContext(VFcontext).draw();
-
-
+    
     const that = this;
     window.onresize = () => {
       return (() => {
@@ -227,6 +229,14 @@ export default {
     instruments.createSampler("piano", (piano) => {
       piano.release = 2;
       piano.toDestination();
+
+      // A bare minimum room reverb.
+      const reverb = new Tone.Reverb({
+        predelay: 0.125,
+        decay: 1.3,
+        wet: 0.5
+      });
+      piano.chain(reverb, Tone.Destination);
 
       const now = Tone.now() + 0.5;
       Midi.fromUrl("/audio/midi/demo.mid")
