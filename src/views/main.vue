@@ -31,9 +31,12 @@
         {{ metronomeMessage }}
       </button>
       <button class="octs" @click="togglePlayback">
-      {{ playbackMessage }}
-    </button>
-    <span style="color:white">Set BPM As:<input id="bpm"/></span>
+        {{ playbackMessage }}
+      </button>
+      <span style="color: white"
+        >Set BPM As:<input id="bpm" v-model="BPM"
+      /></span>
+      <button class="octs" @click="toggleClock">Clock</button>
     </div>
   </div>
 </template>
@@ -47,12 +50,12 @@ import keyboardUI from "@/components/keyboardUI.vue";
 import * as Metronome from "@/library/Metronome";
 import Instruments from "@/library/instruments";
 import pianoState, { reset } from "@/library/piano-state";
-import Vex from 'vexflow';
+import Vex from "vexflow";
 
 const userMap = [
   // Here, we store all users name in the current order of keys.
-  'user1'
-]
+  "user1",
+];
 
 // Initialize Piano Sampler 1. This is for User.
 // Initialize is done within the UI Component. See components/keyboardUI.vue
@@ -60,8 +63,8 @@ const userMap = [
 // Then, for each user, we create another "AI" piano sampler, which also, sends to a separate bus.
 // This is done by changing the "piano.toDestination()" code, which should determine which bus it got send to.
 const AISampler = new Instruments().createSampler("piano", (piano) => {
-    piano.release = 2;
-    piano.toDestination();
+  piano.release = 2;
+  piano.toDestination();
 });
 
 // Initialize Metronome Sampler.
@@ -73,13 +76,15 @@ const AISampler = new Instruments().createSampler("piano", (piano) => {
 
 const scoreHeight = 400;
 
-
 export default {
   name: "main",
 
   data() {
     return {
       BPM: 60,
+      tickNumber: 1,
+      clockStatus: false,
+      clockInitialized: false,
       screenWidth: document.body.clientWidth,
       screenHeight: document.body.clientHeight,
       keyboardUIKey: 0,
@@ -129,6 +134,7 @@ export default {
   },
 
   methods: {
+
     toggleMetronome() {
       // Right now it only updates the message.
       // Easy to customize into doing other stuff in the future.
@@ -137,15 +143,8 @@ export default {
         Metronome.stop();
       } else {
         this.metronomeMessage = "METRONOME OFF";
-        Metronome.setBPM(this.BPM);
         Metronome.start();
       }
-      this.metronomeStatus = !this.metronomeStatus;
-        this.metronomeMessage = "METRONOME ON"
-      } else {
-        this.metronomeMessage = "METRONOME OFF"
-      }
-      this.metronomeStatus = !this.metronomeStatus
     },
 
     togglePlayback() {
@@ -169,13 +168,36 @@ export default {
       this.keyboardUIoctaveStart -= 1;
       this.keyboardUIoctaveEnd -= 1;
     },
+
+    toggleClock() {
+      var vm = this;
+      // Allowing tickNumber to add to itself.
+      vm.clockStatus = !vm.clockStatus;
+      // If the clock is not yet initialized...
+      if (!vm.clockInitialized) {
+        // Then set it to intialized
+        vm.clockInitialized = true;
+        // And intialized it.
+        setInterval(function sendTicksOut() {
+          /*
+            So here's what every "tick" does.
+            Now it's configured to add to tickNumber at every tick.
+            When "paused", it stop adding to itself.
+          */
+          if (vm.clockStatus){
+            vm.tickNumber += 1;
+          };
+          console.log("Tick #" + vm.tickNumber + " sent out!");
+        }, (60 / this.BPM / 4) * 1000); // Set to sixteenth notes ticks.
+      }
+    },
   },
 
   mounted() {
     const VF = Vex.Flow;
 
     // Create an SVG renderer and attach it to the DIV element named "boo".
-    var VFdiv = document.getElementById("pianoScores")
+    var VFdiv = document.getElementById("pianoScores");
     var VFrenderer = new VF.Renderer(VFdiv, VF.Renderer.Backends.SVG);
 
     // Size our SVG:
@@ -196,7 +218,6 @@ export default {
     var VFstave4 = new VF.Stave(30, 260, this.screenWidth - 60);
     VFstave4.addClef("bass").addTimeSignature("4/4");
 
-
     var lineLeft = new Vex.Flow.StaveConnector(VFstave1, VFstave2).setType(1);
     var brace = new Vex.Flow.StaveConnector(VFstave1, VFstave2).setType(3); // 3 = brace
 
@@ -212,7 +233,7 @@ export default {
     brace.setContext(VFcontext).draw();
     lineLeft2.setContext(VFcontext).draw();
     brace2.setContext(VFcontext).draw();
-    
+
     const that = this;
     window.onresize = () => {
       return (() => {
@@ -234,7 +255,7 @@ export default {
       const reverb = new Tone.Reverb({
         predelay: 0.125,
         decay: 1.3,
-        wet: 0.5
+        wet: 0.5,
       });
       piano.chain(reverb, Tone.Destination);
 
@@ -287,25 +308,24 @@ export default {
 </script>
 
 <style scoped>
-
 .pianoKeyboard {
-  z-index:1;
+  z-index: 1;
   position: fixed;
   bottom: 0;
   border-radius: 2px;
-  -webkit-box-shadow: 0px 3px 19px 8px rgba(0,0,0,0.68); 
-  box-shadow: 0px 3px 19px 8px rgba(0,0,0,0.68);
+  -webkit-box-shadow: 0px 3px 19px 8px rgba(0, 0, 0, 0.68);
+  box-shadow: 0px 3px 19px 8px rgba(0, 0, 0, 0.68);
 }
 
 .octaveControls {
-  z-index:3;
+  z-index: 3;
   position: fixed;
   right: 30px;
   bottom: 170px;
 }
 
 .timingControls {
-  z-index:3;
+  z-index: 3;
   position: fixed;
   left: 30px;
   bottom: 170px;
@@ -326,15 +346,15 @@ export default {
 }
 
 #pianoScores {
-  z-index:1;
-  background-image:url('/paper-texture.jpg');
-  background-repeat:no-repeat;
-  background-size:cover;
-  background-position:center;
+  z-index: 1;
+  background-image: url("/paper-texture.jpg");
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
   width: 100%;
   position: fixed;
   top: 0;
-  -webkit-box-shadow: 0px 8px 16px -6px #000000; 
+  -webkit-box-shadow: 0px 8px 16px -6px #000000;
   box-shadow: 0px 8px 16px -6px #000000;
 }
 </style>
