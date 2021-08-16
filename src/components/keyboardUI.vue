@@ -40,9 +40,6 @@ const MIN_NOTE = 0
 const MAX_NOTE = 6
 const SAMPLER_RELEASE = 2;
 
-Tone.start();
-Tone.context.lookAhead = 0;
-
 const pianoSampler = new Instruments().createSampler("piano", (piano) => {
     piano.release = SAMPLER_RELEASE;
     piano.toDestination();

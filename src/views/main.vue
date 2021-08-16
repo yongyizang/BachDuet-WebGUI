@@ -11,6 +11,9 @@
 
     <!-- logic handled by this file for decoupling purposes. -->
     <div class="octaveControls">
+      <button class="octs" v-if="clockInitialized" @click="toggleMetronome">
+        {{metronomeStatus ? "Mute Metronome" : "Unmute Metronome"}}
+      </button>
       <button
         class="octs"
         v-if="keyboardUIoctaveEnd !== 8"
@@ -27,9 +30,6 @@
       </button>
     </div>
     <div class="timingControls">
-      <button class="octs" @click="toggleMetronome">
-        {{ metronomeMessage }}
-      </button>
       <button class="octs" @click="togglePlayback">
         {{ playbackMessage }}
       </button>
@@ -69,10 +69,52 @@ const AISampler = new Instruments().createSampler("piano", (piano) => {
 
 // Initialize Metronome Sampler.
 // Bugs here.
-// const metronomeSampler = new Instruments().createSampler("metronome", (metronome) => {
-//     metronome.release = 2;
-//     metronome.toDestination();
-// });
+
+
+const metronomeSampler = new Instruments().createSampler(
+  "metronome",
+  (metronome) => {
+    metronome.release = 2;
+  }
+);
+const metronomeBus = new Tone.Channel().toDestination();
+metronomeSampler.connect(metronomeBus);
+
+// Metronome Behavior.
+// Decouple later.
+function metronomeTrigger(tickNumber, interval) {
+  var vm = this;
+  var intervalIntegar = 4;
+  if (!["2n", "4n", "8n", "16n"].includes(interval)) {
+    throw new Error(
+      "metronomeTrigger: the interval entered is not supported. Please try 2n, 4n, 8n or 16n."
+    );
+  } else {
+    switch (interval) {
+      case "2n":
+        intervalIntegar = 8;
+        break;
+      case "4n":
+        intervalIntegar = 4;
+        break;
+      case "8n":
+        intervalIntegar = 2;
+        break;
+      case "16n":
+        intervalIntegar = 1;
+        break;
+    }
+    if (tickNumber % intervalIntegar == 0) {
+      var note = tickNumber % 16 === 0 ? "C#0" : "C0";
+      metronomeSampler.triggerAttackRelease(note, 0.2, Tone.now());
+    }
+  }
+}
+
+window.onclick = () => {
+  Tone.start();
+  Tone.context.lookAhead = 0;
+};
 
 const scoreHeight = 400;
 
@@ -82,7 +124,7 @@ export default {
   data() {
     return {
       BPM: 60,
-      tickNumber: 1,
+      tickNumber: -1,
       clockStatus: false,
       clockInitialized: false,
       screenWidth: document.body.clientWidth,
@@ -90,8 +132,7 @@ export default {
       keyboardUIKey: 0,
       keyboardUIoctaveStart: 1,
       keyboardUIoctaveEnd: 6,
-      metronomeStatus: false,
-      metronomeMessage: "METRONOME ON",
+      metronomeStatus: true,
       playbackMessage: "Start THE Playback",
       playing: false,
     };
@@ -131,20 +172,29 @@ export default {
         this.keyboardUIKey += 1;
       },
     },
+    BPM: {
+      immediate: true,
+      handler(newValue) {
+        Tone.Transport.bpm.value = newValue;
+        console.log("New BPM Value Set: " + Tone.Transport.bpm.value);
+      },
+    },
   },
 
   methods: {
-
     toggleMetronome() {
       // Right now it only updates the message.
       // Easy to customize into doing other stuff in the future.
       if (this.metronomeStatus) {
-        this.metronomeMessage = "METRONOME ON";
-        Metronome.stop();
+        this.metronomeMessage = "Metronome On";
+        metronomeBus.mute = true;
+        console.log("Metronome is muted.");
       } else {
-        this.metronomeMessage = "METRONOME OFF";
-        Metronome.start();
+        this.metronomeMessage = "Metronome Mute";
+        metronomeBus.mute = false;
+        console.log("Metronome is On.");
       }
+      this.metronomeStatus = !this.metronomeStatus;
     },
 
     togglePlayback() {
@@ -173,6 +223,11 @@ export default {
       var vm = this;
       // Allowing tickNumber to add to itself.
       vm.clockStatus = !vm.clockStatus;
+      if (vm.clockStatus) {
+        if (metronomeBus.muted) metronomeBus.mute = false;
+      } else {
+        metronomeBus.mute = true;
+      }
       // If the clock is not yet initialized...
       if (!vm.clockInitialized) {
         // Then set it to intialized
@@ -184,10 +239,12 @@ export default {
             Now it's configured to add to tickNumber at every tick.
             When "paused", it stop adding to itself.
           */
-          if (vm.clockStatus){
+          if (vm.clockStatus) {
             vm.tickNumber += 1;
-          };
+          }
+          // Below are behaviors.
           console.log("Tick #" + vm.tickNumber + " sent out!");
+          metronomeTrigger(vm.tickNumber, "4n");
         }, (60 / this.BPM / 4) * 1000); // Set to sixteenth notes ticks.
       }
     },
