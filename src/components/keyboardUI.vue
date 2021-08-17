@@ -26,6 +26,7 @@ import * as Tone from 'tone'
 import Instruments from "@/library/instruments";
 import { clamp } from "@/library/math"
 import pianoState from "@/library/piano-state"
+import bufferState from "@/library/buffer-state";
 
 const WHITE_KEYS = ["C", "D", "E", "F", "G", "A", "B"]
 const BLACK_KEYS = ["C#", "D#", null, "F#", "G#", "A#", null]
@@ -124,13 +125,6 @@ export default {
     }
   },
 
-  // methods: {
-  //   playNote(note) {
-      
-  //     console.log(note)
-  //   }
-  // },
-
   data() {
     return {
       offsets: {
@@ -150,9 +144,11 @@ export default {
 
     toggleAttack(note) {
       // Trigger the sampler.
-       pianoSampler.triggerAttack(note, Tone.now());
+      pianoSampler.triggerAttack(note, Tone.now());
       // Change the global piano-state.
       pianoState[note] = true;
+      // Add into buffer.
+      bufferState[note] = true;
     },
 
     toggleRelease(note) {
@@ -171,6 +167,10 @@ export default {
   computed: {
     pianoState() {
       return pianoState
+    },
+
+    bufferState() {
+      return bufferState
     },
 
     offsetStart() {

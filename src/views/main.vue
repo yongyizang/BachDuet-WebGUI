@@ -1,6 +1,6 @@
 <template>
   <div class="home">
-    <div id="pianoScores"></div>
+    <scoreUI />
     <keyboardUI
       id="pianoKeyboard"
       class="pianoKeyboard"
@@ -46,11 +46,12 @@
 import * as Tone from "tone";
 import { Buffer, Sequence, Transport, Event, Draw, context } from "tone";
 import { Midi } from "@tonejs/midi";
+import { createRange } from "@/library/music"
 import keyboardUI from "@/components/keyboardUI.vue";
-import * as Metronome from "@/library/Metronome";
+import scoreUI from "@/components/scoreUI.vue";
 import Instruments from "@/library/instruments";
-import pianoState, { reset } from "@/library/piano-state";
-import Vex from "vexflow";
+import pianoState from "@/library/piano-state";
+import bufferState from "@/library/buffer-state";
 
 const userMap = [
   // Here, we store all users name in the current order of keys.
@@ -140,6 +141,7 @@ export default {
 
   components: {
     keyboardUI,
+    scoreUI
   },
 
   watch: {
@@ -243,54 +245,28 @@ export default {
             vm.tickNumber += 1;
           }
           // Below are behaviors.
-          console.log("Tick #" + vm.tickNumber + " sent out!");
+          const notes = createRange("A0", "C8")
+          let quantizedInput = []
+          for (const note of notes){
+            if (bufferState[note.name]){
+                quantizedInput.push(note.name);
+            }
+          }
+
+          console.log("Tick #" + vm.tickNumber + " sent out!\n Quantized Inputs include: ");
           metronomeTrigger(vm.tickNumber, "4n");
+          console.log(quantizedInput);
+
+          // Reset BufferState.
+          for (const note of notes){
+            bufferState[note.name] = false;
+          }
         }, (60 / this.BPM / 4) * 1000); // Set to sixteenth notes ticks.
       }
     },
   },
 
   mounted() {
-    const VF = Vex.Flow;
-
-    // Create an SVG renderer and attach it to the DIV element named "boo".
-    var VFdiv = document.getElementById("pianoScores");
-    var VFrenderer = new VF.Renderer(VFdiv, VF.Renderer.Backends.SVG);
-
-    // Size our SVG:
-    VFrenderer.resize(this.screenWidth, scoreHeight);
-
-    // And get a drawing context:
-    var VFcontext = VFrenderer.getContext();
-
-    // Create a stave at position 10, 40 of width 400 on the canvas.
-    var VFstave1 = new VF.Stave(30, 10, this.screenWidth - 60);
-    VFstave1.addClef("treble").addTimeSignature("4/4");
-    var VFstave2 = new VF.Stave(30, 100, this.screenWidth - 60);
-    VFstave2.addClef("bass").addTimeSignature("4/4");
-
-    // Create a stave at position 10, 40 of width 400 on the canvas.
-    var VFstave3 = new VF.Stave(30, 180, this.screenWidth - 60);
-    VFstave3.addClef("treble").addTimeSignature("4/4");
-    var VFstave4 = new VF.Stave(30, 260, this.screenWidth - 60);
-    VFstave4.addClef("bass").addTimeSignature("4/4");
-
-    var lineLeft = new Vex.Flow.StaveConnector(VFstave1, VFstave2).setType(1);
-    var brace = new Vex.Flow.StaveConnector(VFstave1, VFstave2).setType(3); // 3 = brace
-
-    var lineLeft2 = new Vex.Flow.StaveConnector(VFstave3, VFstave4).setType(1);
-    var brace2 = new Vex.Flow.StaveConnector(VFstave3, VFstave4).setType(3); // 3 = brace
-
-    // Connect it to the rendering context and draw!
-    VFstave1.setContext(VFcontext).draw();
-    VFstave2.setContext(VFcontext).draw();
-    VFstave3.setContext(VFcontext).draw();
-    VFstave4.setContext(VFcontext).draw();
-    lineLeft.setContext(VFcontext).draw();
-    brace.setContext(VFcontext).draw();
-    lineLeft2.setContext(VFcontext).draw();
-    brace2.setContext(VFcontext).draw();
-
     const that = this;
     window.onresize = () => {
       return (() => {
