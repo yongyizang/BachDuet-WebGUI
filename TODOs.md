@@ -2,14 +2,7 @@
 - PROVIDE PROPER COMMENTING
 
 - Clock
-  - Start, Pause
-  - Clock behaviors
   - BPM change
-
-- Metronome
-  - A sampler
-  - Takes input from Clock
-  - Send to a different bus, could be muted (Gain -60 dB) by a separate button.
 
 - Computer Keyboard Input
   - A function that recognizes keydown (and keyup) events. Using Audiokeys.
