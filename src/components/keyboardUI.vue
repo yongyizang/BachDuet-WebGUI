@@ -40,9 +40,6 @@ const MIN_NOTE = 0
 const MAX_NOTE = 6
 const SAMPLER_RELEASE = 2;
 
-Tone.start();
-Tone.context.lookAhead = 0;
-
 const pianoSampler = new Instruments().createSampler("piano", (piano) => {
     piano.release = SAMPLER_RELEASE;
     piano.toDestination();
@@ -127,13 +124,6 @@ export default {
     }
   },
 
-  // methods: {
-  //   playNote(note) {
-      
-  //     console.log(note)
-  //   }
-  // },
-
   data() {
     return {
       offsets: {
@@ -151,15 +141,19 @@ export default {
       return pianoState[note] === true
     },
 
-    toggleAttack(note) {
+    toggleAttack(currentNote) {
       // Trigger the sampler.
-       pianoSampler.triggerAttack(note, Tone.now());
+      pianoSampler.triggerAttack(currentNote, Tone.now());
       // Change the global piano-state.
-      pianoState[note] = true;
+      pianoState[currentNote] = true;
+      // Add into buffer.
+      this.$store.commit('noteOn', currentNote);
     },
 
     toggleRelease(note) {
+      // Release the sampler that's been triggered.
       pianoSampler.triggerRelease(note, Tone.now());
+      // Also change the global piano-state.
       pianoState[note] = false;
     },
 

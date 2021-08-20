@@ -9,6 +9,7 @@ export const INSTRUMENT_BASE_URL = "/audio/samples/"
 
 // Define the ranges of each instrument (as samples provided)
 export const SAMPLE_RANGES = {
+  metronome: ["C0", "C#0"], // C0 for high_woodblock, C#0 for low_woodblock;
   bassElectric: ["A#2", "G5"],
   bassoon: ["A1", "G3"],
   cello: ["A2", "G#4"],

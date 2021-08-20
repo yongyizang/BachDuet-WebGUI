@@ -1,6 +1,8 @@
 <template>
   <div class="home">
-    <div id="pianoScores"></div>
+    <scoreUI 
+      :height=900
+    />
     <keyboardUI
       id="pianoKeyboard"
       class="pianoKeyboard"
@@ -11,6 +13,9 @@
 
     <!-- logic handled by this file for decoupling purposes. -->
     <div class="octaveControls">
+      <button class="octs" v-if="clockInitialized" @click="toggleMetronome">
+        {{metronomeStatus ? "Mute Metronome" : "Unmute Metronome"}}
+      </button>
       <button
         class="octs"
         v-if="keyboardUIoctaveEnd !== 8"
@@ -27,13 +32,13 @@
       </button>
     </div>
     <div class="timingControls">
-      <button class="octs" @click="toggleMetronome">
-        {{ metronomeMessage }}
-      </button>
       <button class="octs" @click="togglePlayback">
-      {{ playbackMessage }}
-    </button>
-    <span style="color:white">Set BPM As:<input id="bpm"/></span>
+        {{ playbackMessage }}
+      </button>
+      <span style="color: white"
+        >Set BPM As:<input id="bpm" v-model="BPM"
+      /></span>
+      <button class="octs" @click="toggleClock">Clock</button>
     </div>
   </div>
 </template>
@@ -43,16 +48,16 @@
 import * as Tone from "tone";
 import { Buffer, Sequence, Transport, Event, Draw, context } from "tone";
 import { Midi } from "@tonejs/midi";
+import { createRange } from "@/library/music"
 import keyboardUI from "@/components/keyboardUI.vue";
-import * as Metronome from "@/library/Metronome";
+import scoreUI from "@/components/scoreUI.vue";
 import Instruments from "@/library/instruments";
-import pianoState, { reset } from "@/library/piano-state";
-import Vex from 'vexflow';
+import pianoState from "@/library/piano-state";
 
 const userMap = [
   // Here, we store all users name in the current order of keys.
-  'user1'
-]
+  "user1",
+];
 
 // Initialize Piano Sampler 1. This is for User.
 // Initialize is done within the UI Component. See components/keyboardUI.vue
@@ -60,19 +65,60 @@ const userMap = [
 // Then, for each user, we create another "AI" piano sampler, which also, sends to a separate bus.
 // This is done by changing the "piano.toDestination()" code, which should determine which bus it got send to.
 const AISampler = new Instruments().createSampler("piano", (piano) => {
-    piano.release = 2;
-    piano.toDestination();
+  piano.release = 2;
+  piano.toDestination();
 });
 
 // Initialize Metronome Sampler.
 // Bugs here.
-// const metronomeSampler = new Instruments().createSampler("metronome", (metronome) => {
-//     metronome.release = 2;
-//     metronome.toDestination();
-// });
+
+
+const metronomeSampler = new Instruments().createSampler(
+  "metronome",
+  (metronome) => {
+    metronome.release = 2;
+  }
+);
+const metronomeBus = new Tone.Channel().toDestination();
+metronomeSampler.connect(metronomeBus);
+
+// Metronome Behavior.
+// Decouple later.
+function metronomeTrigger(tickNumber, interval) {
+  var vm = this;
+  var intervalIntegar = 4;
+  if (!["2n", "4n", "8n", "16n"].includes(interval)) {
+    throw new Error(
+      "metronomeTrigger: the interval entered is not supported. Please try 2n, 4n, 8n or 16n."
+    );
+  } else {
+    switch (interval) {
+      case "2n":
+        intervalIntegar = 8;
+        break;
+      case "4n":
+        intervalIntegar = 4;
+        break;
+      case "8n":
+        intervalIntegar = 2;
+        break;
+      case "16n":
+        intervalIntegar = 1;
+        break;
+    }
+    if (tickNumber % intervalIntegar == 0) {
+      var note = tickNumber % 16 === 0 ? "C#0" : "C0";
+      metronomeSampler.triggerAttackRelease(note, 0.2, Tone.now());
+    }
+  }
+}
+
+window.onclick = () => {
+  Tone.start();
+  Tone.context.lookAhead = 0;
+};
 
 const scoreHeight = 400;
-
 
 export default {
   name: "main",
@@ -80,13 +126,15 @@ export default {
   data() {
     return {
       BPM: 60,
+      tickNumber: -1,
+      clockStatus: false,
+      clockInitialized: false,
       screenWidth: document.body.clientWidth,
       screenHeight: document.body.clientHeight,
       keyboardUIKey: 0,
       keyboardUIoctaveStart: 1,
       keyboardUIoctaveEnd: 6,
-      metronomeStatus: false,
-      metronomeMessage: "METRONOME ON",
+      metronomeStatus: true,
       playbackMessage: "Start THE Playback",
       playing: false,
     };
@@ -94,6 +142,7 @@ export default {
 
   components: {
     keyboardUI,
+    scoreUI
   },
 
   watch: {
@@ -126,6 +175,13 @@ export default {
         this.keyboardUIKey += 1;
       },
     },
+    BPM: {
+      immediate: true,
+      handler(newValue) {
+        Tone.Transport.bpm.value = newValue;
+        console.log("New BPM Value Set: " + Tone.Transport.bpm.value);
+      },
+    },
   },
 
   methods: {
@@ -133,19 +189,15 @@ export default {
       // Right now it only updates the message.
       // Easy to customize into doing other stuff in the future.
       if (this.metronomeStatus) {
-        this.metronomeMessage = "METRONOME ON";
-        Metronome.stop();
+        this.metronomeMessage = "Metronome On";
+        metronomeBus.mute = true;
+        console.log("Metronome is muted.");
       } else {
-        this.metronomeMessage = "METRONOME OFF";
-        Metronome.setBPM(this.BPM);
-        Metronome.start();
+        this.metronomeMessage = "Metronome Mute";
+        metronomeBus.mute = false;
+        console.log("Metronome is On.");
       }
       this.metronomeStatus = !this.metronomeStatus;
-        this.metronomeMessage = "METRONOME ON"
-      } else {
-        this.metronomeMessage = "METRONOME OFF"
-      }
-      this.metronomeStatus = !this.metronomeStatus
     },
 
     togglePlayback() {
@@ -169,50 +221,44 @@ export default {
       this.keyboardUIoctaveStart -= 1;
       this.keyboardUIoctaveEnd -= 1;
     },
+
+    toggleClock() {
+      var vm = this;
+      // Allowing tickNumber to add to itself.
+      vm.clockStatus = !vm.clockStatus;
+      if (vm.clockStatus) {
+        if (metronomeBus.muted) metronomeBus.mute = false;
+      } else {
+        metronomeBus.mute = true;
+      }
+      // If the clock is not yet initialized...
+      if (!vm.clockInitialized) {
+        // Then set it to intialized
+        vm.clockInitialized = true;
+        // And intialized it.
+        setInterval(function sendTicksOut() {
+          /*
+            So here's what every "tick" does.
+            Now it's configured to add to tickNumber at every tick.
+            When "paused", it stop adding to itself.
+          */
+          if (vm.clockStatus) {
+            vm.tickNumber += 1;
+          }
+          // Below are behaviors.
+
+          console.log("Tick #" + vm.tickNumber + " sent out!\n Quantized Inputs include: ");
+          metronomeTrigger(vm.tickNumber, "4n");
+          console.log(vm.$store.getters.getBufferedNotes);
+
+          // Reset global BufferState.
+          vm.$store.commit('clearBuffer');
+        }, (60 / this.BPM / 4) * 1000); // Set to sixteenth notes ticks.
+      }
+    },
   },
 
   mounted() {
-    const VF = Vex.Flow;
-
-    // Create an SVG renderer and attach it to the DIV element named "boo".
-    var VFdiv = document.getElementById("pianoScores")
-    var VFrenderer = new VF.Renderer(VFdiv, VF.Renderer.Backends.SVG);
-
-    // Size our SVG:
-    VFrenderer.resize(this.screenWidth, scoreHeight);
-
-    // And get a drawing context:
-    var VFcontext = VFrenderer.getContext();
-
-    // Create a stave at position 10, 40 of width 400 on the canvas.
-    var VFstave1 = new VF.Stave(30, 10, this.screenWidth - 60);
-    VFstave1.addClef("treble").addTimeSignature("4/4");
-    var VFstave2 = new VF.Stave(30, 100, this.screenWidth - 60);
-    VFstave2.addClef("bass").addTimeSignature("4/4");
-
-    // Create a stave at position 10, 40 of width 400 on the canvas.
-    var VFstave3 = new VF.Stave(30, 180, this.screenWidth - 60);
-    VFstave3.addClef("treble").addTimeSignature("4/4");
-    var VFstave4 = new VF.Stave(30, 260, this.screenWidth - 60);
-    VFstave4.addClef("bass").addTimeSignature("4/4");
-
-
-    var lineLeft = new Vex.Flow.StaveConnector(VFstave1, VFstave2).setType(1);
-    var brace = new Vex.Flow.StaveConnector(VFstave1, VFstave2).setType(3); // 3 = brace
-
-    var lineLeft2 = new Vex.Flow.StaveConnector(VFstave3, VFstave4).setType(1);
-    var brace2 = new Vex.Flow.StaveConnector(VFstave3, VFstave4).setType(3); // 3 = brace
-
-    // Connect it to the rendering context and draw!
-    VFstave1.setContext(VFcontext).draw();
-    VFstave2.setContext(VFcontext).draw();
-    VFstave3.setContext(VFcontext).draw();
-    VFstave4.setContext(VFcontext).draw();
-    lineLeft.setContext(VFcontext).draw();
-    brace.setContext(VFcontext).draw();
-    lineLeft2.setContext(VFcontext).draw();
-    brace2.setContext(VFcontext).draw();
-    
     const that = this;
     window.onresize = () => {
       return (() => {
@@ -234,7 +280,7 @@ export default {
       const reverb = new Tone.Reverb({
         predelay: 0.125,
         decay: 1.3,
-        wet: 0.5
+        wet: 0.5,
       });
       piano.chain(reverb, Tone.Destination);
 
@@ -287,25 +333,24 @@ export default {
 </script>
 
 <style scoped>
-
 .pianoKeyboard {
-  z-index:1;
+  z-index: 1;
   position: fixed;
   bottom: 0;
   border-radius: 2px;
-  -webkit-box-shadow: 0px 3px 19px 8px rgba(0,0,0,0.68); 
-  box-shadow: 0px 3px 19px 8px rgba(0,0,0,0.68);
+  -webkit-box-shadow: 0px 3px 19px 8px rgba(0, 0, 0, 0.68);
+  box-shadow: 0px 3px 19px 8px rgba(0, 0, 0, 0.68);
 }
 
 .octaveControls {
-  z-index:3;
+  z-index: 3;
   position: fixed;
   right: 30px;
   bottom: 170px;
 }
 
 .timingControls {
-  z-index:3;
+  z-index: 3;
   position: fixed;
   left: 30px;
   bottom: 170px;
@@ -323,18 +368,5 @@ export default {
   margin: 0;
   position: absolute;
   bottom: 196px;
-}
-
-#pianoScores {
-  z-index:1;
-  background-image:url('/paper-texture.jpg');
-  background-repeat:no-repeat;
-  background-size:cover;
-  background-position:center;
-  width: 100%;
-  position: fixed;
-  top: 0;
-  -webkit-box-shadow: 0px 8px 16px -6px #000000; 
-  box-shadow: 0px 8px 16px -6px #000000;
 }
 </style>
