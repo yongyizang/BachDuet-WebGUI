@@ -5,8 +5,21 @@
 <script>
 import Vex from "vexflow";
 
+const DEFAULT_HEIGHT = 400;
+
 export default {
   name: "scoreUI",
+  props: {
+    height: {
+      type: Number,
+      validator(value) {
+        return value > 0 && value < document.body.clientWidth
+      },
+      default() {
+        return DEFAULT_HEIGHT
+      }
+    }
+  },
 
   data() {
     return {
@@ -24,11 +37,11 @@ export default {
   },
 
   mounted() {
-    const that = this;
+    const vm = this;
     window.onresize = () => {
       return (() => {
         window.screenWidth = document.body.clientWidth;
-        that.screenWidth = window.screenWidth;
+        vm.screenWidth = window.screenWidth;
       })();
     };
 
@@ -39,7 +52,7 @@ export default {
     var VFrenderer = new VF.Renderer(VFdiv, VF.Renderer.Backends.SVG);
 
     // Size our SVG:
-    VFrenderer.resize(this.screenWidth, 400);
+    VFrenderer.resize(this.screenWidth, vm.height);
 
     // And get a drawing context:
     var VFcontext = VFrenderer.getContext();
@@ -75,3 +88,17 @@ export default {
 };
 </script>
 
+<style scoped>
+#pianoScores {
+  z-index: 1;
+  background-image: url("/paper-texture.jpg");
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+  width: 100%;
+  position: fixed;
+  top: 0;
+  -webkit-box-shadow: 0px 8px 16px -6px #000000;
+  box-shadow: 0px 8px 16px -6px #000000;
+}
+</style>

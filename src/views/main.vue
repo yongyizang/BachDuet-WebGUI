@@ -1,6 +1,8 @@
 <template>
   <div class="home">
-    <scoreUI />
+    <scoreUI 
+      :height=900
+    />
     <keyboardUI
       id="pianoKeyboard"
       class="pianoKeyboard"
@@ -51,7 +53,6 @@ import keyboardUI from "@/components/keyboardUI.vue";
 import scoreUI from "@/components/scoreUI.vue";
 import Instruments from "@/library/instruments";
 import pianoState from "@/library/piano-state";
-import bufferState from "@/library/buffer-state";
 
 const userMap = [
   // Here, we store all users name in the current order of keys.
@@ -245,22 +246,13 @@ export default {
             vm.tickNumber += 1;
           }
           // Below are behaviors.
-          const notes = createRange("A0", "C8")
-          let quantizedInput = []
-          for (const note of notes){
-            if (bufferState[note.name]){
-                quantizedInput.push(note.name);
-            }
-          }
 
           console.log("Tick #" + vm.tickNumber + " sent out!\n Quantized Inputs include: ");
           metronomeTrigger(vm.tickNumber, "4n");
-          console.log(quantizedInput);
+          console.log(vm.$store.getters.getBufferedNotes);
 
-          // Reset BufferState.
-          for (const note of notes){
-            bufferState[note.name] = false;
-          }
+          // Reset global BufferState.
+          vm.$store.commit('clearBuffer');
         }, (60 / this.BPM / 4) * 1000); // Set to sixteenth notes ticks.
       }
     },
@@ -376,18 +368,5 @@ export default {
   margin: 0;
   position: absolute;
   bottom: 196px;
-}
-
-#pianoScores {
-  z-index: 1;
-  background-image: url("/paper-texture.jpg");
-  background-repeat: no-repeat;
-  background-size: cover;
-  background-position: center;
-  width: 100%;
-  position: fixed;
-  top: 0;
-  -webkit-box-shadow: 0px 8px 16px -6px #000000;
-  box-shadow: 0px 8px 16px -6px #000000;
 }
 </style>

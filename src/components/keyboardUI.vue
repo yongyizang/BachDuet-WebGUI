@@ -26,7 +26,6 @@ import * as Tone from 'tone'
 import Instruments from "@/library/instruments";
 import { clamp } from "@/library/math"
 import pianoState from "@/library/piano-state"
-import bufferState from "@/library/buffer-state";
 
 const WHITE_KEYS = ["C", "D", "E", "F", "G", "A", "B"]
 const BLACK_KEYS = ["C#", "D#", null, "F#", "G#", "A#", null]
@@ -142,17 +141,19 @@ export default {
       return pianoState[note] === true
     },
 
-    toggleAttack(note) {
+    toggleAttack(currentNote) {
       // Trigger the sampler.
-      pianoSampler.triggerAttack(note, Tone.now());
+      pianoSampler.triggerAttack(currentNote, Tone.now());
       // Change the global piano-state.
-      pianoState[note] = true;
+      pianoState[currentNote] = true;
       // Add into buffer.
-      bufferState[note] = true;
+      this.$store.commit('noteOn', currentNote);
     },
 
     toggleRelease(note) {
+      // Release the sampler that's been triggered.
       pianoSampler.triggerRelease(note, Tone.now());
+      // Also change the global piano-state.
       pianoState[note] = false;
     },
 
@@ -167,10 +168,6 @@ export default {
   computed: {
     pianoState() {
       return pianoState
-    },
-
-    bufferState() {
-      return bufferState
     },
 
     offsetStart() {
