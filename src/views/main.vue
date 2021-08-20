@@ -1,8 +1,6 @@
 <template>
   <div class="home">
-    <scoreUI 
-      :height=900
-    />
+    <scoreUI :height="400" />
     <keyboardUI
       id="pianoKeyboard"
       class="pianoKeyboard"
@@ -14,7 +12,7 @@
     <!-- logic handled by this file for decoupling purposes. -->
     <div class="octaveControls">
       <button class="octs" v-if="clockInitialized" @click="toggleMetronome">
-        {{metronomeStatus ? "Mute Metronome" : "Unmute Metronome"}}
+        {{ metronomeStatus ? "Mute Metronome" : "Unmute Metronome" }}
       </button>
       <button
         class="octs"
@@ -36,7 +34,7 @@
         {{ playbackMessage }}
       </button>
       <span style="color: white"
-        >Set BPM As:<input id="bpm" v-model="BPM"
+        >Set BPM As:<input id="bpm" v-model.lazy="BPM"
       /></span>
       <button class="octs" @click="toggleClock">Clock</button>
     </div>
@@ -48,7 +46,7 @@
 import * as Tone from "tone";
 import { Buffer, Sequence, Transport, Event, Draw, context } from "tone";
 import { Midi } from "@tonejs/midi";
-import { createRange } from "@/library/music"
+import { createRange } from "@/library/music";
 import keyboardUI from "@/components/keyboardUI.vue";
 import scoreUI from "@/components/scoreUI.vue";
 import Instruments from "@/library/instruments";
@@ -71,7 +69,6 @@ const AISampler = new Instruments().createSampler("piano", (piano) => {
 
 // Initialize Metronome Sampler.
 // Bugs here.
-
 
 const metronomeSampler = new Instruments().createSampler(
   "metronome",
@@ -129,6 +126,7 @@ export default {
       tickNumber: -1,
       clockStatus: false,
       clockInitialized: false,
+      clockNumber: -1,
       screenWidth: document.body.clientWidth,
       screenHeight: document.body.clientHeight,
       keyboardUIKey: 0,
@@ -142,7 +140,7 @@ export default {
 
   components: {
     keyboardUI,
-    scoreUI
+    scoreUI,
   },
 
   watch: {
@@ -179,7 +177,6 @@ export default {
       immediate: true,
       handler(newValue) {
         Tone.Transport.bpm.value = newValue;
-        console.log("New BPM Value Set: " + Tone.Transport.bpm.value);
       },
     },
   },
@@ -223,6 +220,7 @@ export default {
     },
 
     toggleClock() {
+      console.log("clicked");
       var vm = this;
       // Allowing tickNumber to add to itself.
       vm.clockStatus = !vm.clockStatus;
@@ -236,24 +234,32 @@ export default {
         // Then set it to intialized
         vm.clockInitialized = true;
         // And intialized it.
-        setInterval(function sendTicksOut() {
-          /*
-            So here's what every "tick" does.
-            Now it's configured to add to tickNumber at every tick.
-            When "paused", it stop adding to itself.
-          */
-          if (vm.clockStatus) {
-            vm.tickNumber += 1;
+
+        sendOutTicks();
+
+        // Clock behavior function.
+        function tickBehavior(){
+          if (vm.clockStatus){
+              vm.tickNumber += 1;
           }
-          // Below are behaviors.
+              // Below are behaviors.
+              console.log(
+                "Tick #" +
+                  vm.tickNumber +
+                  " sent out!\n Quantized Inputs include: "
+              );
+              metronomeTrigger(vm.tickNumber, "4n");
+              console.log(vm.$store.getters.getBufferedNotes);
 
-          console.log("Tick #" + vm.tickNumber + " sent out!\n Quantized Inputs include: ");
-          metronomeTrigger(vm.tickNumber, "4n");
-          console.log(vm.$store.getters.getBufferedNotes);
+              // Reset global BufferState.
+              vm.$store.commit("clearBuffer");
+        }
 
-          // Reset global BufferState.
-          vm.$store.commit('clearBuffer');
-        }, (60 / this.BPM / 4) * 1000); // Set to sixteenth notes ticks.
+        function sendOutTicks() {
+          console.log("tick send.");
+          tickBehavior();
+          setTimeout(sendOutTicks, ((60 / vm.BPM / 4) * 1000));
+        }
       }
     },
   },
