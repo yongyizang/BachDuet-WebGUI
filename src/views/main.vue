@@ -32,9 +32,9 @@
       </button>
     </div>
     <div class="timingControls">
-      <button class="octs" @click="togglePlayback">
+      <!-- <button class="octs" @click="togglePlayback">
         {{ playbackMessage }}
-      </button>
+      </button> -->
       <span style="color: white"
         >Set BPM As:<input id="bpm" v-model="BPM"
       /></span>
@@ -47,12 +47,14 @@
 <script>
 import * as Tone from "tone";
 import { Buffer, Sequence, Transport, Event, Draw, context } from "tone";
+<<<<<<< Updated upstream
 import { Midi } from "@tonejs/midi";
 import { createRange } from "@/library/music"
+=======
+>>>>>>> Stashed changes
 import keyboardUI from "@/components/keyboardUI.vue";
 import scoreUI from "@/components/scoreUI.vue";
 import Instruments from "@/library/instruments";
-import pianoState from "@/library/piano-state";
 
 const userMap = [
   // Here, we store all users name in the current order of keys.
@@ -118,7 +120,7 @@ window.onclick = () => {
   Tone.context.lookAhead = 0;
 };
 
-const scoreHeight = 400;
+// const scoreHeight = 400;
 
 export default {
   name: "main",
@@ -236,16 +238,23 @@ export default {
         // Then set it to intialized
         vm.clockInitialized = true;
         // And intialized it.
+<<<<<<< Updated upstream
         setInterval(function sendTicksOut() {
           /*
             So here's what every "tick" does.
             Now it's configured to add to tickNumber at every tick.
             When "paused", it stop adding to itself.
           */
+=======
+
+        // Clock behavior function.
+        function tickBehavior() {
+>>>>>>> Stashed changes
           if (vm.clockStatus) {
             vm.tickNumber += 1;
           }
           // Below are behaviors.
+<<<<<<< Updated upstream
 
           console.log("Tick #" + vm.tickNumber + " sent out!\n Quantized Inputs include: ");
           metronomeTrigger(vm.tickNumber, "4n");
@@ -254,6 +263,29 @@ export default {
           // Reset global BufferState.
           vm.$store.commit('clearBuffer');
         }, (60 / this.BPM / 4) * 1000); // Set to sixteenth notes ticks.
+=======
+          console.log(
+            "Tick #" + vm.tickNumber + " sent out!\n Quantized Inputs include: "
+          );
+          metronomeTrigger(vm.tickNumber, "4n");
+          console.log(vm.$store.getters.getBufferedNotes);
+          console.log(
+            "Last note played: " + vm.$store.getters.getLastNotePlayed
+          );
+          // Reset global BufferState.
+          vm.$store.commit("clearBuffer");
+        }
+
+        function sendOutTicks() {
+          console.log("tick send.");
+          tickBehavior();
+          // Recursively call the tick sending function (itself), update BPM at each tick.
+          setTimeout(sendOutTicks, (60 / vm.BPM / 4) * 1000);
+        }
+
+        // Call it for the first time.
+        sendOutTicks();
+>>>>>>> Stashed changes
       }
     },
   },
@@ -271,63 +303,6 @@ export default {
   created() {
     Tone.context.lookAhead = 0;
     const instruments = new Instruments();
-
-    instruments.createSampler("piano", (piano) => {
-      piano.release = 2;
-      piano.toDestination();
-
-      // A bare minimum room reverb.
-      const reverb = new Tone.Reverb({
-        predelay: 0.125,
-        decay: 1.3,
-        wet: 0.5,
-      });
-      piano.chain(reverb, Tone.Destination);
-
-      const now = Tone.now() + 0.5;
-      Midi.fromUrl("/audio/midi/demo.mid")
-        .then((midi) => {
-          midi.tracks.forEach((track) => {
-            track.notes.forEach((note) => {
-              Transport.schedule(() => {
-                piano.triggerAttackRelease(
-                  note.name,
-                  note.duration,
-                  Tone.now(),
-                  note.velocity
-                );
-              }, note.time + now);
-
-              Transport.schedule((time) => {
-                Draw.schedule(() => {
-                  pianoState[note.name] = true;
-                }, time);
-              }, note.time + now);
-
-              Transport.schedule((time) => {
-                Draw.schedule(() => {
-                  pianoState[note.name] = false;
-                }, time);
-              }, note.time + note.duration + now);
-            });
-          });
-        })
-        .catch(console.error);
-    });
-
-    Buffer.on("error", (error) => {
-      console.error(error);
-    });
-  },
-
-  computed: {
-    pianoState() {
-      return pianoState;
-    },
-
-    activeNote() {
-      return this.music[this.currentNoteIndex];
-    },
   },
 };
 </script>
