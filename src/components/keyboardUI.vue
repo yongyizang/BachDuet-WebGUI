@@ -25,8 +25,8 @@
 import * as Tone from 'tone'
 import Instruments from "@/library/instruments";
 import { clamp } from "@/library/math"
-// import pianoState from "@/library/piano-state"
 
+// Here, a set of constants are defined.
 const WHITE_KEYS = ["C", "D", "E", "F", "G", "A", "B"]
 const BLACK_KEYS = ["C#", "D#", null, "F#", "G#", "A#", null]
 const NOTE_OFFSETS = ["C", "D", "E", "F", "G", "A", "B"]
@@ -40,6 +40,7 @@ const MIN_NOTE = 0
 const MAX_NOTE = 6
 const SAMPLER_RELEASE = 2;
 
+// Initialize the pianoSampler.
 const pianoSampler = new Instruments().createSampler("piano", (piano) => {
     piano.release = SAMPLER_RELEASE;
     piano.toDestination();
@@ -166,15 +167,7 @@ export default {
   },
 
   computed: {
-    // pianoState() {
-    //   return pianoState
-    // },
-
     offsetStart() {
-      // if (this.octaveStart === 0 && this.offsets.noteStart < 5) {
-      //   return 5
-      // }
-
       return clamp(this.offsets.noteStart, MIN_NOTE, MAX_NOTE)
     },
 
@@ -184,7 +177,7 @@ export default {
 
     totalWhiteKeys() {
       return Math.min(
-        Infinity, // NUM_WHITE_KEYS_TOTAL,
+        Infinity,
         this.numOctaves * NUM_WHITE_KEYS_PER_OCTAVE -
           this.offsetStart -
           (NUM_WHITE_KEYS_PER_OCTAVE - (this.offsetEnd + 1))
@@ -193,7 +186,7 @@ export default {
 
     totalBlackKeys() {
       return Math.min(
-        Infinity, // NUM_BLACK_KEYS_TOTAL,
+        Infinity,
         this.numOctaves * NUM_BLACK_KEYS_PER_OCTAVE -
           this.offsetStart -
           (NUM_BLACK_KEYS_PER_OCTAVE - (this.offsetEnd + 1))
@@ -349,46 +342,5 @@ li.black span {
 .blank {
   border-width: 0;
   grid-row: 1 / span 2;
-}
-
-li {
-  transition: background-color 0.2s;
-}
-
-.Fs.active {
-  background-color: rgb(174, 0, 0);
-}
-.G.active {
-  background-color: rgb(255, 0, 0);
-}
-.Gs.active {
-  background-color: rgb(255, 0, 0);
-}
-.A.active {
-  background-color: rgb(255, 102, 0);
-}
-.As.active {
-  background-color: rgb(255, 239, 0);
-}
-.B.active {
-  background-color: rgb(153, 255, 0);
-}
-.C.active {
-  background-color: rgb(0, 40, 255);
-}
-.Cs.active {
-  background-color: rgb(0, 255, 242);
-}
-.D.active {
-  background-color: rgb(0, 122, 255);
-}
-.Ds.active {
-  background-color: rgb(5, 0, 255);
-}
-.E.active {
-  background-color: rgb(71, 0, 237);
-}
-.F.active {
-  background-color: rgb(99, 0, 178);
 }
 </style>

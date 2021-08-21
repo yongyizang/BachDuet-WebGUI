@@ -1,8 +1,9 @@
 <template>
+  <!--
+      main.vue, the application's main UI file.
+  -->
   <div class="home">
-    <scoreUI 
-      :height=900
-    />
+    <scoreUI :height="400" />
     <keyboardUI
       id="pianoKeyboard"
       class="pianoKeyboard"
@@ -14,8 +15,9 @@
     <!-- logic handled by this file for decoupling purposes. -->
     <div class="octaveControls">
       <button class="octs" v-if="clockInitialized" @click="toggleMetronome">
-        {{metronomeStatus ? "Mute Metronome" : "Unmute Metronome"}}
+        {{ metronomeStatus ? "Mute Metronome" : "Unmute Metronome" }}
       </button>
+
       <button
         class="octs"
         v-if="keyboardUIoctaveEnd !== 8"
@@ -23,6 +25,7 @@
       >
         OCT UP
       </button>
+
       <button
         class="octs"
         v-if="keyboardUIoctaveStart !== 0"
@@ -31,13 +34,16 @@
         OCT DOWN
       </button>
     </div>
+
     <div class="timingControls">
-      <!-- <button class="octs" @click="togglePlayback">
-        {{ playbackMessage }}
-      </button> -->
+      <!-- 
+        Set to automatically binding between this input and the data BPM.
+        v-model.lazy change the value only after the input lose focus.
+      -->
       <span style="color: white"
-        >Set BPM As:<input id="bpm" v-model="BPM"
+        >Set BPM As:<input id="bpm" v-model.lazy="BPM"
       /></span>
+
       <button class="octs" @click="toggleClock">Clock</button>
     </div>
   </div>
@@ -51,36 +57,35 @@ import keyboardUI from "@/components/keyboardUI.vue";
 import scoreUI from "@/components/scoreUI.vue";
 import Instruments from "@/library/instruments";
 
-const userMap = [
-  // Here, we store all users name in the current order of keys.
-  "user1",
-];
+/*
+  Initialization Process.
+  Here we initialize all necessary samplers, buses, functions, etc.
+*/
 
 // Initialize Piano Sampler 1. This is for User.
 // Initialize is done within the UI Component. See components/keyboardUI.vue
+
 // For every user in userMap, we create a sampler, which sends to a separate bus.
 // Then, for each user, we create another "AI" piano sampler, which also, sends to a separate bus.
 // This is done by changing the "piano.toDestination()" code, which should determine which bus it got send to.
+
 const AISampler = new Instruments().createSampler("piano", (piano) => {
   piano.release = 2;
   piano.toDestination();
 });
 
 // Initialize Metronome Sampler.
-// Bugs here.
-
-
 const metronomeSampler = new Instruments().createSampler(
   "metronome",
   (metronome) => {
     metronome.release = 2;
   }
 );
+// This is the metronome Bus. We would need this for mixing purposes.
 const metronomeBus = new Tone.Channel().toDestination();
 metronomeSampler.connect(metronomeBus);
 
-// Metronome Behavior.
-// Decouple later.
+// Here we define the behavior for metronome trigger.
 function metronomeTrigger(tickNumber, interval) {
   var vm = this;
   var intervalIntegar = 4;
@@ -110,12 +115,11 @@ function metronomeTrigger(tickNumber, interval) {
   }
 }
 
+// This is for Web Audio restrictions, we need to make an user behavior to trigger the Tone.start() function.
 window.onclick = () => {
   Tone.start();
   Tone.context.lookAhead = 0;
 };
-
-// const scoreHeight = 400;
 
 export default {
   name: "main",
@@ -132,17 +136,27 @@ export default {
       keyboardUIoctaveStart: 1,
       keyboardUIoctaveEnd: 6,
       metronomeStatus: true,
-      playbackMessage: "Start THE Playback",
-      playing: false,
     };
   },
 
   components: {
     keyboardUI,
-    scoreUI
+    scoreUI,
+  },
+
+  mounted() {
+    // Everytime the window resizes, update the screenWidth in data immediately.
+    const vm = this;
+    window.onresize = () => {
+      return (() => {
+        window.screenWidth = document.body.clientWidth;
+        vm.screenWidth = window.screenWidth;
+      })();
+    };
   },
 
   watch: {
+    // At every screenWidth data change, this would automatically change the keyboardUI's octave number.
     screenWidth: {
       immediate: true,
       handler(newValue) {
@@ -162,16 +176,18 @@ export default {
           octaves = 7;
         }
         this.keyboardUIoctaveEnd = this.keyboardUIoctaveStart + octaves;
-        // force keyboardUI re-render itself.
+        // A trick, to force keyboardUI re-render itself.
         this.keyboardUIKey += 1;
       },
     },
+    // Using the same trick, when the UI octave Start number changes, forcing it to re-render.
     keyboardUIoctaveStart: {
       immediate: true,
       handler(newValue) {
         this.keyboardUIKey += 1;
       },
     },
+    // At every BPM change, change the Tone.js's BPM.
     BPM: {
       immediate: true,
       handler(newValue) {
@@ -182,33 +198,6 @@ export default {
   },
 
   methods: {
-    toggleMetronome() {
-      // Right now it only updates the message.
-      // Easy to customize into doing other stuff in the future.
-      if (this.metronomeStatus) {
-        this.metronomeMessage = "Metronome On";
-        metronomeBus.mute = true;
-        console.log("Metronome is muted.");
-      } else {
-        this.metronomeMessage = "Metronome Mute";
-        metronomeBus.mute = false;
-        console.log("Metronome is On.");
-      }
-      this.metronomeStatus = !this.metronomeStatus;
-    },
-
-    togglePlayback() {
-      Tone.start();
-      if (this.playing) {
-        Transport.pause();
-        this.playbackMessage = "Start THE Playback";
-      } else {
-        Transport.start();
-        this.playbackMessage = "Pause THE Playback";
-      }
-      this.playing = !this.playing;
-    },
-
     transposeOctUp() {
       this.keyboardUIoctaveStart += 1;
       this.keyboardUIoctaveEnd += 1;
@@ -219,6 +208,8 @@ export default {
       this.keyboardUIoctaveEnd -= 1;
     },
 
+    // The clock behavior is defined here.
+    // This is currently triggered by a button, but you could call this function anywhere to toggle the clock.
     toggleClock() {
       var vm = this;
       // Allowing tickNumber to add to itself.
@@ -263,21 +254,12 @@ export default {
         sendOutTicks();
       }
     },
-  },
 
-  mounted() {
-    const that = this;
-    window.onresize = () => {
-      return (() => {
-        window.screenWidth = document.body.clientWidth;
-        that.screenWidth = window.screenWidth;
-      })();
-    };
-  },
-
-  created() {
-    Tone.context.lookAhead = 0;
-    const instruments = new Instruments();
+    // when Metronome is toggled.
+    toggleMetronome() {
+      metronomeBus.mute = this.metronomeStatus;
+      this.metronomeStatus = !this.metronomeStatus;
+    },
   },
 };
 </script>
