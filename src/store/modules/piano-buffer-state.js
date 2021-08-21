@@ -17,14 +17,8 @@ const noteMapforPiano = notes.reduce((map, note) => {
 }, {})
 
 // noteMap is noted as observable.
-<<<<<<< Updated upstream
-// Vue is going to observe it and update it in real-time!
-// (TODO) implement this using Vuex
-const bufferStateMap = new Vue.observable(noteMap)
-=======
 const bufferStateMap = new Vue.observable(noteMapforBuffer)
 const pianoStateMap = new Vue.observable(noteMapforPiano)
->>>>>>> Stashed changes
 
 const state = {
     // Define all basic states.

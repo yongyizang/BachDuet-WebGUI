@@ -47,11 +47,6 @@
 <script>
 import * as Tone from "tone";
 import { Buffer, Sequence, Transport, Event, Draw, context } from "tone";
-<<<<<<< Updated upstream
-import { Midi } from "@tonejs/midi";
-import { createRange } from "@/library/music"
-=======
->>>>>>> Stashed changes
 import keyboardUI from "@/components/keyboardUI.vue";
 import scoreUI from "@/components/scoreUI.vue";
 import Instruments from "@/library/instruments";
@@ -238,32 +233,13 @@ export default {
         // Then set it to intialized
         vm.clockInitialized = true;
         // And intialized it.
-<<<<<<< Updated upstream
-        setInterval(function sendTicksOut() {
-          /*
-            So here's what every "tick" does.
-            Now it's configured to add to tickNumber at every tick.
-            When "paused", it stop adding to itself.
-          */
-=======
 
         // Clock behavior function.
         function tickBehavior() {
->>>>>>> Stashed changes
           if (vm.clockStatus) {
             vm.tickNumber += 1;
           }
           // Below are behaviors.
-<<<<<<< Updated upstream
-
-          console.log("Tick #" + vm.tickNumber + " sent out!\n Quantized Inputs include: ");
-          metronomeTrigger(vm.tickNumber, "4n");
-          console.log(vm.$store.getters.getBufferedNotes);
-
-          // Reset global BufferState.
-          vm.$store.commit('clearBuffer');
-        }, (60 / this.BPM / 4) * 1000); // Set to sixteenth notes ticks.
-=======
           console.log(
             "Tick #" + vm.tickNumber + " sent out!\n Quantized Inputs include: "
           );
@@ -285,7 +261,6 @@ export default {
 
         // Call it for the first time.
         sendOutTicks();
->>>>>>> Stashed changes
       }
     },
   },
