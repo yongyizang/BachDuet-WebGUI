@@ -122,7 +122,7 @@ window.onclick = () => {
 };
 
 export default {
-  name: "main",
+  name: "mainScreen",
 
   data() {
     return {

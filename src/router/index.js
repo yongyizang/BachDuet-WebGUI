@@ -6,7 +6,7 @@ Vue.use(VueRouter)
 const routes = [
   {
     path: "/",
-      name: "main",
+      name: "mainScreen",
       component: () => import(/* webpackChunkName: "piano" */ "../views/main.vue")
   },
 ]
