@@ -1,15 +1,8 @@
 # TODOs!
 - PROVIDE PROPER COMMENTING
 
-- Clock
-  - Start, Pause
-  - Clock behaviors
-  - BPM change
-
-- Metronome
-  - A sampler
-  - Takes input from Clock
-  - Send to a different bus, could be muted (Gain -60 dB) by a separate button.
+- Vuex Migration
+  - Migrate all global data to Vuex modules, and change all code to that.
 
 - Computer Keyboard Input
   - A function that recognizes keydown (and keyup) events. Using Audiokeys.

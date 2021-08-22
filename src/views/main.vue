@@ -93,6 +93,7 @@ function metronomeTrigger(tickNumber, interval) {
     throw new Error(
       "metronomeTrigger: the interval entered is not supported. Please try 2n, 4n, 8n or 16n."
     );
+    return
   } else {
     switch (interval) {
       case "2n":
@@ -211,14 +212,18 @@ export default {
     // The clock behavior is defined here.
     // This is currently triggered by a button, but you could call this function anywhere to toggle the clock.
     toggleClock() {
+      // vm is short for ViewModel
       var vm = this;
       // Allowing tickNumber to add to itself.
+
       vm.clockStatus = !vm.clockStatus;
+
       if (vm.clockStatus) {
         if (metronomeBus.muted) metronomeBus.mute = false;
       } else {
         metronomeBus.mute = true;
       }
+
       // If the clock is not yet initialized...
       if (!vm.clockInitialized) {
         // Then set it to intialized
@@ -234,7 +239,10 @@ export default {
           console.log(
             "Tick #" + vm.tickNumber + " sent out!\n Quantized Inputs include: "
           );
+
+          // How we call callback functions from other places.
           metronomeTrigger(vm.tickNumber, "4n");
+
           console.log(vm.$store.getters.getBufferedNotes);
           console.log(
             "Last note played: " + vm.$store.getters.getLastNotePlayed
