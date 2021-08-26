@@ -13,7 +13,7 @@ export default {
     height: {
       type: Number,
       validator(value) {
-        return value > 0 && value < document.body.clientWidth
+        return value > 0 && value < document.body.clientHeight
       },
       default() {
         return DEFAULT_HEIGHT
@@ -35,6 +35,8 @@ export default {
       },
     },
   },
+
+  
 
   mounted() {
     const vm = this;
