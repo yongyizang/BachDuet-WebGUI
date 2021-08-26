@@ -5,6 +5,20 @@
 <script>
 import Vex from "vexflow";
 
+/*
+  TODO: There is a way of managing score using VexTab, a language provided within vexflow.
+  Everytime we need to update anything, we just maintain a structure and a parser to parse that structure to VexTab,
+  Then ask vexflow to parse VexTab to Canvas.
+
+  Performance cost? sure, but it's literally just drawing lines.
+
+  So now we just need to figure out a way to manage the structure of the ongoing script.
+  How to do that?
+
+  Thoughts:
+  - An array of arrays. Saving stuff within each measure in an array, then save each note with its length within that measure.
+*/
+
 const DEFAULT_HEIGHT = 400;
 
 export default {
