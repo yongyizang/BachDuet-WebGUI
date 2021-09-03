@@ -2,7 +2,6 @@
 import Vue from "vue";
 
 const LOCALMAX = 16;
-const BARMAX = 8;
 
 const state = {
     globalTick: -1,
