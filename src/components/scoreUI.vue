@@ -4,8 +4,15 @@
 
 <script>
 import Vex from "vexflow";
+import noteHelper from "@/library/note-helper";
 
 const DEFAULT_HEIGHT = 400;
+
+const barWidth = 400;
+
+var measureNum = 1;
+
+const VF = Vex.Flow;
 
 export default {
   name: "scoreUI",
@@ -13,12 +20,12 @@ export default {
     height: {
       type: Number,
       validator(value) {
-        return value > 0 && value < document.body.clientWidth
+        return value > 0 && value < document.body.clientWidth;
       },
       default() {
-        return DEFAULT_HEIGHT
-      }
-    }
+        return DEFAULT_HEIGHT;
+      },
+    },
   },
 
   data() {
@@ -45,45 +52,109 @@ export default {
       })();
     };
 
-    const VF = Vex.Flow;
+    // Create an SVG renderer and attach it to the DIV element named "pianoScores".
+    var div = document.getElementById("pianoScores");
+    var renderer = new VF.Renderer(div, VF.Renderer.Backends.SVG);
+    renderer.resize(this.screenWidth, vm.height);
+    var context = renderer.getContext();
 
-    // Create an SVG renderer and attach it to the DIV element named "boo".
-    var VFdiv = document.getElementById("pianoScores");
-    var VFrenderer = new VF.Renderer(VFdiv, VF.Renderer.Backends.SVG);
+    // Define the first measure.
+    var userTrebleStave = new VF.Stave(30, 10, barWidth);
+    userTrebleStave
+      .addClef("treble")
+      .addTimeSignature("4/4")
+      .setContext(context)
+      .draw();
+    var userBassStave = new VF.Stave(30, 100, barWidth);
+    userBassStave
+      .addClef("bass")
+      .addTimeSignature("4/4")
+      .setContext(context)
+      .draw();
+    var userLineLeft = new Vex.Flow.StaveConnector(
+      userTrebleStave,
+      userBassStave
+    )
+      .setType(1)
+      .setContext(context)
+      .draw();
+    var userBrace = new Vex.Flow.StaveConnector(userTrebleStave, userBassStave)
+      .setType(3)
+      .setContext(context)
+      .draw(); // 3 = brace
 
-    // Size our SVG:
-    VFrenderer.resize(this.screenWidth, vm.height);
+    var AITrebleStave = new VF.Stave(30, 180, barWidth);
+    AITrebleStave.addClef("treble")
+      .addTimeSignature("4/4")
+      .setContext(context)
+      .draw();
+    var AIBassStave = new VF.Stave(30, 260, barWidth);
+    AIBassStave.addClef("bass")
+      .addTimeSignature("4/4")
+      .setContext(context)
+      .draw();
+    var AILineLeft = new Vex.Flow.StaveConnector(AITrebleStave, AIBassStave)
+      .setType(1)
+      .setContext(context)
+      .draw();
+    var AIBrace = new Vex.Flow.StaveConnector(AITrebleStave, AIBassStave)
+      .setType(3)
+      .setContext(context)
+      .draw(); // 3 = brace
 
-    // And get a drawing context:
-    var VFcontext = VFrenderer.getContext();
+    // var staveMeasure1 = new Vex.Flow.Stave(10, 0, 300);
+    // staveMeasure1
+    //   .addClef("treble")
+    //   .setContext(VFcontext)
+    //   .draw();
 
-    // Create a stave at position 10, 40 of width 400 on the canvas.
-    var VFstave1 = new VF.Stave(30, 10, this.screenWidth - 60);
-    VFstave1.addClef("treble").addTimeSignature("4/4");
-    var VFstave2 = new VF.Stave(30, 100, this.screenWidth - 60);
-    VFstave2.addClef("bass").addTimeSignature("4/4");
+    // var notesMeasure1 = [
+    //   new Vex.Flow.StaveNote({ keys: ["c/4"], duration: "q" }),
+    //   new Vex.Flow.StaveNote({ keys: ["d/4"], duration: "q" }),
+    //   new Vex.Flow.StaveNote({ keys: ["b/4"], duration: "qr" }),
+    //   new Vex.Flow.StaveNote({ keys: ["c/4", "e/4", "g/4"], duration: "q" }),
+    // ];
 
-    // Create a stave at position 10, 40 of width 400 on the canvas.
-    var VFstave3 = new VF.Stave(30, 180, this.screenWidth - 60);
-    VFstave3.addClef("treble").addTimeSignature("4/4");
-    var VFstave4 = new VF.Stave(30, 260, this.screenWidth - 60);
-    VFstave4.addClef("bass").addTimeSignature("4/4");
+    // // Helper function to justify and draw a 4/4 voice
+    // Vex.Flow.Formatter.FormatAndDraw(VFcontext, staveMeasure1, notesMeasure1);
 
-    var lineLeft = new Vex.Flow.StaveConnector(VFstave1, VFstave2).setType(1);
-    var brace = new Vex.Flow.StaveConnector(VFstave1, VFstave2).setType(3); // 3 = brace
+    // // measure 2 - juxtaposing second measure next to first measure
+    // var staveMeasure2 = new Vex.Flow.Stave(
+    //   staveMeasure1.width + staveMeasure1.x,
+    //   0,
+    //   400
+    // );
+    // staveMeasure2.setContext(VFcontext).draw();
 
-    var lineLeft2 = new Vex.Flow.StaveConnector(VFstave3, VFstave4).setType(1);
-    var brace2 = new Vex.Flow.StaveConnector(VFstave3, VFstave4).setType(3); // 3 = brace
+    // var notesMeasure2_part1 = [
+    //   new Vex.Flow.StaveNote({ keys: ["c/4"], duration: "8" }),
+    //   new Vex.Flow.StaveNote({ keys: ["d/4"], duration: "8" }),
+    //   new Vex.Flow.StaveNote({ keys: ["b/4"], duration: "8" }),
+    //   new Vex.Flow.StaveNote({ keys: ["c/4", "e/4", "g/4"], duration: "8" }),
+    // ];
 
-    // Connect it to the rendering context and draw!
-    VFstave1.setContext(VFcontext).draw();
-    VFstave2.setContext(VFcontext).draw();
-    VFstave3.setContext(VFcontext).draw();
-    VFstave4.setContext(VFcontext).draw();
-    lineLeft.setContext(VFcontext).draw();
-    brace.setContext(VFcontext).draw();
-    lineLeft2.setContext(VFcontext).draw();
-    brace2.setContext(VFcontext).draw();
+    // var notesMeasure2_part2 = [
+    //   new Vex.Flow.StaveNote({ keys: ["c/4"], duration: "8" }),
+    //   new Vex.Flow.StaveNote({ keys: ["d/4"], duration: "8" }),
+    //   new Vex.Flow.StaveNote({ keys: ["b/4"], duration: "8" }),
+    //   new Vex.Flow.StaveNote({ keys: ["c/4", "e/4", "g/4"], duration: "8" }),
+    // ];
+
+    // // create the beams for 8th notes in 2nd measure
+    // var beam1 = new Vex.Flow.Beam(notesMeasure2_part1);
+    // var beam2 = new Vex.Flow.Beam(notesMeasure2_part2);
+
+    // var notesMeasure2 = notesMeasure2_part1.concat(notesMeasure2_part2);
+
+    // Vex.Flow.Formatter.FormatAndDraw(VFcontext, staveMeasure2, notesMeasure2);
+
+    // // Render beams
+    // beam1.setContext(VFcontext).draw();
+    // beam2.setContext(VFcontext).draw();
+  },
+
+  methods: {
+    newMeasure() {},
   },
 };
 </script>
