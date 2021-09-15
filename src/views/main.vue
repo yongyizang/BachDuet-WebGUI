@@ -8,6 +8,7 @@
       :octave-start="keyboardUIoctaveStart"
       :octave-end="keyboardUIoctaveEnd"
     />
+    <neuralNet/>
 
     <!-- logic handled by this file for decoupling purposes. -->
     <div class="octaveControls">
@@ -52,6 +53,8 @@ import { Midi } from "@tonejs/midi";
 import { createRange } from "@/library/music";
 import keyboardUI from "@/components/keyboardUI.vue";
 import scoreUI from "@/components/scoreUI.vue";
+import neuralNet from "@/components/neuralNet.vue";
+
 import Instruments from "@/library/instruments";
 import pianoState from "@/library/piano-state";
 
@@ -143,6 +146,7 @@ export default {
       keyboardUIoctaveStart: 1,
       keyboardUIoctaveEnd: 6,
       metronomeStatus: true,
+      
       // playbackMessage: "Start THE Playback",
       // playing: false
     };
@@ -151,6 +155,7 @@ export default {
   components: {
     keyboardUI,
     scoreUI,
+    neuralNet
   },
 
   watch: {
@@ -283,6 +288,8 @@ export default {
                   " sent out!\n Quantized Inputs include: "
               );
               vm.metronomeTrigger2();
+              var neuralNetObj = vm.$children.find(child => { return child.$options.name === "neuralNet"; })
+              neuralNetObj.testTrigger();
               console.log(vm.$store.getters.getBufferedNotes);
 
               // Reset global BufferState.
