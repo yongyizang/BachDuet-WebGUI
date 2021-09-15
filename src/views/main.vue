@@ -34,7 +34,10 @@
         {{ playbackMessage }}
       </button>
       <span style="color: white"
-        >Set BPM As:<input id="bpm" v-model.lazy="BPM"
+        >BPM:<input id="bpm" v-model.lazy="BPM"
+      /></span>
+      <span style="color: white"
+        >Freq:<input id="freq" v-model.lazy="FREQ"
       /></span>
       <button class="octs" @click="toggleClock">Clock</button>
     </div>
@@ -58,6 +61,8 @@ const userMap = [
 ];
 
 // Initialize Piano Sampler 1. This is for User.
+// Q: where is the User piano sampler 1 ? ???
+
 // Initialize is done within the UI Component. See components/keyboardUI.vue
 // For every user in userMap, we create a sampler, which sends to a separate bus.
 // Then, for each user, we create another "AI" piano sampler, which also, sends to a separate bus.
@@ -78,37 +83,38 @@ const metronomeSampler = new Instruments().createSampler(
 );
 const metronomeBus = new Tone.Channel().toDestination();
 metronomeSampler.connect(metronomeBus);
+//Q: how about user and ai bus ? 
 
 // Metronome Behavior.
 // Decouple later.
-function metronomeTrigger(tickNumber, interval) {
-  var vm = this;
-  var intervalIntegar = 4;
-  if (!["2n", "4n", "8n", "16n"].includes(interval)) {
-    throw new Error(
-      "metronomeTrigger: the interval entered is not supported. Please try 2n, 4n, 8n or 16n."
-    );
-  } else {
-    switch (interval) {
-      case "2n":
-        intervalIntegar = 8;
-        break;
-      case "4n":
-        intervalIntegar = 4;
-        break;
-      case "8n":
-        intervalIntegar = 2;
-        break;
-      case "16n":
-        intervalIntegar = 1;
-        break;
-    }
-    if (tickNumber % intervalIntegar == 0) {
-      var note = tickNumber % 16 === 0 ? "C#0" : "C0";
-      metronomeSampler.triggerAttackRelease(note, 0.2, Tone.now());
-    }
-  }
-}
+// function metronomeTrigger(tickNumber, interval) {
+//   var vm = this;
+//   var intervalIntegar = 4;
+//   if (!["2n", "4n", "8n", "16n"].includes(interval)) {
+//     throw new Error(
+//       "metronomeTrigger: the interval entered is not supported. Please try 2n, 4n, 8n or 16n."
+//     );
+//   } else {
+//     switch (interval) {
+//       case "2n":
+//         intervalIntegar = 8;
+//         break;
+//       case "4n":
+//         intervalIntegar = 4;
+//         break;
+//       case "8n":
+//         intervalIntegar = 2;
+//         break;
+//       case "16n":
+//         intervalIntegar = 1;
+//         break;
+//     }
+//     if (tickNumber % intervalIntegar == 0) {
+//       var note = tickNumber % 16 === 0 ? "C#0" : "C0";
+//       metronomeSampler.triggerAttackRelease(note, 0.2, Tone.now());
+//     }
+//   }
+// }
 
 window.onclick = () => {
   Tone.start();
@@ -123,6 +129,9 @@ export default {
   data() {
     return {
       BPM: 60,
+      FREQ: 4,
+      bpm: 60,
+      intervalIntegar: 4,
       tickNumber: -1,
       clockStatus: false,
       clockInitialized: false,
@@ -134,7 +143,7 @@ export default {
       keyboardUIoctaveEnd: 6,
       metronomeStatus: true,
       playbackMessage: "Start THE Playback",
-      playing: false,
+      playing: false
     };
   },
 
@@ -173,15 +182,35 @@ export default {
         this.keyboardUIKey += 1;
       },
     },
+    // this FREQ variable/field currently appears in the main GUI.
+    // later we will move that to a "settings" dialog box.
+    FREQ: {
+      immediate: true,
+      handler(newValue) {
+        this.intervalIntegar = newValue
+        }
+      },
     BPM: {
       immediate: true,
       handler(newValue) {
-        Tone.Transport.bpm.value = newValue;
+        // we don't need to set the bpm for Tone.Transport
+        // Tone.Transport.bpm.value = newValue;
+        this.bpm = newValue
       },
     },
   },
 
   methods: {
+    // moved the metronomeTrigger function inside methods, and renamed it to metronomeTrigger2
+    // it doesn't take any input argument
+    // and it doesn't use a switch statement for to check the interval for every tick. 
+    metronomeTrigger2() {
+      var vm = this;
+        if (vm.tickNumber % vm.intervalIntegar == 0) {
+          var note = vm.tickNumber % 16 === 0 ? "G0" : "C0";
+          metronomeSampler.triggerAttackRelease(note, 0.2, Tone.now());
+        }
+    },
     toggleMetronome() {
       // Right now it only updates the message.
       // Easy to customize into doing other stuff in the future.
@@ -248,7 +277,7 @@ export default {
                   vm.tickNumber +
                   " sent out!\n Quantized Inputs include: "
               );
-              metronomeTrigger(vm.tickNumber, "4n");
+              vm.metronomeTrigger2();
               console.log(vm.$store.getters.getBufferedNotes);
 
               // Reset global BufferState.
@@ -258,7 +287,7 @@ export default {
         function sendOutTicks() {
           console.log("tick send.");
           tickBehavior();
-          setTimeout(sendOutTicks, ((60 / vm.BPM / 4) * 1000));
+          setTimeout(sendOutTicks, ((60 / vm.bpm / 4) * 1000));
         }
       }
     },
@@ -321,7 +350,7 @@ export default {
         .catch(console.error);
     });
 
-    Buffer.on("error", (error) => {
+    Buffer.on("error", (error) => { 
       console.error(error);
     });
   },
@@ -332,10 +361,11 @@ export default {
     },
 
     activeNote() {
-      return this.music[this.currentNoteIndex];
+      return this.music[this.currentNoteIndex]; // Q: what is this.music
     },
   },
 };
+
 </script>
 
 <style scoped>
