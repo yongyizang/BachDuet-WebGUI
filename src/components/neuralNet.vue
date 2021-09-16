@@ -20,15 +20,16 @@ export default {
         states1A: tf.randomNormal([1,600]),
         states1B: tf.randomNormal([1,600]),
         states2A: tf.randomNormal([1,600]),
-        states2B: tf.randomNormal([1,600])
+        states2B: tf.randomNormal([1,600]),
+        temperature: 0.1
       }
   },
   watch: {},
 //   mounted() {},
   methods: {
-      testTrigger(){
+      testTrigger(currentTickNumber){
         //  this.model.predict(tf.tensor2d([5], [1, 1])).print(); 
-        console.time('doSomething')
+        console.time(currentTickNumber)
         var midiInp = tf.tensor2d([[60,61]]);
         var cpcInp = tf.tensor2d([[12, 0]]);
         var rhyInp = tf.tensor2d([[5]]);
@@ -48,7 +49,12 @@ export default {
         this.states1B = out[2];
         this.states2A = out[3];
         this.states2B = out[4]
-        console.timeEnd('doSomething')
+
+        var logits = out[0]
+        var logits_temp = logits.div(this.temperature);
+        var predictedNote = tf.multinomial(logits_temp, 2);
+        console.timeEnd(currentTickNumber)
+        return {predictedNote}
       }
   },
   async created() {

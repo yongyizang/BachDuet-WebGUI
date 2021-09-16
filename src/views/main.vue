@@ -289,7 +289,7 @@ export default {
               );
               vm.metronomeTrigger2();
               var neuralNetObj = vm.$children.find(child => { return child.$options.name === "neuralNet"; })
-              neuralNetObj.testTrigger();
+              var predictedNote = neuralNetObj.testTrigger(vm.tickNumber);
               console.log(vm.$store.getters.getBufferedNotes);
 
               // Reset global BufferState.

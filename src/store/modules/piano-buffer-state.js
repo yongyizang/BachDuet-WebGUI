@@ -17,6 +17,8 @@ const state = {
     bufferState: bufferStateMap
 }
 
+// C: this quantizedInput is problematic. It doesn't maintain the temporal order of the notes.
+// the notes are sorted alphabetically
 const getters = {
     getBufferedNotes (state){
         let quantizedInput = []
