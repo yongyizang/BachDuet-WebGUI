@@ -8,6 +8,8 @@
   - A function that recognizes keydown (and keyup) events. Using Audiokeys.
   - A function that buffers notes, until it's called by clock tick to spit it out.
 
+- Web Worker Implementation
+
 - AI Model Implementation
 
 - UI Design Guidelines

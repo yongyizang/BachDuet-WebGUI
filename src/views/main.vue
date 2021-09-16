@@ -131,6 +131,7 @@ export default {
       tickNumber: -1,
       clockStatus: false,
       clockInitialized: false,
+      clockNumber: -1,
       screenWidth: document.body.clientWidth,
       screenHeight: document.body.clientHeight,
       keyboardUIKey: 0,
@@ -193,7 +194,6 @@ export default {
       immediate: true,
       handler(newValue) {
         Tone.Transport.bpm.value = newValue;
-        console.log("New BPM Value Set: " + Tone.Transport.bpm.value);
       },
     },
   },

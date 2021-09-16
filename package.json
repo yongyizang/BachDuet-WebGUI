@@ -7,11 +7,15 @@
     "build": "vue-cli-service build"
   },
   "dependencies": {
+    "@tonaljs/note": "^4.6.5",
+    "@tonaljs/tonal": "^4.6.5",
     "@tonejs/midi": "^2.0.27",
     "core-js": "^3.16.2",
     "pixi-piano-roll": "^1.2.3",
     "register-service-worker": "^1.7.1",
+    "tone": "^14.7.77",
     "vexflow": "^3.0.9",
+    "vextab": "^3.0.6",
     "vue": "^2.6.11",
     "vue-router": "^3.2.0",
     "vuex": "^3.6.2"

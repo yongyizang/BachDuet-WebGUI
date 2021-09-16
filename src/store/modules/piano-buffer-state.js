@@ -1,5 +1,4 @@
 import Vue from "vue";
-import store from "..";
 import { createRange } from "../../library/music"
 
 // Create a range of notes from A0 to C8.
