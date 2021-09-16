@@ -1,8 +1,8 @@
 # TODOs!
 - PROVIDE PROPER COMMENTING
 
-- Clock
-  - BPM change (change midway when clock stops)
+- Vuex Migration
+  - Migrate all global data to Vuex modules, and change all code to that.
 
 - Computer Keyboard Input
   - A function that recognizes keydown (and keyup) events. Using Audiokeys.
