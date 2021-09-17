@@ -83,6 +83,15 @@ const AISampler = new Instruments().createSampler("piano", (piano) => {
   piano.toDestination();
 });
 
+// initalize the worker that runs the neural network
+// const neuralWorker = new Worker('neuralWorker.js');//, { type: "module" })
+
+// this function is called when the neuralWorker returns the AI's prediction
+// how can I put this function inside methods
+// neuralWorker.onmessage = function(e) {
+//   var aiOutput = e.data;
+//   console.log('Message received from worker' + e.data);
+// }
 // Initialize Metronome Sampler.
 const metronomeSampler = new Instruments().createSampler(
   "metronome",
@@ -128,8 +137,15 @@ export default {
   },
 
   mounted() {
+    this.neuralWorker = new Worker('neuralWorker.js');//, { type: "module" })
+
+    // the workerCallback function is called when the neuralWorker returns the AI's prediction
+    this.neuralWorker.onmessage = this.workerCallback
+
+
     // Everytime the window resizes, update the screenWidth in data immediately.
     const vm = this;
+    
     window.onresize = () => {
       return (() => {
         window.screenWidth = document.body.clientWidth;
@@ -187,6 +203,19 @@ export default {
   },
 
   methods: {
+    // neuralWorker's callback. Called every tick, and processes the AI's output
+    workerCallback(e) {
+      var aiOutput = e.data;
+      // TODO convert aiOutput['note'] to the midi_artic representation
+      var midi = 60;
+      var artic = 1;
+      var payload = {'currentTick' : aiOutput['tick'],
+                    'prediction' : {'midi':midi, 'artic':artic}
+        }
+      // save AI's prediction to store.state.aiPredictions 
+      this.$store.dispatch('newAiPrediction', payload)
+      // console.log('Message received from worker' + e.data);
+    },
     // moved the metronomeTrigger function inside methods
     // it doesn't take any input argument
     // and it doesn't use a switch statement for to check the interval for every tick. 
@@ -247,9 +276,24 @@ export default {
                   " sent out!\n Quantized Inputs include: "
               );
               vm.metronomeTrigger();
+
+              // trigger the ai sampler to play the note the AI predicted
+              vm.triggerAiSampler();
+
+              // 3 ways to run inference to the neural net
+
+              // A) using a web worker without async
+              // neuralWorker.postMessage(vm.$store.getters.getLocalTick);//{"currentTickNumber": vm.$store.getters.getLocalTick});
+              // console.log('Message posted to worker');
+
+              // B) using a web worker with async
+              vm.runTheWorker()
+              
+              // C) without using a web worker
               // C : any better ways to reference the neuralNet component ???
-              var neuralNetObj = vm.$children.find(child => { return child.$options.name === "neuralNet"; })
-              var predictedNote = neuralNetObj.inference(vm.$store.getters.getLocalTick);
+              // var neuralNetObj = vm.$children.find(child => { return child.$options.name === "neuralNet"; })
+              // var predictedNote = neuralNetObj.inference(vm.$store.getters.getLocalTick);
+
 
               console.log(vm.$store.getters.getNotesBuffer);
               console.log(
@@ -270,6 +314,25 @@ export default {
         // Call it for the first time.
         sendOutTicks();
       }
+    },
+
+    
+    triggerAiSampler() {
+        // here, we check the note the AI predicted in the previous tick,
+        // for the tick we are now. If the articulation of the predicted note 
+        // is 1 (hit), then we trigger the AI sampler to play the note. 
+        // if there is already a note active, we have to triggerRelease first
+        // if the predicted note is a rest ... blablabla.
+        var note = this.$store.getters.getAiPredictionFor(this.$store.getters.getLocalTick)
+        // to be continued
+    },
+    // C: using async, improves the neural net's inference speed slightly. Don't know why.
+    async runTheWorker(){
+        var aiInp = {
+          "tick" : this.$store.getters.getLocalTick,
+        }
+        this.neuralWorker.postMessage(aiInp);//{"currentTickNumber": vm.$store.getters.getLocalTick});
+        console.log('Message posted to worker async');
     },
   },
 };

@@ -26,6 +26,12 @@ const getters = {
     getBarTick (state){
         return state.barTick;
     },
+    getNextLocalTickAfter: (state) => (currentTick) => {
+        return (currentTick + 1) % 16;
+    },
+    getNextLocalTick: (state) => () => {
+        return (state.localTick + 1) % 16;
+    }
 }
 
 const actions = {

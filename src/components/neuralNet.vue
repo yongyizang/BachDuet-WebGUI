@@ -7,7 +7,10 @@
   <div id="neuralNet"></div>
 </template>
 <script>
+
 import * as tf from '@tensorflow/tfjs';
+import Instruments from "@/library/instruments";
+
 
 const CHECKPOINT_BASE_URL = "/checkpoints/"
  
@@ -28,7 +31,7 @@ export default {
 //   mounted() {},
   methods: {
       inference(currentTickNumber){
-        //  this.model.predict(tf.tensor2d([5], [1, 1])).print(); 
+
         console.time(currentTickNumber)
         var midiInp = tf.tensor2d([[60,61]]);
         var cpcInp = tf.tensor2d([[12, 0]]);
@@ -40,10 +43,6 @@ export default {
         var embMidiC = tf.concat([embMidi.slice([0,0,0],[1,1,150]),embMidi.slice([0,1,0],[1,1,150])], 2);
         var embCpcC = tf.concat([embCpc.slice([0,0,0],[1,1,150]),embCpc.slice([0,1,0],[1,1,150])], 2);
         var totalInp = tf.concat([embMidiC, embCpcC, embRhy],2);
-        // var states1A = tf.randomNormal([1,600]);
-        // var states1B = tf.randomNormal([1,600]);
-        // var states2A = tf.randomNormal([1,600]);
-        // var states2B = tf.randomNormal([1,600]);
         var out = this.modelLstm.predict([totalInp, this.states1A, this.states1B, this.states2A, this.states2B]);
         this.states1A = out[1];
         this.states1B = out[2];
@@ -53,6 +52,17 @@ export default {
         var logits = out[0]
         var logits_temp = logits.div(this.temperature);
         var predictedNote = tf.multinomial(logits_temp, 2);
+        // var predictedNote = 4;
+        // predictedNote is a number (0-134) which corresponds to a token of the form "midi_articulation"
+        // where midi is the midi number of the note and articulation is either 1 (hit) or 0 (hold)
+
+        // Also, this predictedNote was predicted in tick = currentTickNumber,
+        // however it should be played in tick = currentTickNumber + 1
+
+        // we should store the predictedNote in a vuex dictionary = {currentTickNumber+1 : predictedNote}
+        // and let the clock in main.vue to access it, and trigger the note when it's time
+
+        
         console.timeEnd(currentTickNumber)
         return {predictedNote}
       }

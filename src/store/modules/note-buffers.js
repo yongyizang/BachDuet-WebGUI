@@ -3,7 +3,7 @@ import { createRange } from "../../library/music"
 
 // Create a range of notes from A0 to C8.
 const notes = createRange("A0", "C8")
-
+const measureTicks = [...Array(16).keys()];
 // Put all the notes into the notemap, then set all default values to false.
 // const noteMapforBuffer = notes.reduce((map, note) => {
 //     map[note.name] = false
@@ -15,16 +15,23 @@ const noteMapforPiano = notes.reduce((map, note) => {
     return map
 }, {})
 
+const noteMapforAI = measureTicks.reduce((map, tick) => {
+    map[tick] = {"midi" : -1, "artic" : -1}
+    return map
+}, {})
+
 // note as observables
 const notesBufferArray = []
 const notesBufferArrayObs = new Vue.observable(notesBufferArray)
 const pianoStateMap = new Vue.observable(noteMapforPiano)
+const aiPredictionsMap = new Vue.observable(noteMapforAI)
 
 const state = {
     // Define all basic states.
     pianoState: pianoStateMap,
     lastNotePlayed: "",
     notesBuffer: notesBufferArrayObs,
+    aiPredictions: aiPredictionsMap,
 }
 
 const getters = {
@@ -42,6 +49,9 @@ const getters = {
     keyboardIsActive (state, getters){
         return getters.getActiveNotes.length > 0;
     },
+    getAiPredictionFor: (state) => (currentTick) => {
+        return state.aiPredictions[currentTick]
+    },
     // trivial getters that just get stuff
     getPianoState (state){
         return state.pianoState;
@@ -52,9 +62,17 @@ const getters = {
     getNotesBuffer (state){
         return state.notesBuffer;
     },
+    getAiPredictions (state){
+        return state.aiPredictions;
+    },
 }
 
 const actions = {
+    newAiPrediction ({ commit, state, getters }, args) {
+        // pred is a dict with keys "currentTick", and "prediction"
+        var nextTick = getters.getNextLocalTick(args["currentTick"])
+        state.aiPredictions[nextTick] = args["prediction"]
+    }
 }
 
 const mutations = {
@@ -75,7 +93,7 @@ const mutations = {
     clearNotesBuffer (state) {
         state.notesBuffer = []
         // C: don't we have to make it observable again ? const notesBufferArrayObs = new Vue.observable(notesBufferArray)
-    }
+    }, 
 }
 
 export default {
