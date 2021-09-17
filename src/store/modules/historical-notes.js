@@ -1,5 +1,5 @@
 import Vue from "vue";
-import noteHelper from "../../library/note-helper";
+import * as noteHelper from "../../library/note-helper";
 
 let allHumanNotes = [];
 let allAINotes = [];

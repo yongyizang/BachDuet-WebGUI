@@ -19,13 +19,13 @@ const state = {
 const getters = {
     getGlobalTick (state) {
         return state.globalTick;
-    }
+    },
     getLocalTick (state){
         return state.localTick;
-    }
+    },
     getBarTick (state){
         return state.barTick;
-    }
+    },
 }
 
 const actions = {

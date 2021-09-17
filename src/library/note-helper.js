@@ -1,6 +1,6 @@
 export function incrementDuration(duration){
     // Currently only support up to 1n.
-    switch(note){
+    switch(duration){
         case "16n":
             return "8n";
         case "8n":
