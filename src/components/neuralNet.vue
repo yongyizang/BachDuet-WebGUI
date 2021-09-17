@@ -27,7 +27,7 @@ export default {
   watch: {},
 //   mounted() {},
   methods: {
-      testTrigger(currentTickNumber){
+      inference(currentTickNumber){
         //  this.model.predict(tf.tensor2d([5], [1, 1])).print(); 
         console.time(currentTickNumber)
         var midiInp = tf.tensor2d([[60,61]]);

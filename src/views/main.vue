@@ -110,7 +110,6 @@ export default {
       FREQ: 4,
       bpm: 60,
       intervalIntegar: 4,
-      tickNumber: -1, // C: TODO remove that, and use VUEX
       clockStatus: false,
       clockInitialized: false,
       screenWidth: document.body.clientWidth,
@@ -192,9 +191,9 @@ export default {
     // it doesn't take any input argument
     // and it doesn't use a switch statement for to check the interval for every tick. 
     metronomeTrigger() {
-      var vm = this;
-        if (vm.tickNumber % vm.intervalIntegar == 0) {
-          var note = vm.tickNumber % 16 === 0 ? "G0" : "C0";
+      // var vm = this;
+        if (this.$store.getters.getLocalTick % this.intervalIntegar == 0) {
+          var note = this.$store.getters.getLocalTick % 16*this.$store.state === 0 ? "G0" : "C0";
           metronomeSampler.triggerAttackRelease(note, 0.2, Tone.now());
         }
     },
@@ -239,24 +238,26 @@ export default {
         // Clock behavior function.
         function tickBehavior(){
           if (vm.clockStatus){
-              vm.tickNumber += 1; // C: use vuex
+              vm.$store.commit("incrementTick")
             // }
               // Below are behaviors.
               console.log(
                 "Tick #" +
-                  vm.tickNumber +
+                  vm.$store.getters.getLocalTick +
                   " sent out!\n Quantized Inputs include: "
               );
-              vm.metronomeTrigger2();
+              vm.metronomeTrigger();
+              // C : any better ways to reference the neuralNet component ???
               var neuralNetObj = vm.$children.find(child => { return child.$options.name === "neuralNet"; })
-              var predictedNote = neuralNetObj.testTrigger(vm.tickNumber);
-              console.log(vm.$store.getters.getBufferedNotes);
+              var predictedNote = neuralNetObj.inference(vm.$store.getters.getLocalTick);
+
+              console.log(vm.$store.getters.getNotesBuffer);
               console.log(
                 "Last note played: " + vm.$store.getters.getLastNotePlayed
               );
 
-              // Reset global BufferState.
-              vm.$store.commit("clearBuffer");
+              
+              vm.$store.commit("clearNotesBuffer");
           }
         }
 

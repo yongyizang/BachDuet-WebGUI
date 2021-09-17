@@ -5,48 +5,53 @@ import { createRange } from "../../library/music"
 const notes = createRange("A0", "C8")
 
 // Put all the notes into the notemap, then set all default values to false.
-const noteMapforBuffer = notes.reduce((map, note) => {
-    map[note.name] = false
-    return map
-}, {})
+// const noteMapforBuffer = notes.reduce((map, note) => {
+//     map[note.name] = false
+//     return map
+// }, {})
 
 const noteMapforPiano = notes.reduce((map, note) => {
     map[note.name] = false
     return map
 }, {})
 
-// noteMap is noted as observable.
-const bufferStateMap = new Vue.observable(noteMapforBuffer)
+// note as observables
+const notesBufferArray = []
+const notesBufferArrayObs = new Vue.observable(notesBufferArray)
 const pianoStateMap = new Vue.observable(noteMapforPiano)
 
 const state = {
     // Define all basic states.
-    bufferState: bufferStateMap,
     pianoState: pianoStateMap,
-    // Get the last note played.
-    lastNotePlayed: ""
+    lastNotePlayed: "",
+    notesBuffer: notesBufferArrayObs,
 }
 
-// C: this quantizedInput is problematic. It doesn't maintain the temporal order of the notes.
-// the notes are sorted alphabetically
 const getters = {
-    // Return all buffered notes within bufferState
-    getBufferedNotes (state){
-        let quantizedInput = []
+    // Return all notes that are currently "pressed"/active
+    // the notes are sorted alphabetically
+    getActiveNotes (state){
+        let activeNotes = []
         for (const note of notes){
-          if (state.bufferState[note.name]){
-              quantizedInput.push(note.name);
+          if (state.pianoState[note.name]){
+              activeNotes.push(note.name);
           }
         }
-        return quantizedInput;
+        return activeNotes;
+    },
+    keyboardIsActive (state, getters){
+        return getters.getActiveNotes.length > 0;
     },
     // trivial getters that just get stuff
-    getpianoState (state){
+    getPianoState (state){
         return state.pianoState;
     },
     getLastNotePlayed (state){
         return state.lastNotePlayed;
-    }
+    },
+    getNotesBuffer (state){
+        return state.notesBuffer;
+    },
 }
 
 const actions = {
@@ -61,17 +66,15 @@ const mutations = {
     */
     noteOn (state, note) {
         state.pianoState[note] = true;
-        state.bufferState[note] = true;
+        // state.bufferState[note] = true;
         state.lastNotePlayed = note;
     },
     noteOff (state, note) {
         state.pianoState[note] = false;
     },
-    clearBuffer (state) {
-        state.lastNotePlayed = "";
-        for (const note of notes) {
-            state.bufferState[note.name] = false;
-        }
+    clearNotesBuffer (state) {
+        state.notesBuffer = []
+        // C: don't we have to make it observable again ? const notesBufferArrayObs = new Vue.observable(notesBufferArray)
     }
 }
 

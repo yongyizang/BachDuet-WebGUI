@@ -35,12 +35,12 @@ const actions = {
 AddTick is the func. for changing the value of the three Tick number.
  */
 const mutations = {
-    addTick (state) {
+    incrementTick (state) {
         state.globalTick += 1;
         state.localTick += 1;
         state.barTick += 1;
         state.localTick = state.globalTick % 16;
-        state.barTick = state.globalTick / 16;
+        state.barTick = state.globalTick / 16; //C: we want integer division here
     }
 }
 
