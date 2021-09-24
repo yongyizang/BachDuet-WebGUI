@@ -1,6 +1,11 @@
 <template>
   <div class="home">
+<<<<<<< Updated upstream
     <div id="pianoScores"></div>
+=======
+    <!-- <scoreUI :height="400" /> -->
+    <gameUI />
+>>>>>>> Stashed changes
     <keyboardUI
       id="pianoKeyboard"
       class="pianoKeyboard"
@@ -44,7 +49,12 @@ import * as Tone from "tone";
 import { Buffer, Sequence, Transport, Event, Draw, context } from "tone";
 import { Midi } from "@tonejs/midi";
 import keyboardUI from "@/components/keyboardUI.vue";
+<<<<<<< Updated upstream
 import * as Metronome from "@/library/Metronome";
+=======
+import gameUI from "@/components/gameUI.vue";
+import scoreUI from "@/components/scoreUI.vue";
+>>>>>>> Stashed changes
 import Instruments from "@/library/instruments";
 import pianoState, { reset } from "@/library/piano-state";
 import Vex from 'vexflow';
@@ -94,6 +104,22 @@ export default {
 
   components: {
     keyboardUI,
+<<<<<<< Updated upstream
+=======
+    scoreUI,
+    gameUI
+  },
+
+  mounted() {
+    // Everytime the window resizes, update the screenWidth in data immediately.
+    const vm = this;
+    window.onresize = () => {
+      return (() => {
+        window.screenWidth = document.body.clientWidth;
+        vm.screenWidth = window.screenWidth;
+      })();
+    };
+>>>>>>> Stashed changes
   },
 
   watch: {
