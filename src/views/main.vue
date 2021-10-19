@@ -12,6 +12,7 @@
       :octave-start="keyboardUIoctaveStart"
       :octave-end="keyboardUIoctaveEnd"
     />
+    <neuralNet/>
 
     <!-- logic handled by this file for decoupling purposes. -->
     <div class="octaveControls">
@@ -42,7 +43,11 @@
         v-model.lazy change the value only after the input lose focus.
       -->
       <span style="color: white"
-        >Set BPM As:<input id="bpm" v-model.lazy="BPM"
+        >BPM:<input id="bpm" v-model.lazy="BPM" maxlength="3" size="3" 
+      /></span>
+      
+      <span style="color: white"
+        >Freq:<input id="freq" v-model.lazy="FREQ" maxlength="2" size="3"
       /></span>
 
       <button class="octs" @click="toggleClock">Clock</button>
@@ -57,6 +62,8 @@ import { Buffer, Sequence, Transport, Event, Draw, context } from "tone";
 import keyboardUI from "@/components/keyboardUI.vue";
 import gameUI from "@/components/gameUI.vue";
 import scoreUI from "@/components/scoreUI.vue";
+import neuralNet from "@/components/neuralNet.vue";
+
 import Instruments from "@/library/instruments";
 
 /*
@@ -65,6 +72,8 @@ import Instruments from "@/library/instruments";
 */
 
 // Initialize Piano Sampler 1. This is for User.
+// C: where is the User piano sampler 1 ? ???
+
 // Initialize is done within the UI Component. See components/keyboardUI.vue
 
 // For every user in userMap, we create a sampler, which sends to a separate bus.
@@ -76,6 +85,15 @@ const AISampler = new Instruments().createSampler("piano", (piano) => {
   piano.toDestination();
 });
 
+// initalize the worker that runs the neural network
+// const neuralWorker = new Worker('neuralWorker.js');//, { type: "module" })
+
+// this function is called when the neuralWorker returns the AI's prediction
+// how can I put this function inside methods
+// neuralWorker.onmessage = function(e) {
+//   var aiOutput = e.data;
+//   console.log('Message received from worker' + e.data);
+// }
 // Initialize Metronome Sampler.
 const metronomeSampler = new Instruments().createSampler(
   "metronome",
@@ -86,37 +104,7 @@ const metronomeSampler = new Instruments().createSampler(
 // This is the metronome Bus. We would need this for mixing purposes.
 const metronomeBus = new Tone.Channel().toDestination();
 metronomeSampler.connect(metronomeBus);
-
-// Here we define the behavior for metronome trigger.
-function metronomeTrigger(tickNumber, interval) {
-  var vm = this;
-  var intervalIntegar = 4;
-  if (!["2n", "4n", "8n", "16n"].includes(interval)) {
-    throw new Error(
-      "metronomeTrigger: the interval entered is not supported. Please try 2n, 4n, 8n or 16n."
-    );
-    return
-  } else {
-    switch (interval) {
-      case "2n":
-        intervalIntegar = 8;
-        break;
-      case "4n":
-        intervalIntegar = 4;
-        break;
-      case "8n":
-        intervalIntegar = 2;
-        break;
-      case "16n":
-        intervalIntegar = 1;
-        break;
-    }
-    if (tickNumber % intervalIntegar == 0) {
-      var note = tickNumber % 16 === 0 ? "C#0" : "C0";
-      metronomeSampler.triggerAttackRelease(note, 0.2, Tone.now());
-    }
-  }
-}
+//C: how about user and ai bus ? 
 
 // This is for Web Audio restrictions, we need to make an user behavior to trigger the Tone.start() function.
 window.onclick = () => {
@@ -130,10 +118,11 @@ export default {
   data() {
     return {
       BPM: 60,
-      tickNumber: -1,
+      FREQ: 4,
+      bpm: 60,
+      intervalIntegar: 4,
       clockStatus: false,
       clockInitialized: false,
-      clockNumber: -1,
       screenWidth: document.body.clientWidth,
       screenHeight: document.body.clientHeight,
       keyboardUIKey: 0,
@@ -146,12 +135,20 @@ export default {
   components: {
     keyboardUI,
     scoreUI,
-    gameUI
+    gameUI,
+    neuralNet
   },
 
   mounted() {
+    this.neuralWorker = new Worker('neuralWorker.js');//, { type: "module" })
+
+    // the workerCallback function is called when the neuralWorker returns the AI's prediction
+    this.neuralWorker.onmessage = this.workerCallback
+
+
     // Everytime the window resizes, update the screenWidth in data immediately.
     const vm = this;
+    
     window.onresize = () => {
       return (() => {
         window.screenWidth = document.body.clientWidth;
@@ -192,16 +189,52 @@ export default {
         this.keyboardUIKey += 1;
       },
     },
-    // At every BPM change, change the Tone.js's BPM.
+    // this FREQ variable/field currently appears in the main GUI.
+    // later we will move that to a "settings" dialog box.
+    FREQ: {
+      immediate: true,
+      handler(newValue) {
+        this.intervalIntegar = newValue
+        }
+      },
     BPM: {
       immediate: true,
       handler(newValue) {
-        Tone.Transport.bpm.value = newValue;
+        this.bpm = newValue
       },
     },
   },
 
   methods: {
+    // neuralWorker's callback. Called every tick, and processes the AI's output
+    workerCallback(e) {
+      var aiOutput = e.data;
+      // TODO convert aiOutput['note'] to the midi_artic representation
+      var midi = 60;
+      var artic = 1;
+      var payload = {'currentTick' : aiOutput['tick'],
+                    'prediction' : {'midi':midi, 'artic':artic}
+        }
+      // save AI's prediction to store.state.aiPredictions 
+      this.$store.dispatch('newAiPrediction', payload)
+      // console.log('Message received from worker' + e.data);
+    },
+    // moved the metronomeTrigger function inside methods
+    // it doesn't take any input argument
+    // and it doesn't use a switch statement for to check the interval for every tick. 
+    metronomeTrigger() {
+      // var vm = this;
+        if (this.$store.getters.getLocalTick % this.intervalIntegar == 0) {
+          var note = this.$store.getters.getLocalTick % 16*this.$store.state === 0 ? "G0" : "C0";
+          metronomeSampler.triggerAttackRelease(note, 0.2, Tone.now());
+        }
+    },
+    // when Metronome is toggled.
+    toggleMetronome() {
+      metronomeBus.mute = this.metronomeStatus;
+      this.metronomeStatus = !this.metronomeStatus;
+    },
+    
     transposeOctUp() {
       this.keyboardUIoctaveStart += 1;
       this.keyboardUIoctaveEnd += 1;
@@ -221,11 +254,12 @@ export default {
 
       vm.clockStatus = !vm.clockStatus;
 
-      if (vm.clockStatus) {
-        if (metronomeBus.muted) metronomeBus.mute = false;
-      } else {
-        metronomeBus.mute = true;
-      }
+      // C: we don't need this if else statement
+      // if (vm.clockStatus) {
+      //   if (metronomeBus.muted) metronomeBus.mute = false;
+      // } else {
+      //   metronomeBus.mute = true;
+      // }
 
       // If the clock is not yet initialized...
       if (!vm.clockInitialized) {
@@ -234,31 +268,50 @@ export default {
         // And intialized it.
 
         // Clock behavior function.
-        function tickBehavior() {
-          if (vm.clockStatus) {
-            vm.tickNumber += 1;
+        function tickBehavior(){
+          if (vm.clockStatus){
+              vm.$store.commit("incrementTick")
+            // }
+              // Below are behaviors.
+              console.log(
+                "Tick #" +
+                  vm.$store.getters.getLocalTick +
+                  " sent out!\n Quantized Inputs include: "
+              );
+              vm.metronomeTrigger();
+
+              // trigger the ai sampler to play the note the AI predicted
+              vm.triggerAiSampler();
+
+              // 3 ways to run inference to the neural net
+
+              // A) using a web worker without async
+              // neuralWorker.postMessage(vm.$store.getters.getLocalTick);//{"currentTickNumber": vm.$store.getters.getLocalTick});
+              // console.log('Message posted to worker');
+
+              // B) using a web worker with async
+              vm.runTheWorker()
+              
+              // C) without using a web worker
+              // C : any better ways to reference the neuralNet component ???
+              // var neuralNetObj = vm.$children.find(child => { return child.$options.name === "neuralNet"; })
+              // var predictedNote = neuralNetObj.inference(vm.$store.getters.getLocalTick);
+
+
+              console.log(vm.$store.getters.getNotesBuffer);
+              console.log(
+                "Last note played: " + vm.$store.getters.getLastNotePlayed
+              );
+
+              
+              vm.$store.commit("clearNotesBuffer");
           }
-          // Below are behaviors.
-          console.log(
-            "Tick #" + vm.tickNumber + " sent out!\n Quantized Inputs include: "
-          );
-
-          // How we call callback functions from other places.
-          metronomeTrigger(vm.tickNumber, "4n");
-
-          console.log(vm.$store.getters.getBufferedNotes);
-          console.log(
-            "Last note played: " + vm.$store.getters.getLastNotePlayed
-          );
-          // Reset global BufferState.
-          vm.$store.commit("clearBuffer");
         }
 
         function sendOutTicks() {
-          console.log("tick send.");
+          // console.log("tick send.");
           tickBehavior();
-          // Recursively call the tick sending function (itself), update BPM at each tick.
-          setTimeout(sendOutTicks, (60 / vm.BPM / 4) * 1000);
+          setTimeout(sendOutTicks, ((60 / vm.bpm / 4) * 1000));
         }
 
         // Call it for the first time.
@@ -266,13 +319,27 @@ export default {
       }
     },
 
-    // when Metronome is toggled.
-    toggleMetronome() {
-      metronomeBus.mute = this.metronomeStatus;
-      this.metronomeStatus = !this.metronomeStatus;
+    
+    triggerAiSampler() {
+        // here, we check the note the AI predicted in the previous tick,
+        // for the tick we are now. If the articulation of the predicted note 
+        // is 1 (hit), then we trigger the AI sampler to play the note. 
+        // if there is already a note active, we have to triggerRelease first
+        // if the predicted note is a rest ... blablabla.
+        var note = this.$store.getters.getAiPredictionFor(this.$store.getters.getLocalTick)
+        // to be continued
+    },
+    // C: using async, improves the neural net's inference speed slightly. Don't know why.
+    async runTheWorker(){
+        var aiInp = {
+          "tick" : this.$store.getters.getLocalTick,
+        }
+        this.neuralWorker.postMessage(aiInp);//{"currentTickNumber": vm.$store.getters.getLocalTick});
+        console.log('Message posted to worker async');
     },
   },
 };
+
 </script>
 
 <style scoped>

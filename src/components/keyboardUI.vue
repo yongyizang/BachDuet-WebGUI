@@ -139,7 +139,7 @@ export default {
   methods: {
     noteActive(note) {
       // If the note is active, the state of that note is true.
-      return this.$store.getters.getpianoState[note.name]=== true;
+      return this.$store.getters.getPianoState[note.name]=== true;
     },
 
     toggleAttack(currentNote) {
