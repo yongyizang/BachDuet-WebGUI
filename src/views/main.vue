@@ -155,11 +155,6 @@ export default {
         Metronome.setBPM(this.BPM);
         Metronome.start();
       }
-      this.metronomeStatus = !this.metronomeStatus;
-        this.metronomeMessage = "METRONOME ON"
-      } else {
-        this.metronomeMessage = "METRONOME OFF"
-      }
       this.metronomeStatus = !this.metronomeStatus
     },
 
