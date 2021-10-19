@@ -1,5 +1,3 @@
-<<<<<<< Updated upstream
-=======
 <template>
   <div id="pianoScores"></div>
 </template>
@@ -22,7 +20,7 @@ const fakeAIData = [
 ];
 
 const fakeHumanData = [
-  [1, "D4", "4n"],
+  [1, ["D4","C3"], "4n"],
   [5, "D#4", "4n"],
   [9, "D3", "4n"],
   [13, "D#3", "4n"],
@@ -54,6 +52,45 @@ function randomNote(input, clef = "high") {
     ranges = rangesLow;
   }
   return random_item(notesArray) + random_item(ranges) + connector;
+}
+
+function noteParser(input, measureCount){
+  // This function would pass an array of data for 1 player into a way VexTab could parse. Note: This function doesn't automatically generate rests. If you need rest, you have to pass it in manually.
+  // call it as noteParser([], 3);
+  if (!isNumber(measureCount) || measureCount < 1 || measureCount > 4){
+    throw new Error("measureCount parameter is wrong. You entered: " + measureCount + ". We currently only support integar from 1 to 4. Try again.")
+  }
+
+  if (input[input.length-1][0] + input[1][0])
+
+
+  var measure1 = [[],[]];
+  var measure2 = [[],[]];
+  var measure3 = [[],[]];
+  var measure4 = [[],[]];
+
+  var lastTickNumber = 1;
+
+  // Iterate through every element within input array.
+  for (var i = 0; i < input.length; i++) {
+    var currentElement = input[i];
+    if (i == 0) {
+      var currentTickNumber = 1;
+    } else {
+      var currentTickNumber = currentElement[0]
+    }
+    // We fetch currentElememt from input.
+    // so now, the currentElement would look like this:
+    // [1, ["D4","C3"], "4n"]
+    lastTickNumber = currentElement[0];
+    // Set the lastTickNumber to the tickNumber of currentElement.
+    if (i != 0)
+
+  }
+}
+
+function isNumber (n) {
+  return ! isNaN (n-0);
 }
 
 function vexTabParser(inputData) {
@@ -161,7 +198,9 @@ export default {
   },
 
   methods: {
-    newMeasure() {},
+    renderScore(){
+
+    }
   },
 };
 </script>
@@ -180,4 +219,3 @@ export default {
   box-shadow: 0px 8px 16px -6px #000000;
 }
 </style>
->>>>>>> Stashed changes
