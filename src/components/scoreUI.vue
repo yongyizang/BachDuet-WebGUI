@@ -86,8 +86,9 @@ function noteParser(input, measureCount){
     // Set the lastTickNumber to the tickNumber of currentElement.
     // Haven't finished writing this.
   }
-}
 */
+};
+
 function isNumber (n) {
   return ! isNaN (n-0);
 }
@@ -202,7 +203,7 @@ export default {
     }
   },
 };
-}
+
 </script>
 
 <style scoped>
