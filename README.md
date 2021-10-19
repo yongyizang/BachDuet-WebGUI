@@ -1,7 +1,7 @@
 # BachDuet Web GUI
 A Web GUI for BachDuet.
- 
-Still under development. Basically nothing has been done. It doesn't work at all. Don't install BachDuet. BachDuet is not ready! He will suffer! It's not his decision to be born!
+
+We have merged every branch into main. Right now Tensorflow.js has been implemented in.
 
 Documentation could be found [here](Documentation.md).
 
