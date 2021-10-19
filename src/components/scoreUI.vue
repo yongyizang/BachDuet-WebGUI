@@ -3,30 +3,133 @@
 </template>
 
 <script>
-import Vex from "vexflow";
-import noteHelper from "@/library/note-helper";
-
-/*
-  TODO: There is a way of managing score using VexTab, a language provided within vexflow.
-  Everytime we need to update anything, we just maintain a structure and a parser to parse that structure to VexTab,
-  Then ask vexflow to parse VexTab to Canvas.
-
-  Performance cost? sure, but it's literally just drawing lines.
-
-  So now we just need to figure out a way to manage the structure of the ongoing script.
-  How to do that?
-
-  Thoughts:
-  - An array of arrays. Saving stuff within each measure in an array, then save each note with its length within that measure.
-*/
-
+import * as vextab from "@/library/vextab-div";
 const DEFAULT_HEIGHT = 400;
 
-const barWidth = 400;
+const maxBarNum = 4;
 
-var measureNum = 1;
+const fakeAIData = [
+  [1, "C4", "4n"],
+  [5, "C#4", "4n"],
+  [9, "C3", "4n"],
+  [13, "C#3", "4n"],
+  [17, "C4", "4n"],
+  [23, "C#4", "4n"],
+  [27, "C3", "4n"],
+  [31, "C#3", "4n"],
+];
 
-const VF = Vex.Flow;
+const fakeHumanData = [
+  [1, ["D4","C3"], "4n"],
+  [5, "D#4", "4n"],
+  [9, "D3", "4n"],
+  [13, "D#3", "4n"],
+  [17, "D4", "4n"],
+  [23, "D#4", "4n"],
+  [27, "D3", "4n"],
+  [31, "D#3", "4n"],
+];
+
+function random_item(items) {
+  return items[Math.floor(Math.random() * items.length)];
+}
+
+function randomNote(input, clef = "high") {
+  const notesArray = ["C", "D", "E", "F", "G", "A", "B"];
+  const accidentals = ["#", "##", "@", "@@", ""];
+  const rangesHigh = ["/4", "/5"];
+  const rangesLow = ["/2", "/3"];
+  var connector;
+  if (input !== 3){
+    connector = "-";
+  } else {
+    connector = " ";
+  }
+  var ranges;
+  if (clef == "high"){
+    ranges = rangesHigh;
+  } else {
+    ranges = rangesLow;
+  }
+  return random_item(notesArray) + random_item(ranges) + connector;
+}
+
+function noteParser(input, measureCount){
+  // This function would pass an array of data for 1 player into a way VexTab could parse. Note: This function doesn't automatically generate rests. If you need rest, you have to pass it in manually.
+  // call it as noteParser([], 3);
+  if (!isNumber(measureCount) || measureCount < 1 || measureCount > 4){
+    throw new Error("measureCount parameter is wrong. You entered: " + measureCount + ". We currently only support integar from 1 to 4. Try again.")
+  }
+
+  if (input[input.length-1][0] + input[1][0])
+
+
+  var measure1 = [[],[]];
+  var measure2 = [[],[]];
+  var measure3 = [[],[]];
+  var measure4 = [[],[]];
+
+  var lastTickNumber = 1;
+/*
+  // Iterate through every element within input array.
+  for (var i = 0; i < input.length; i++) {
+    var currentElement = input[i];
+    if (i == 0) {
+      var currentTickNumber = 1;
+    } else {
+      var currentTickNumber = currentElement[0]
+    }
+    // We fetch currentElememt from input.
+    // so now, the currentElement would look like this:
+    // [1, ["D4","C3"], "4n"]
+    lastTickNumber = currentElement[0];
+    // Set the lastTickNumber to the tickNumber of currentElement.
+    // Haven't finished writing this.
+  }
+}
+*/
+function isNumber (n) {
+  return ! isNaN (n-0);
+}
+
+function vexTabParser(inputData) {
+  // This function takes in data that's in the format of fakeHumanData or fakeAIData.
+  var highClefUser = "";
+  var bassClefUser = "";
+  var highClefAI = "";
+  var bassClefAI = "";
+  if (!inputData) {
+    for (var i = 0; i < maxBarNum; i++) {
+      for (var j = 0; j < 4; j++){
+      highClefUser += randomNote(j);
+      bassClefUser += randomNote(j,"bass");
+      highClefAI += randomNote(j);
+      bassClefAI += randomNote(j,"bass");
+      }
+      highClefUser += "| ";
+      bassClefUser += "| ";
+      highClefAI += "| ";
+      bassClefAI += "| ";
+    }
+    highClefUser += "||";
+      bassClefUser += "|| ";
+      highClefAI += "||";
+      bassClefAI += "||";
+  }
+  return (
+    "options width=" +
+    (document.body.clientWidth - 100) +
+    "\ntabstave notation=true tablature=false\nnotes " +
+    highClefUser +
+    "\n\ntabstave notation=true tablature=false clef=bass\nnotes " +
+    bassClefUser +
+    "\ntabstave notation=true tablature=false\nnotes " +
+    highClefAI +
+    "\n\ntabstave notation=true tablature=false clef=bass\nnotes " +
+    bassClefAI
+  );
+}
+
 
 export default {
   name: "scoreUI",
@@ -45,6 +148,8 @@ export default {
   data() {
     return {
       screenWidth: document.body.clientWidth,
+      barWidth: document.body.clientWidth / maxBarNum,
+      vextabContent: "",
     };
   },
 
@@ -57,8 +162,6 @@ export default {
     },
   },
 
-  
-
   mounted() {
     const vm = this;
     window.onresize = () => {
@@ -68,111 +171,38 @@ export default {
       })();
     };
 
-    // Create an SVG renderer and attach it to the DIV element named "pianoScores".
-    var div = document.getElementById("pianoScores");
-    var renderer = new VF.Renderer(div, VF.Renderer.Backends.SVG);
-    renderer.resize(this.screenWidth, vm.height);
-    var context = renderer.getContext();
+    const VF = vextab.Flow;
+    const Renderer = VF.Renderer;
+    // Create VexFlow Renderer from canvas element with id #boo
+    const renderer = new Renderer($("#pianoScores")[0], Renderer.Backends.SVG);
 
-    // Define the first measure.
-    var userTrebleStave = new VF.Stave(30, 10, barWidth);
-    userTrebleStave
-      .addClef("treble")
-      .addTimeSignature("4/4")
-      .setContext(context)
-      .draw();
-    var userBassStave = new VF.Stave(30, 100, barWidth);
-    userBassStave
-      .addClef("bass")
-      .addTimeSignature("4/4")
-      .setContext(context)
-      .draw();
-    var userLineLeft = new Vex.Flow.StaveConnector(
-      userTrebleStave,
-      userBassStave
-    )
-      .setType(1)
-      .setContext(context)
-      .draw();
-    var userBrace = new Vex.Flow.StaveConnector(userTrebleStave, userBassStave)
-      .setType(3)
-      .setContext(context)
-      .draw(); // 3 = brace
+    // Initialize VexTab artist and parser.
+    const artist = new vextab.Artist(50, 50, document.body.clientWidth, {
+      scale: 1,
+    });
+    const tab = new vextab.VexTab(artist);
 
-    var AITrebleStave = new VF.Stave(30, 180, barWidth);
-    AITrebleStave.addClef("treble")
-      .addTimeSignature("4/4")
-      .setContext(context)
-      .draw();
-    var AIBassStave = new VF.Stave(30, 260, barWidth);
-    AIBassStave.addClef("bass")
-      .addTimeSignature("4/4")
-      .setContext(context)
-      .draw();
-    var AILineLeft = new Vex.Flow.StaveConnector(AITrebleStave, AIBassStave)
-      .setType(1)
-      .setContext(context)
-      .draw();
-    var AIBrace = new Vex.Flow.StaveConnector(AITrebleStave, AIBassStave)
-      .setType(3)
-      .setContext(context)
-      .draw(); // 3 = brace
-
-    // var staveMeasure1 = new Vex.Flow.Stave(10, 0, 300);
-    // staveMeasure1
-    //   .addClef("treble")
-    //   .setContext(VFcontext)
-    //   .draw();
-
-    // var notesMeasure1 = [
-    //   new Vex.Flow.StaveNote({ keys: ["c/4"], duration: "q" }),
-    //   new Vex.Flow.StaveNote({ keys: ["d/4"], duration: "q" }),
-    //   new Vex.Flow.StaveNote({ keys: ["b/4"], duration: "qr" }),
-    //   new Vex.Flow.StaveNote({ keys: ["c/4", "e/4", "g/4"], duration: "q" }),
-    // ];
-
-    // // Helper function to justify and draw a 4/4 voice
-    // Vex.Flow.Formatter.FormatAndDraw(VFcontext, staveMeasure1, notesMeasure1);
-
-    // // measure 2 - juxtaposing second measure next to first measure
-    // var staveMeasure2 = new Vex.Flow.Stave(
-    //   staveMeasure1.width + staveMeasure1.x,
-    //   0,
-    //   400
-    // );
-    // staveMeasure2.setContext(VFcontext).draw();
-
-    // var notesMeasure2_part1 = [
-    //   new Vex.Flow.StaveNote({ keys: ["c/4"], duration: "8" }),
-    //   new Vex.Flow.StaveNote({ keys: ["d/4"], duration: "8" }),
-    //   new Vex.Flow.StaveNote({ keys: ["b/4"], duration: "8" }),
-    //   new Vex.Flow.StaveNote({ keys: ["c/4", "e/4", "g/4"], duration: "8" }),
-    // ];
-
-    // var notesMeasure2_part2 = [
-    //   new Vex.Flow.StaveNote({ keys: ["c/4"], duration: "8" }),
-    //   new Vex.Flow.StaveNote({ keys: ["d/4"], duration: "8" }),
-    //   new Vex.Flow.StaveNote({ keys: ["b/4"], duration: "8" }),
-    //   new Vex.Flow.StaveNote({ keys: ["c/4", "e/4", "g/4"], duration: "8" }),
-    // ];
-
-    // // create the beams for 8th notes in 2nd measure
-    // var beam1 = new Vex.Flow.Beam(notesMeasure2_part1);
-    // var beam2 = new Vex.Flow.Beam(notesMeasure2_part2);
-
-    // var notesMeasure2 = notesMeasure2_part1.concat(notesMeasure2_part2);
-
-    // Vex.Flow.Formatter.FormatAndDraw(VFcontext, staveMeasure2, notesMeasure2);
-
-    // // Render beams
-    // beam1.setContext(VFcontext).draw();
-    // beam2.setContext(VFcontext).draw();
+    var currentTime = Date.now();
+    var currentRun = 1;
+    setInterval(function(){
+      tab.reset();
+      artist.reset();
+      tab.parse(vexTabParser());
+      artist.render(renderer);
+      console.log("Regenerate #" + currentRun);
+      console.log("Time took: " + (Date.now() - currentTime))
+      currentRun += 1;
+      currentTime = Date.now();
+    }, 100);
   },
 
   methods: {
-    newMeasure() {},
+    renderScore(){
+
+    }
   },
 };
+}
 </script>
 
 <style scoped>

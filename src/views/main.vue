@@ -3,7 +3,8 @@
       main.vue, the application's main UI file.
   -->
   <div class="home">
-    <scoreUI :height="400" />
+    <!-- <scoreUI :height="400" /> -->
+    <gameUI />
     <keyboardUI
       id="pianoKeyboard"
       class="pianoKeyboard"
@@ -54,6 +55,7 @@
 import * as Tone from "tone";
 import { Buffer, Sequence, Transport, Event, Draw, context } from "tone";
 import keyboardUI from "@/components/keyboardUI.vue";
+import gameUI from "@/components/gameUI.vue";
 import scoreUI from "@/components/scoreUI.vue";
 import Instruments from "@/library/instruments";
 
@@ -144,6 +146,7 @@ export default {
   components: {
     keyboardUI,
     scoreUI,
+    gameUI
   },
 
   mounted() {
