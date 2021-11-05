@@ -1,0 +1,27 @@
+2021-11-05 10:41:58,896 INFO o.a.j.u.JMeterUtils: Setting Locale to en_EN
+2021-11-05 10:41:58,918 INFO o.a.j.JMeter: Loading user properties from: /opt/homebrew/Cellar/jmeter/5.4.1/libexec/bin/user.properties
+2021-11-05 10:41:58,918 INFO o.a.j.JMeter: Loading system properties from: /opt/homebrew/Cellar/jmeter/5.4.1/libexec/bin/system.properties
+2021-11-05 10:41:58,925 INFO o.a.j.JMeter: Copyright (c) 1998-2021 The Apache Software Foundation
+2021-11-05 10:41:58,925 INFO o.a.j.JMeter: Version 5.4.1
+2021-11-05 10:41:58,925 INFO o.a.j.JMeter: java.version=17
+2021-11-05 10:41:58,926 INFO o.a.j.JMeter: java.vm.name=OpenJDK 64-Bit Server VM
+2021-11-05 10:41:58,926 INFO o.a.j.JMeter: os.name=Mac OS X
+2021-11-05 10:41:58,926 INFO o.a.j.JMeter: os.arch=aarch64
+2021-11-05 10:41:58,926 INFO o.a.j.JMeter: os.version=11.5.1
+2021-11-05 10:41:58,926 INFO o.a.j.JMeter: file.encoding=UTF-8
+2021-11-05 10:41:58,926 INFO o.a.j.JMeter: java.awt.headless=null
+2021-11-05 10:41:58,926 INFO o.a.j.JMeter: Max memory     =1073741824
+2021-11-05 10:41:58,926 INFO o.a.j.JMeter: Available Processors =8
+2021-11-05 10:41:58,936 INFO o.a.j.JMeter: Default Locale=English (EN)
+2021-11-05 10:41:58,937 INFO o.a.j.JMeter: JMeter  Locale=English (EN)
+2021-11-05 10:41:58,937 INFO o.a.j.JMeter: JMeterHome=/opt/homebrew/Cellar/jmeter/5.4.1/libexec
+2021-11-05 10:41:58,937 INFO o.a.j.JMeter: user.dir  =/Users/colinzang/Documents/GitHub/BachDuet-WebGUI
+2021-11-05 10:41:58,937 INFO o.a.j.JMeter: PWD       =/Users/colinzang/Documents/GitHub/BachDuet-WebGUI
+2021-11-05 10:41:58,939 INFO o.a.j.JMeter: IP: 127.0.0.1 Name: ColindeMacBook-Air.local FullName: localhost
+2021-11-05 10:41:59,278 INFO o.a.j.JMeter: Setting LAF to: com.github.weisj.darklaf.DarkLaf:com.github.weisj.darklaf.theme.DarculaTheme
+2021-11-05 10:42:00,596 INFO o.a.j.JMeter: Loaded icon properties from org/apache/jmeter/images/icon.properties
+2021-11-05 10:42:01,606 INFO o.j.r.JARSourceHTTP: Using proxy 127.0.0.1:7890
+2021-11-05 10:42:01,610 INFO o.j.r.JARSourceHTTP: Using proxy 127.0.0.1:7890
+2021-11-05 10:42:01,651 INFO o.j.r.JARSourceHTTP: Requesting https://jmeter-plugins.org/repo/?installID=mac_os_x-d6a04511aea494e845d48b1d4e8ad90c-gui
+2021-11-05 10:42:02,382 INFO o.j.r.JARSourceHTTP: Using proxy 127.0.0.1:7890
+2021-11-05 10:42:02,383 INFO o.j.r.PluginManager: Plugins Status: [jpgc-plugins-manager=1.6, jmeter-core=5.4.1, jmeter-ftp=5.4.1, jmeter-http=5.4.1, jmeter-jdbc=5.4.1, jmeter-jms=5.4.1, jmeter-junit=5.4.1, jmeter-java=5.4.1, jmeter-ldap=5.4.1, jmeter-mail=5.4.1, jmeter-mongodb=5.4.1, jmeter-native=5.4.1, jmeter-tcp=5.4.1, jmeter-components=5.4.1]

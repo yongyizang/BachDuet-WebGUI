@@ -45,10 +45,23 @@ export default {
     const geometry = new THREE.BoxGeometry();
     const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
     const cube = new THREE.Mesh(geometry, material);
+    const cube2 = new THREE.Mesh(geometry, material);
+    const cube3 = new THREE.Mesh(geometry, material);
+    const cube4 = new THREE.Mesh(geometry, material);
+    const cube5 = new THREE.Mesh(geometry, material);
+    const cube6 = new THREE.Mesh(geometry, material);
     scene.add(cube);
-
+    scene.add(cube2);
+    scene.add(cube3);
+    scene.add(cube4);
+    scene.add(cube5);
+    scene.add(cube6);
     function animate() {
       cube.rotation.y += 0.01;
+      cube2.rotation.y += 0.3;
+      cube3.rotation.y -= 0.04;
+      cube4.rotation.y += 0.02;
+      cube5.rotation.y += 0.1;
       renderer.render(scene, camera);
       requestAnimationFrame(animate);
     }

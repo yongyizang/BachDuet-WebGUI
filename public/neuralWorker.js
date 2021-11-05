@@ -34,7 +34,7 @@ self.temperature = 0.1;
 onmessage = function(e) {
     // console.log(e.data);
     var tick = e.data['tick'];
-    console.time(tick)
+    var t1 = performance.now();
     var midiInp = tf.tensor2d([[60,61]]);
     var cpcInp = tf.tensor2d([[12, 0]]);
     var rhyInp = tf.tensor2d([[5]]);
@@ -68,7 +68,8 @@ onmessage = function(e) {
     // console.log('Message received from main script');
     // var workerResult = 'Result: ' + (e.data[0] * e.data[1]);
     // console.log('Posting message back to main script');
-    console.timeEnd(tick)
+    var t2 = performance.now();
+    console.log("neuralNet: " + (t2-t1));
     var output = {
         'tick' : e.data['tick'],
         'note' : predictedNote

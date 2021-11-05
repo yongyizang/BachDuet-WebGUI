@@ -40,7 +40,7 @@ function randomNote(input, clef = "high") {
   const rangesHigh = ["/4", "/5"];
   const rangesLow = ["/2", "/3"];
   var connector;
-  if (input !== 3){
+  if (input !== 15){
     connector = "-";
   } else {
     connector = " ";
@@ -101,7 +101,7 @@ function vexTabParser(inputData) {
   var bassClefAI = "";
   if (!inputData) {
     for (var i = 0; i < maxBarNum; i++) {
-      for (var j = 0; j < 4; j++){
+      for (var j = 0; j < 16; j++){
       highClefUser += randomNote(j);
       bassClefUser += randomNote(j,"bass");
       highClefAI += randomNote(j);
@@ -120,7 +120,7 @@ function vexTabParser(inputData) {
   return (
     "options width=" +
     (document.body.clientWidth - 100) +
-    "\ntabstave notation=true tablature=false\nnotes " +
+    "\ntabstave notation=true tablature=false\nnotes " + ":16" +
     highClefUser +
     "\n\ntabstave notation=true tablature=false clef=bass\nnotes " +
     bassClefUser +
@@ -183,23 +183,20 @@ export default {
     });
     const tab = new vextab.VexTab(artist);
 
-    var currentTime = Date.now();
-    var currentRun = 1;
+    var currentTime = performance.now();
     setInterval(function(){
+      var t1 = performance.now();
       tab.reset();
       artist.reset();
       tab.parse(vexTabParser());
       artist.render(renderer);
-      console.log("Regenerate #" + currentRun);
-      console.log("Time took: " + (Date.now() - currentTime))
-      currentRun += 1;
-      currentTime = Date.now();
-    }, 100);
+      var t2 = performance.now();
+      console.log("scoreUI: " + (t2-t1))
+    }, 60);
   },
 
   methods: {
     renderScore(){
-
     }
   },
 };

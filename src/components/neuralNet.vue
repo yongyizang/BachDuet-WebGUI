@@ -4,7 +4,8 @@
     It doesn't have any UI
 -->
 <template>
-  <div id="neuralNet"></div>
+  <div id="neuralNet">
+  </div>
 </template>
 <script>
 
@@ -32,7 +33,7 @@ export default {
   methods: {
       inference(currentTickNumber){
 
-        console.time(currentTickNumber)
+        var t1 = performance.now();
         var midiInp = tf.tensor2d([[60,61]]);
         var cpcInp = tf.tensor2d([[12, 0]]);
         var rhyInp = tf.tensor2d([[5]]);
@@ -63,7 +64,8 @@ export default {
         // and let the clock in main.vue to access it, and trigger the note when it's time
 
         
-        console.timeEnd(currentTickNumber)
+        var t2 = performance.now();
+        this.$store.commit("updateNeuralNetTime", t2-t1);
         return {predictedNote}
       }
   },
