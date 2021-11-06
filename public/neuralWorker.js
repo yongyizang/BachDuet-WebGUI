@@ -14,8 +14,8 @@ const CHECKPOINT_BASE_URL = "/checkpoints/"
  
 async function loadModels(){
 
-    self.modelLstm = await tf.loadLayersModel('checkpoints/modelsFinal_noEmb/model.json');
-    self.modelEmb =  await tf.loadLayersModel('checkpoints/modelsFinal_Emb/model.json');
+    self.modelLstm = await tf.loadLayersModel('checkpoints/modelsFinal_Lstm/model.json');
+    self.modelEmb =  await tf.loadLayersModel('checkpoints/modelsFinal_Emb/model_cleaned.json');
     console.log("loaded models");
     tf.setBackend('cpu');
 
@@ -29,15 +29,21 @@ self.states1A = tf.randomNormal([1,600]);
 self.states1B = tf.randomNormal([1,600]);
 self.states2A = tf.randomNormal([1,600]);
 self.states2B = tf.randomNormal([1,600]);
-self.temperature = 0.1;
+// self.states1A = tf.zeros([1,600]);
+// self.states1B = tf.zeros([1,600]);
+// self.states2A = tf.zeros([1,600]);
+// self.states2B = tf.zeros([1,600]);
+self.temperature = 0.4;
 
 onmessage = function(e) {
     // console.log(e.data);
     var tick = e.data['tick'];
     var t1 = performance.now();
-    var midiInp = tf.tensor2d([[60,61]]);
-    var cpcInp = tf.tensor2d([[12, 0]]);
-    var rhyInp = tf.tensor2d([[5]]);
+
+    console.time(tick)
+    var midiInp = tf.tensor2d([[133,123]]);
+    var cpcInp = tf.tensor2d([[12, 11]]);
+    var rhyInp = tf.tensor2d([[9]]);
     var exodos = self.modelEmb.predict([midiInp, cpcInp, rhyInp]);
     var embMidi = exodos[0];
     var embCpc = exodos[1];

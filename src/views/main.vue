@@ -17,6 +17,10 @@
       :octave-start="keyboardUIoctaveStart"
       :octave-end="keyboardUIoctaveEnd"
     />
+<<<<<<< Updated upstream
+=======
+    <!-- <neuralNet/> -->
+>>>>>>> Stashed changes
 
     <!-- logic handled by this file for decoupling purposes. -->
     <div class="octaveControls">
@@ -65,8 +69,11 @@ import { Buffer, Sequence, Transport, Event, Draw, context } from "tone";
 import keyboardUI from "@/components/keyboardUI.vue";
 import gameUI from "@/components/gameUI.vue";
 import scoreUI from "@/components/scoreUI.vue";
-import neuralNet from "@/components/neuralNet.vue";
+// import neuralNet from "@/components/neuralNet.vue";
+
 import Instruments from "@/library/instruments";
+import * as tokensDict from "@/../public/globalTokenIndexDict.json";
+
 
 /*
   Initialization Process.
@@ -138,7 +145,7 @@ export default {
     keyboardUI,
     scoreUI,
     gameUI,
-    neuralNet,
+    // neuralNet
   },
 
   mounted() {
@@ -256,7 +263,7 @@ export default {
       // vm is short for ViewModel
       var vm = this;
       // Allowing tickNumber to add to itself.
-
+      console.log(tokensDict)
       vm.clockStatus = !vm.clockStatus;
 
       // C: we don't need this if else statement
