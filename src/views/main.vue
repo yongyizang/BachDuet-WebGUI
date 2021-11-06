@@ -6,6 +6,7 @@
     <div class="center">
       <keyboardUI
         id="AIKeyboard"
+        ref="aiKeyboard"
         class="pianoKeyboard"
         :key="keyboardUIKey"
         :octave-start="keyboardUIoctaveStart"
@@ -13,8 +14,9 @@
       />
       <keyboardUI
         id="UserKeyboard"
+        ref="UserKeyboard"
         class="pianoKeyboard"
-        :key="keyboardUIKey"
+        :key="keyboardUIKey+1"
         :octave-start="keyboardUIoctaveStart"
         :octave-end="keyboardUIoctaveEnd"
       />
@@ -107,6 +109,8 @@ const metronomeBus = new Tone.Channel().toDestination();
 metronomeSampler.connect(metronomeBus);
 //C: how about user and ai bus ?
 
+
+
 // This is for Web Audio restrictions, we need to make an user behavior to trigger the Tone.start() function.
 window.onclick = () => {
   Tone.start();
@@ -138,6 +142,8 @@ export default {
   },
 
   mounted() {
+    
+    this.renderKeyEvent("C4", true, "AI", true);
     this.neuralWorker = new Worker("neuralWorker.js"); //, { type: "module" })
 
     // the workerCallback function is called when the neuralWorker returns the AI's prediction
@@ -205,9 +211,9 @@ export default {
   methods: {
     // Toggle Keys using this.
     // send in: renderKeyEvent ("C4", true, "AI", true), or ("C4", false, "User", true)
-    renderKeyEvent(note, type, player, whiteOrBlack) {
-      AIKeyboardElement = document.getElementById("AIKeyboard");
-      UserKeyboardElement = document.getElementById("UserKeyboard");
+    renderKeyEvent(note = "", type = true, player = "", whiteOrBlack = true) {
+      AIKeyboardElement = this.$refs.aiKeyboard;
+      UserKeyboardElement = this.component("UserKeyboard");
       if (type) {
         // if it's noteOn
         if (player === "AI") {
@@ -248,7 +254,6 @@ export default {
         }
       }
     },
-
     // neuralWorker's callback. Called every tick, and processes the AI's output
     workerCallback(e) {
       var aiOutput = e.data;
@@ -295,6 +300,7 @@ export default {
     // The clock behavior is defined here.
     // This is currently triggered by a button, but you could call this function anywhere to toggle the clock.
     toggleClock() {
+
       // vm is short for ViewModel
       var vm = this;
       // Allowing tickNumber to add to itself.
