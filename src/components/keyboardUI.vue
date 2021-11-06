@@ -142,6 +142,22 @@ export default {
       return this.$store.getters.getPianoState[note.name]=== true;
     },
 
+    toggleBlackKeyDown(note) {
+
+    },
+
+    toggleBlackKeyUp(note) {
+
+    },
+
+    toggleWhiteKeyDown(note) {
+
+    },
+
+    toggleWhiteKeyUp(note){
+
+    },
+
     toggleAttack(currentNote) {
       // Trigger the sampler.
       pianoSampler.triggerAttack(currentNote, Tone.now());
@@ -279,14 +295,14 @@ ul {
 
 .keyboard {
   width: 100vw;
-  height: 200px;
+  height: 250px;
   overflow-x: hidden;
 }
 
 .keyboard ul {
-  height: calc(100% - 40px);
+  height: calc(100% - 60px);
   width: 96%;
-  padding-top:40px;
+  padding-top:60px;
   padding-left:2%;
   padding-right:2%;
   list-style-type: none;
@@ -320,7 +336,7 @@ li.black span {
   background:linear-gradient(to bottom,#eee 0%,#fff 100%)
 }
 
-.white:active {
+.white:active, .white:activate {
   box-shadow:2px 0 3px rgba(0,0,0,0.1) inset,-5px 5px 20px rgba(0,0,0,0.2) inset,0 0 3px rgba(0,0,0,0.2);
   background:linear-gradient(to bottom,#fff 0%,#e9e9e9 100%)
 }
@@ -334,7 +350,7 @@ li.black span {
   background:linear-gradient(45deg,#222 0%,#555 100%)
 }
 
-.black:active {
+.black:active, .black:activate {
   box-shadow:-1px -1px 2px rgba(255,255,255,0.2) inset,0 -2px 2px 3px rgba(0,0,0,0.6) inset,0 1px 2px rgba(0,0,0,0.5);
   background:linear-gradient(to right,#444 0%,#222 100%)
 }

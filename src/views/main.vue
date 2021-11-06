@@ -3,20 +3,22 @@
       main.vue, the application's main UI file.
   -->
   <div class="home">
-    <div style="background-color:black; opacity: 0.5; display:fixed; top:0; right:0; z-index:999">
-      <span>NeuralNet Inference: {{ $store.state.neuralNetRefreshTime }}</span><br />
-      <span>scoreUI Time: {{ $store.state.scoreUIRefreshTime }}</span>
+    <div class="center">
+      <keyboardUI
+        id="AIKeyboard"
+        class="pianoKeyboard"
+        :key="keyboardUIKey"
+        :octave-start="keyboardUIoctaveStart"
+        :octave-end="keyboardUIoctaveEnd"
+      />
+      <keyboardUI
+        id="UserKeyboard"
+        class="pianoKeyboard"
+        :key="keyboardUIKey"
+        :octave-start="keyboardUIoctaveStart"
+        :octave-end="keyboardUIoctaveEnd"
+      />
     </div>
-    <scoreUI />
-    <gameUI />
-    <neuralNet />
-    <keyboardUI
-      id="pianoKeyboard"
-      class="pianoKeyboard"
-      :key="keyboardUIKey"
-      :octave-start="keyboardUIoctaveStart"
-      :octave-end="keyboardUIoctaveEnd"
-    />
 
     <!-- logic handled by this file for decoupling purposes. -->
     <div class="octaveControls">
@@ -63,9 +65,6 @@
 import * as Tone from "tone";
 import { Buffer, Sequence, Transport, Event, Draw, context } from "tone";
 import keyboardUI from "@/components/keyboardUI.vue";
-import gameUI from "@/components/gameUI.vue";
-import scoreUI from "@/components/scoreUI.vue";
-import neuralNet from "@/components/neuralNet.vue";
 import Instruments from "@/library/instruments";
 
 /*
@@ -136,9 +135,6 @@ export default {
 
   components: {
     keyboardUI,
-    scoreUI,
-    gameUI,
-    neuralNet,
   },
 
   mounted() {
@@ -207,6 +203,52 @@ export default {
   },
 
   methods: {
+    // Toggle Keys using this.
+    // send in: renderKeyEvent ("C4", true, "AI", true), or ("C4", false, "User", true)
+    renderKeyEvent(note, type, player, whiteOrBlack) {
+      AIKeyboardElement = document.getElementById("AIKeyboard");
+      UserKeyboardElement = document.getElementById("UserKeyboard");
+      if (type) {
+        // if it's noteOn
+        if (player === "AI") {
+          if (whiteOrBlack) { // if it's white note
+            AIKeyboardElement.getElementsByClassName(note).classList.add("white-activate");
+          } else {
+            AIKeyboardElement.getElementsByClassName(note).classList.add("black-activate");
+          }
+        } else if (player === "User") {
+          if (whiteOrBlack) { // if it's white note
+            UserKeyboardElement.getElementsByClassName(note).classList.add("white-activate");
+          } else {
+            UserKeyboardElement.getElementsByClassName(note).classList.add("black-activate");
+          }
+        } else {
+          throw new Error(
+            "the player parameter in renderKeyEvent is wrong. Try again."
+          );
+        }
+      } else {
+        // if it's noteOff
+        if (player === "AI") {
+          if (whiteOrBlack) { // if it's white note
+            AIKeyboardElement.getElementsByClassName(note).classList.remove("white-activate");
+          } else {
+            AIKeyboardElement.getElementsByClassName(note).classList.remove("black-activate");
+          }
+        } else if (player === "User") {
+          if (whiteOrBlack) { // if it's white note
+            UserKeyboardElement.getElementsByClassName(note).classList.remove("white-activate");
+          } else {
+            UserKeyboardElement.getElementsByClassName(note).classList.remove("black-activate");
+          }
+        } else {
+          throw new Error(
+            "the player parameter in renderKeyEvent is wrong. Try again."
+          );
+        }
+      }
+    },
+
     // neuralWorker's callback. Called every tick, and processes the AI's output
     workerCallback(e) {
       var aiOutput = e.data;
@@ -345,14 +387,42 @@ export default {
 };
 </script>
 
-<style scoped>
+<style>
+html,
+body {
+  background-image: url("/carpet.jpeg");
+  background-position: center;
+  background-size: 110%;
+  height: 100%;
+  width: 100%;
+}
+
+.center {
+  margin: 0;
+  position: absolute;
+  top: 50%;
+  -ms-transform: translateY(-50%);
+  transform: translateY(-50%);
+}
 .pianoKeyboard {
   z-index: 1;
-  position: fixed;
-  bottom: 0;
   border-radius: 2px;
-  -webkit-box-shadow: 0px 3px 19px 8px rgba(0, 0, 0, 0.68);
-  box-shadow: 0px 3px 19px 8px rgba(0, 0, 0, 0.68);
+}
+
+#AIKeyboard {
+  -webkit-transform: rotate(180deg);
+  -moz-transform: rotate(180deg);
+  -ms-transform: rotate(180deg);
+  -o-transform: rotate(180deg);
+  transform: rotate(180deg);
+  margin-bottom: 10px;
+  -webkit-box-shadow: 1px -7px 12px 1px rgba(0, 0, 0, 0.68);
+  box-shadow: 1px -7px 12px 1px rgba(0, 0, 0, 0.68);
+}
+
+#UserKeyboard {
+  -webkit-box-shadow: -1px 5px 12px 1px rgba(0, 0, 0, 0.68);
+  box-shadow: -1px 5px 12px 1px rgba(0, 0, 0, 0.68);
 }
 
 .octaveControls {
@@ -381,5 +451,17 @@ export default {
   margin: 0;
   position: absolute;
   bottom: 196px;
+}
+
+.white-activate {
+  box-shadow: 2px 0 3px rgba(0, 0, 0, 0.1) inset,
+    -5px 5px 20px rgba(0, 0, 0, 0.2) inset, 0 0 3px rgba(0, 0, 0, 0.2);
+  background: linear-gradient(to bottom, #fff 0%, #e9e9e9 100%);
+}
+
+.black-activate {
+  box-shadow: -1px -1px 2px rgba(255, 255, 255, 0.2) inset,
+    0 -2px 2px 3px rgba(0, 0, 0, 0.6) inset, 0 1px 2px rgba(0, 0, 0, 0.5);
+  background: linear-gradient(to right, #444 0%, #222 100%);
 }
 </style>
