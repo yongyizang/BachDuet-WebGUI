@@ -2,6 +2,7 @@
     This is the vue component of Piano Keyboard UI.
 
     It automatically generates the correct amount of keys, with a default piano sampler.
+    DOC: what does line 17 do ?
 -->
 
 <template>
@@ -17,7 +18,7 @@
       >
         <span>{{ key.name }}</span>
       </li>
-    </ul>
+    </ul> 
   </div>
 </template>
 
@@ -139,6 +140,7 @@ export default {
   methods: {
     noteActive(note) {
       // If the note is active, the state of that note is true.
+      console.log("inside noteActive")
       return this.$store.getters.getPianoState[note.name]=== true;
     },
 
@@ -227,7 +229,7 @@ export default {
 
         const key = {
           name: `${keyName}${octave}`,
-          class: ["white", keyName, `${keyName}${octave}`],
+          class: ["white", keyName, `${keyName}${octave}`], // "white-activate",
           style: {
             "grid-column": `${j === 0 ? 1 : 4 + (j - 1) * 3} / span 3`
           }
@@ -333,6 +335,13 @@ li.black span {
   box-shadow:-1px -1px 2px rgba(255,255,255,0.2) inset,0 -5px 2px 3px rgba(0,0,0,0.6) inset,0 2px 4px rgba(0,0,0,0.5);
   background:linear-gradient(45deg,#222 0%,#555 100%)
 }
+
+.white-activate {
+  box-shadow: 2px 0 3px rgba(0, 0, 0, 0.1) inset,
+    -5px 5px 20px rgba(166, 192, 16, 0.2) inset, 0 0 3px rgba(19, 16, 206, 0.2);
+  background: linear-gradient(to bottom, rgb(209, 5, 5) 0%, #05e723 100%);
+}
+
 
 .black:active {
   box-shadow:-1px -1px 2px rgba(255,255,255,0.2) inset,0 -2px 2px 3px rgba(0,0,0,0.6) inset,0 1px 2px rgba(0,0,0,0.5);

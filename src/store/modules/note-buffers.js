@@ -30,6 +30,7 @@ const state = {
     // Define all basic states.
     pianoState: pianoStateMap,
     lastNotePlayed: "",
+    lastNotePlayedOnThick: -1,
     notesBuffer: notesBufferArrayObs,
     aiPredictions: aiPredictionsMap,
 }
@@ -59,6 +60,9 @@ const getters = {
     getLastNotePlayed (state){
         return state.lastNotePlayed;
     },
+    getLastNotePlayedOnTick (state){
+        return state.lastNotePlayedOnTick;
+    },
     getNotesBuffer (state){
         return state.notesBuffer;
     },
@@ -70,8 +74,8 @@ const getters = {
 const actions = {
     newAiPrediction ({ commit, state, getters }, args) {
         // pred is a dict with keys "currentTick", and "prediction"
-        var nextTick = getters.getNextLocalTick(args["currentTick"])
-        state.aiPredictions[nextTick] = args["prediction"]
+        var nextTick = getters.getNextLocalTick(args["currentTick"]);
+        state.aiPredictions[nextTick] = args["prediction"];
     }
 }
 
@@ -79,20 +83,23 @@ const mutations = {
     /*
         Here the behaviors are defined.
         When a note is "on", turn on pianoState and bufferState for that note, then set the last note played to that note.
-        When a note is "off", turn off pianoState, it stays in the buffer.
-        When buffer is cleared, all buffer and lastNotePlayed is cleared.
+        When a note is "off", turn off pianoState
     */
     noteOn (state, note) {
         state.pianoState[note] = true;
         // state.bufferState[note] = true;
+        // state.notesBuffer.push[note];
         state.lastNotePlayed = note;
+        state.lastNotePlayedOnTick = getters.getLocaTick();
     },
     noteOff (state, note) {
         state.pianoState[note] = false;
     },
     clearNotesBuffer (state) {
-        state.notesBuffer = []
+        // state.notesBuffer = []
         // C: don't we have to make it observable again ? const notesBufferArrayObs = new Vue.observable(notesBufferArray)
+        // how about 
+        // Object.assign(state.notesBuffer, [])
     }, 
 }
 

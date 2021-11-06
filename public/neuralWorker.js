@@ -40,7 +40,7 @@ onmessage = function(e) {
     var tick = e.data['tick'];
     var t1 = performance.now();
 
-    console.time(tick)
+    // console.time(tick)
     var midiInp = tf.tensor2d([[133,123]]);
     var cpcInp = tf.tensor2d([[12, 11]]);
     var rhyInp = tf.tensor2d([[9]]);
@@ -75,7 +75,7 @@ onmessage = function(e) {
     // var workerResult = 'Result: ' + (e.data[0] * e.data[1]);
     // console.log('Posting message back to main script');
     var t2 = performance.now();
-    console.log("neuralNet: " + (t2-t1));
+    console.log("neuralNet: " + (t2-t1) + " tick " + tick);
     var output = {
         'tick' : e.data['tick'],
         'note' : predictedNote

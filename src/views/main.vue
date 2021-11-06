@@ -4,23 +4,22 @@
   -->
   <div class="home">
     <div style="background-color:black; opacity: 0.5; display:fixed; top:0; right:0; z-index:999">
-      <span>NeuralNet Inference: {{ $store.state.neuralNetRefreshTime }}</span><br />
-      <span>scoreUI Time: {{ $store.state.scoreUIRefreshTime }}</span>
+      <!-- <span>NeuralNet Inference: {{ $store.state.neuralNetRefreshTime }}</span><br /> -->
+      <!-- <span>scoreUI Time: {{ $store.state.scoreUIRefreshTime }}</span> -->
     </div>
-    <scoreUI />
+    <!-- <scoreUI /> -->
     <gameUI />
-    <neuralNet />
+    <!-- <neuralNet /> -->
     <keyboardUI
       id="pianoKeyboard"
       class="pianoKeyboard"
+      ref="mytestref"
+
       :key="keyboardUIKey"
       :octave-start="keyboardUIoctaveStart"
       :octave-end="keyboardUIoctaveEnd"
     />
-<<<<<<< Updated upstream
-=======
     <!-- <neuralNet/> -->
->>>>>>> Stashed changes
 
     <!-- logic handled by this file for decoupling purposes. -->
     <div class="octaveControls">
@@ -68,7 +67,7 @@ import * as Tone from "tone";
 import { Buffer, Sequence, Transport, Event, Draw, context } from "tone";
 import keyboardUI from "@/components/keyboardUI.vue";
 import gameUI from "@/components/gameUI.vue";
-import scoreUI from "@/components/scoreUI.vue";
+// import scoreUI from "@/components/scoreUI.vue";
 // import neuralNet from "@/components/neuralNet.vue";
 
 import Instruments from "@/library/instruments";
@@ -143,12 +142,14 @@ export default {
 
   components: {
     keyboardUI,
-    scoreUI,
+    // scoreUI,
     gameUI,
     // neuralNet
   },
 
   mounted() {
+      // AIKeyboardElement = this.$refs.aiKeyboard;
+    console.log("SKATA")
     this.neuralWorker = new Worker("neuralWorker.js"); //, { type: "module" })
 
     // the workerCallback function is called when the neuralWorker returns the AI's prediction
@@ -261,6 +262,11 @@ export default {
     // This is currently triggered by a button, but you could call this function anywhere to toggle the clock.
     toggleClock() {
       // vm is short for ViewModel
+      this.$refs.mytestref.$el.children[0].getElementsByClassName("A1")[0].classList.add('white-activate')
+      
+      console.log(this.$refs.mytestref.$el.children[0].children[0].classList)
+      console.log(this.$refs.mytestref.$el.children[0].getElementsByClassName("A1")[0].classList)
+
       var vm = this;
       // Allowing tickNumber to add to itself.
       console.log(tokensDict)
@@ -315,6 +321,10 @@ export default {
             );
 
             vm.$store.commit("clearNotesBuffer");
+            console.log(vm.$refs.mytestref.$el.children[0].getElementsByClassName("A1")[0].classList)
+
+           
+
           }
         }
 
@@ -330,6 +340,7 @@ export default {
     },
 
     triggerAiSampler() {
+      // TODO
       // here, we check the note the AI predicted in the previous tick,
       // for the tick we are now. If the articulation of the predicted note
       // is 1 (hit), then we trigger the AI sampler to play the note.
@@ -340,10 +351,40 @@ export default {
       );
       // to be continued
     },
+
     // C: using async, improves the neural net's inference speed slightly. Don't know why.
     async runTheWorker() {
+      var humanInp=-1;
+      var artic=-1;
+      // check if keyboard is currently active, namely if there is at least one key pressed
+      // if not, then the users input is rest
+      if (!this.$store.getters.getkeyboardIsActive()){
+          var humanInp = 0;
+          var artic = 1
+      }
+      else{
+          // there is at least one key pressed. We only care for the last key pressed so
+          var lastNote = this.$store.getters.getLastNotePlayed()
+          var activeNotes = this.$store.getters.getActiveNotes()
+          if (lastNote in activeNotes){
+              // find artic
+              if (this.$store.getters.getlastNotePlayedOnTick()-this.$store.getters.getLocalTick > 0){
+                  artic = 0
+              }
+              else {artic=1}
+          }
+          else {
+              var humanInp = 0;
+              var artic = 1
+          }
+
+      }
       var aiInp = {
-        tick: this.$store.getters.getLocalTick,
+        tick: this.$store.getters.getLocalTick, //input tick time (the AI will predict a note for time tick+1)
+        humanInp : 0, //users input at time tick
+        aiInp : this.$store.getters.getAiPredictionFor( this.$store.getters.getLocalTick), 
+                    // for the AI to generate the note for time tick + 1, besides the users input
+                    // it also takes as an input the note it played/generated for at time tick
       };
       this.neuralWorker.postMessage(aiInp); //{"currentTickNumber": vm.$store.getters.getLocalTick});
       console.log("Message posted to worker async");
