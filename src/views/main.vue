@@ -143,7 +143,10 @@ export default {
 
   mounted() {
     
+    this.renderKeyEvent("A1", true, "User", true);
     this.renderKeyEvent("C4", true, "AI", true);
+    this.renderKeyEvent("As3", true, "User", false);
+    this.renderKeyEvent("Gs2", true, "AI", false);
     this.neuralWorker = new Worker("neuralWorker.js"); //, { type: "module" })
 
     // the workerCallback function is called when the neuralWorker returns the AI's prediction
@@ -212,21 +215,21 @@ export default {
     // Toggle Keys using this.
     // send in: renderKeyEvent ("C4", true, "AI", true), or ("C4", false, "User", true)
     renderKeyEvent(note = "", type = true, player = "", whiteOrBlack = true) {
-      AIKeyboardElement = this.$refs.aiKeyboard;
-      UserKeyboardElement = this.component("UserKeyboard");
+      var AIKeyboardElement = this.$refs.aiKeyboard.$el;
+      var UserKeyboardElement = this.$refs.UserKeyboard.$el
       if (type) {
         // if it's noteOn
         if (player === "AI") {
           if (whiteOrBlack) { // if it's white note
-            AIKeyboardElement.getElementsByClassName(note).classList.add("white-activate");
+            AIKeyboardElement.getElementsByClassName(note)[0].classList.add("white-activate");
           } else {
-            AIKeyboardElement.getElementsByClassName(note).classList.add("black-activate");
+            AIKeyboardElement.getElementsByClassName(note)[0].classList.add("black-activate");
           }
         } else if (player === "User") {
           if (whiteOrBlack) { // if it's white note
-            UserKeyboardElement.getElementsByClassName(note).classList.add("white-activate");
+            UserKeyboardElement.getElementsByClassName(note)[0].classList.add("white-activate");
           } else {
-            UserKeyboardElement.getElementsByClassName(note).classList.add("black-activate");
+            UserKeyboardElement.getElementsByClassName(note)[0].classList.add("black-activate");
           }
         } else {
           throw new Error(
@@ -237,15 +240,15 @@ export default {
         // if it's noteOff
         if (player === "AI") {
           if (whiteOrBlack) { // if it's white note
-            AIKeyboardElement.getElementsByClassName(note).classList.remove("white-activate");
+            AIKeyboardElement.getElementsByClassName(note)[0].classList.remove("white-activate");
           } else {
-            AIKeyboardElement.getElementsByClassName(note).classList.remove("black-activate");
+            AIKeyboardElement.getElementsByClassName(note)[0].classList.remove("black-activate");
           }
         } else if (player === "User") {
           if (whiteOrBlack) { // if it's white note
-            UserKeyboardElement.getElementsByClassName(note).classList.remove("white-activate");
+            UserKeyboardElement.getElementsByClassName(note)[0].classList.remove("white-activate");
           } else {
-            UserKeyboardElement.getElementsByClassName(note).classList.remove("black-activate");
+            UserKeyboardElement.getElementsByClassName(note)[0].classList.remove("black-activate");
           }
         } else {
           throw new Error(
@@ -459,15 +462,15 @@ body {
   bottom: 196px;
 }
 
-.white-activate {
+/* .white-activate {
   box-shadow: 2px 0 3px rgba(0, 0, 0, 0.1) inset,
     -5px 5px 20px rgba(0, 0, 0, 0.2) inset, 0 0 3px rgba(0, 0, 0, 0.2);
   background: linear-gradient(to bottom, #fff 0%, #e9e9e9 100%);
-}
+} */
 
-.black-activate {
+/* .black-activate {
   box-shadow: -1px -1px 2px rgba(255, 255, 255, 0.2) inset,
     0 -2px 2px 3px rgba(0, 0, 0, 0.6) inset, 0 1px 2px rgba(0, 0, 0, 0.5);
   background: linear-gradient(to right, #444 0%, #222 100%);
-}
+} */
 </style>

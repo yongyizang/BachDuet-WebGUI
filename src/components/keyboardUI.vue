@@ -340,7 +340,10 @@ li.black span {
   box-shadow:2px 0 3px rgba(0,0,0,0.1) inset,-5px 5px 20px rgba(0,0,0,0.2) inset,0 0 3px rgba(0,0,0,0.2);
   background:linear-gradient(to bottom,#fff 0%,#e9e9e9 100%)
 }
-
+.black:active, .black:activate {
+  box-shadow:-1px -1px 2px rgba(255,255,255,0.2) inset,0 -2px 2px 3px rgba(0,0,0,0.6) inset,0 1px 2px rgba(0,0,0,0.5);
+  background:linear-gradient(to right,#444 0%,#222 100%)
+}
 .black {
   grid-row: 1 / span 2;
   background-color: black;
@@ -349,11 +352,17 @@ li.black span {
   box-shadow:-1px -1px 2px rgba(255,255,255,0.2) inset,0 -5px 2px 3px rgba(0,0,0,0.6) inset,0 2px 4px rgba(0,0,0,0.5);
   background:linear-gradient(45deg,#222 0%,#555 100%)
 }
-
-.black:active, .black:activate {
-  box-shadow:-1px -1px 2px rgba(255,255,255,0.2) inset,0 -2px 2px 3px rgba(0,0,0,0.6) inset,0 1px 2px rgba(0,0,0,0.5);
-  background:linear-gradient(to right,#444 0%,#222 100%)
+.white-activate {
+  box-shadow: 2px 0 3px rgba(0, 0, 0, 0.1) inset,
+    -5px 5px 20px rgba(166, 192, 16, 0.2) inset, 0 0 3px rgba(19, 16, 206, 0.2);
+  background: linear-gradient(to bottom, rgb(209, 5, 5) 0%, #05e723 100%);
 }
+.black-activate {
+  box-shadow: -1px -1px 2px rgba(218, 12, 12, 0.2) inset,
+    0 -2px 2px 3px rgba(139, 196, 7, 0.6) inset, 0 1px 2px rgba(236, 5, 5, 0.5);
+  background: linear-gradient(to right, rgb(38, 0, 255) 0%, rgb(251, 255, 0) 100%);
+}
+
 
 .blank {
   border-width: 0;
