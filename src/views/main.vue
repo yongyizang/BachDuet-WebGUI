@@ -71,8 +71,8 @@ import gameUI from "@/components/gameUI.vue";
 // import neuralNet from "@/components/neuralNet.vue";
 
 import Instruments from "@/library/instruments";
-import * as tokensDict from "@/../public/globalTokenIndexDict.json";
-
+import * as TokensDict from "@/../public/globalTokenIndexDict.json";
+// import globalDict from "globalTokenIndexDict.json"
 
 /*
   Initialization Process.
@@ -137,6 +137,7 @@ export default {
       keyboardUIoctaveStart: 1,
       keyboardUIoctaveEnd: 6,
       metronomeStatus: true,
+      // tokensDict: TokensDict
     };
   },
 
@@ -149,7 +150,8 @@ export default {
 
   mounted() {
       // AIKeyboardElement = this.$refs.aiKeyboard;
-    console.log("SKATA")
+    this.$store.commit("setTokensDict", TokensDict.default);
+
     this.neuralWorker = new Worker("neuralWorker.js"); //, { type: "module" })
 
     // the workerCallback function is called when the neuralWorker returns the AI's prediction
@@ -269,7 +271,7 @@ export default {
 
       var vm = this;
       // Allowing tickNumber to add to itself.
-      console.log(tokensDict)
+      // console.log(tokensDict)
       vm.clockStatus = !vm.clockStatus;
 
       // C: we don't need this if else statement
@@ -321,7 +323,6 @@ export default {
             );
 
             vm.$store.commit("clearNotesBuffer");
-            console.log(vm.$refs.mytestref.$el.children[0].getElementsByClassName("A1")[0].classList)
 
            
 
@@ -358,17 +359,20 @@ export default {
       var artic=-1;
       // check if keyboard is currently active, namely if there is at least one key pressed
       // if not, then the users input is rest
-      if (!this.$store.getters.getkeyboardIsActive()){
+      var aaa = this.$store.getters.getActiveNotes;
+      if (!this.$store.getters.keyboardIsActive){
           var humanInp = 0;
           var artic = 1
       }
       else{
           // there is at least one key pressed. We only care for the last key pressed so
-          var lastNote = this.$store.getters.getLastNotePlayed()
-          var activeNotes = this.$store.getters.getActiveNotes()
-          if (lastNote in activeNotes){
+          var lastNote = this.$store.getters.getLastNotePlayed
+          var activeNotes = this.$store.getters.getActiveNotes
+          var lastNoteTickStart = this.$store.getters.getlastNotePlayedOnTick
+          var currentTick = this.$store.getters.getLocalTick
+          if (activeNotes.includes(lastNote)){
               // find artic
-              if (this.$store.getters.getlastNotePlayedOnTick()-this.$store.getters.getLocalTick > 0){
+              if (this.$store.getters.getlastNotePlayedOnTick-this.$store.getters.getLocalTick > 0){
                   artic = 0
               }
               else {artic=1}

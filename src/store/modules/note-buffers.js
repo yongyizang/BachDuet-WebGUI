@@ -2,7 +2,8 @@ import Vue from "vue";
 import { createRange } from "../../library/music"
 
 // Create a range of notes from A0 to C8.
-const notes = createRange("A0", "C8")
+const notes = createRange("A0", "C8") // TODO we can use Range.chromatic(["C2", "C3"], { sharps: true }); from the tonaljs package
+// const midiNumbers = [...Array(88).keys()].map(i => i + 21);
 const measureTicks = [...Array(16).keys()];
 // Put all the notes into the notemap, then set all default values to false.
 // const noteMapforBuffer = notes.reduce((map, note) => {
@@ -19,20 +20,27 @@ const noteMapforAI = measureTicks.reduce((map, tick) => {
     map[tick] = {"midi" : -1, "artic" : -1}
     return map
 }, {})
+// const note2MidiMap = notes.reduce((map, note) => {
+//     map[note.name] = {"midi" : -1, "artic" : -1}
+//     return map
+// }, {})
 
 // note as observables
 const notesBufferArray = []
 const notesBufferArrayObs = new Vue.observable(notesBufferArray)
 const pianoStateMap = new Vue.observable(noteMapforPiano)
 const aiPredictionsMap = new Vue.observable(noteMapforAI)
+// const lastNotePlayedObs = new Vue.observable("")
+// const lastNotePlayedOnTickObs = new Vue.observable(-1)
 
 const state = {
     // Define all basic states.
     pianoState: pianoStateMap,
     lastNotePlayed: "",
-    lastNotePlayedOnThick: -1,
+    lastNotePlayedOnTick: -1,
     notesBuffer: notesBufferArrayObs,
     aiPredictions: aiPredictionsMap,
+    tokensDict: {}
 }
 
 const getters = {
@@ -69,6 +77,9 @@ const getters = {
     getAiPredictions (state){
         return state.aiPredictions;
     },
+    getTokensDict (state){
+        return state.tokensDict;
+    }
 }
 
 const actions = {
@@ -90,7 +101,7 @@ const mutations = {
         // state.bufferState[note] = true;
         // state.notesBuffer.push[note];
         state.lastNotePlayed = note;
-        state.lastNotePlayedOnTick = getters.getLocaTick();
+        state.lastNotePlayedOnTick = getters.getLocaTick;
     },
     noteOff (state, note) {
         state.pianoState[note] = false;
@@ -101,6 +112,9 @@ const mutations = {
         // how about 
         // Object.assign(state.notesBuffer, [])
     }, 
+    setTokensDict (state, tokensDictFromFile){
+        state.tokensDict = tokensDictFromFile;
+    }
 }
 
 export default {
