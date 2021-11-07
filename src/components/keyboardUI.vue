@@ -353,11 +353,11 @@ li.black span {
   background:linear-gradient(45deg,#222 0%,#555 100%)
 }
 .white-activate {
-  box-shadow:2px 0 3px rgba(0,0,0,0.1) inset,-5px 5px 20px rgba(0,0,0,0.2) inset,0 0 3px rgba(0,0,0,0.2), 0 2px 20px rgba(250,250,250,0.4);
+  box-shadow:2px 0 10px rgba(0,0,0,0.2) inset,-5px 5px 30px rgba(0,0,0,0.3) inset,0 0 3px rgba(0,0,0,0.3), 0 -20px 35px rgba(250,250,250,0.4);
   background:linear-gradient(to bottom,#fff 0%,#e9e9e9 100%)
 }
 .black-activate {
-  box-shadow:-1px -1px 2px rgba(255,255,255,0.2) inset,0 -2px 2px 3px rgba(0,0,0,0.6) inset,0 1px 2px rgba(0,0,0,0.5), 0 2px 20px rgba(250,250,250,0.4);
+  box-shadow:-1px -1px 2px rgba(255,255,255,0.3) inset,0 -2px 2px 3px rgba(0,0,0,0.7) inset,0 1px 2px rgba(0,0,0,0.6), 0 -28px 35px rgba(250,250,250,0.4);
   background:linear-gradient(to right,#444 0%,#222 100%)
 }
 
