@@ -309,7 +309,7 @@ ul {
   display: grid;
   grid-template-columns: repeat(calc(var(--keys) * 3), 1fr);
   grid-template-rows: repeat(3, 1fr);
-  background:linear-gradient(to bottom right,rgba(0,0,0,0.3),rgba(0,0,0,0)),url('/vwood.png');
+  background:linear-gradient(to bottom right,rgba(0,0,0,0.3),rgba(0,0,0,0)),url('/img/vwood.png');
 }
 
 li {
