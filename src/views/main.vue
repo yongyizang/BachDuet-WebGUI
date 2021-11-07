@@ -2,7 +2,16 @@
   <!--
       main.vue, the application's main UI file.
   -->
+  
   <div class="home">
+    <div class="topbar" style="padding:30px;">
+    <img src="/img/logo.png" style="height:48px; width:auto" />
+    <div style="color:white;margin-top:-41px;margin-left:55px">
+      <span style="font-weight:600;font-size:1.8em;padding:0;line-height:0;">BachDuet</span>
+      <div style="margin-top:-0.3em;padding:1px"><span style="font-size:0.3em;">by </span></div>
+      <div style="margin-top:-1.1rem;margin-left:1.1em;font-size:1.3em"><span onclick="location='http://www2.ece.rochester.edu/projects/air/index.html'">AIR Lab</span></div>
+    </div>
+    </div>
     <div class="center">
       <keyboardUI
         id="AIKeyboard"
@@ -50,9 +59,23 @@
         Set to automatically binding between this input and the data BPM.
         v-model.lazy change the value only after the input lose focus.
       -->
-      <span style="color: white"
-        >BPM:<input id="bpm" v-model.lazy="BPM" maxlength="3" size="3"
-      /></span>
+<!-- <md-field>
+      <label>BPM</label>
+      <md-input id="bpm v-model.lazy="BPM" maxlength="3" size="3"></md-input>
+    </md-field> -->
+
+    <md-field>
+      <label>Type here!</label>
+      <md-input v-model="type"></md-input>
+      <span class="md-helper-text">Helper text</span>
+    </md-field>
+          
+        <div class="input-field col s3">
+          <input id="email" type="email" class="validate">
+          <label for="email">Email</label>
+        </div>
+
+      
 
       <span style="color: white"
         >Freq:<input id="freq" v-model.lazy="FREQ" maxlength="2" size="3"
@@ -399,7 +422,7 @@ export default {
 <style>
 html,
 body {
-  background-image: url("/carpet.jpeg");
+  background-image: url("/img/carpet.jpeg");
   background-position: center;
   background-size: 110%;
   height: 100%;
@@ -445,7 +468,7 @@ body {
   z-index: 3;
   position: fixed;
   left: 30px;
-  bottom: 170px;
+  bottom: 0px;
 }
 
 .octs {
