@@ -15,6 +15,7 @@
     <div class="center">
       <keyboardUI
         id="AIKeyboard"
+        style="pointer-events:none;"
         ref="aiKeyboard"
         class="pianoKeyboard"
         :key="keyboardUIKey"
