@@ -84,7 +84,7 @@ const actions = {
         // pred is a dict with keys "currentTick", and "prediction"
         var nextTick = getters.getNextLocalTick(args.currentTick);
         state.aiPredictions[nextTick] = args.prediction;
-        console.log("Stored ", args.prediction);
+        console.log("Stored ", args.prediction.midi + '_' + args.prediction.artic);
         console.log("    to be played at ", nextTick)
     },
 

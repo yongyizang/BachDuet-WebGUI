@@ -142,6 +142,7 @@ export default {
       keyboardUIoctaveEnd: 6,
       metronomeStatus: true,
       // tokensDict: TokensDict
+      lastNoteOnAi: "",
     };
   },
 
@@ -262,10 +263,21 @@ export default {
       // save AI's prediction to store.state.aiPredictions
       this.$store.dispatch("newAiPrediction", payload);
       // console.log('Message received from worker' + e.data);
+      // TODO : the whole if/else situation + the lstNoteOnAi, is not very elegant
       if (artic==1){
         if (midi!=0){
-          let currentNote = Midi.midiToNoteName(midi)
+          if (!(this.lastNoteOnAi==="")){
+              AISampler.triggerRelease(this.lastNoteOnAi, Tone.now());
+          }
+          let currentNote = Midi.midiToNoteName(midi);
           AISampler.triggerAttack(currentNote, Tone.now());
+          this.lastNoteOnAi = currentNote;
+        }
+        else {
+          if (!(this.lastNoteOnAi==="")){
+            AISampler.triggerRelease(this.lastNoteOnAi, Tone.now());
+            this.lastNoteOnAi = "";
+          }
         }
       }
     },

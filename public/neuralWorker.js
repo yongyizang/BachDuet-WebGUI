@@ -17,7 +17,7 @@ async function loadModels(){
     self.modelLstm = await tf.loadLayersModel('checkpoints/modelsFinal_Lstm/model.json');
     self.modelEmb =  await tf.loadLayersModel('checkpoints/modelsFinal_Emb/model_cleaned.json');
     console.log("loaded models");
-    tf.setBackend('cpu');
+    tf.setBackend('webgl');
 
     console.log(tf.getBackend());
 
@@ -86,7 +86,7 @@ onmessage = function(e) {
     // var workerResult = 'Result: ' + (e.data[0] * e.data[1]);
     // console.log('Posting message back to main script');
     var t2 = performance.now();
-    //          console.log("neuralNet: " + (t2-t1) + " tick " + tick);
+    console.log("neuralNet: " + (t2-t1) + " tick " + tick);
     var output = {
         'tick' : data['tick'],
         'midiArticInd' : predictedNote.dataSync()[0]
