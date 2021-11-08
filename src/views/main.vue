@@ -2,87 +2,141 @@
   <!--
       main.vue, the application's main UI file.
   -->
-  
+
   <div class="home">
-    <div class="topbar" style="padding:30px;">
-    <img src="/img/logo.png" style="height:48px; width:auto" />
-    <div style="color:white;margin-top:-41px;margin-left:55px">
-      <span style="font-weight:600;font-size:1.8em;padding:0;line-height:0;">BachDuet</span>
-      <div style="margin-top:-0.3em;padding:1px"><span style="font-size:0.3em;">by </span></div>
-      <div style="margin-top:-1.1rem;margin-left:1.1em;font-size:1.3em"><span onclick="location='http://www2.ece.rochester.edu/projects/air/index.html'">AIR Lab</span></div>
+    <div style="padding:10px;">
+      <div
+        class="topbar"
+        style="padding: 30px; backdrop-filter: blur(15px); border-radius: 30px;box-shadow: 0px 1px 22px 5px rgba(0,0,0,0.66); color: #F3FEB0; "
+      >
+        <img src="/img/logo.png" style=" height: 48px; width: auto" />
+        <div style="color:white;margin-top: -41px; margin-left: 55px">
+          <span
+            style="
+              font-weight: 600;
+              font-size: 1.8em;
+              padding: 0;
+              line-height: 0;
+            "
+            >BachDuet</span
+          >
+          <div style="margin-top: -0.3em; padding: 1px">
+            <span style="font-size: 0.3em">by </span>
+          </div>
+          <div
+            style="margin-top: -1.1rem; margin-left: 1.1em; font-size: 1.3em"
+          >
+            <span
+              onclick="location='http://www2.ece.rochester.edu/projects/air/index.html'"
+              >AIR Lab</span
+            >
+          </div>
+        </div>
+
+        <div
+          id="bpmSlider"
+          style="position:absolute;margin-top:-70px;margin-left:200px;width:auto"
+        >
+          <span style="font-size:0.8em">BPM</span><br />
+          <span style="font-size:1.5em;font-weight:bold">{{ bpm }}</span>
+          <vue-slider
+            style="margin-top:-30px;margin-left:3em"
+            v-model="bpm"
+            :contained="true"
+            :width="100"
+            :lazy="true"
+            :min="60"
+            :max="120"
+            :tooltip-placement="'right'"
+            :tooltip-formatter="(val) => val + ' bpm'"
+          ></vue-slider>
+        </div>
+
+        <div
+          id="freqSlider"
+          style="position:absolute;margin-top:-22px;margin-left:200px;"
+        >
+          <span style="font-size:0.8em">FREQ</span><br />
+          <span style="font-size:1.5em;font-weight:bold">{{ FREQ }}</span>
+          <vue-slider
+            style="margin-top:-30px;margin-left:3em"
+            v-model="FREQ"
+            :contained="true"
+            :width="100"
+            :lazy="true"
+            :min="2"
+            :max="16"
+            :tooltip-placement="'right'"
+            :tooltip-formatter="(val) => val + ' beats / bar'"
+          ></vue-slider>
+        </div>
+        <div
+          id="clockToggleBtn"
+          style="position:absolute;margin-top:-45px;margin-left:400px"
+        >
+          <md-tooltip md-direction="bottom"
+            >Click to start or pause the session.</md-tooltip
+          >
+          <span style="font-weight:bold;"> SESSION<br />CONTROL </span>
+          <md-button
+            @click="toggleClock"
+            class="md-icon-button md-plain"
+            style="box-sizing:border-box;position:absolute;width:60px;height:60px;margin-top:-2rem"
+          >
+            <md-icon class="md-size-2x" style="color:#F3FEB0">{{
+              clockStatus ? "pause" : "play_arrow"
+            }}</md-icon>
+          </md-button>
+        </div>
+        <div style="position:absolute;margin-top:-45px;margin-left:565px;">
+          <span style="font-weight:bold;">METRONOME<br />SOUND</span><br />
+          <md-switch
+            style="position:absolute;margin-top:-2rem;margin-left:8em;"
+            v-model="metronomeStatus"
+          ></md-switch>
+        </div>
+      </div>
     </div>
-    </div>
+
     <div class="center">
       <keyboardUI
         id="AIKeyboard"
-        style="pointer-events:none;"
+        style="pointer-events: none; user-select: none;"
         ref="aiKeyboard"
+        class="pianoKeyboard"
+        :octave-start="4"
+        :octave-end="7"
+      />
+      <!-- logic handled by this file for decoupling purposes. -->
+      <div class="octaveControls">
+        <md-button
+          @click="transposeOctUp"
+          v-if="keyboardUIoctaveEnd !== 8"
+          class="md-icon-button md-plain"
+          style="box-sizing:border-box;"
+        >
+          <md-icon style="color:#F3FEB0">keyboard_arrow_up</md-icon>
+        </md-button>
+        <span style="position:absolute;color:#F3FE80;margin-top:9px;font-weight:bold;width:130px;">OCTAVE CONTROL</span>
+        <md-button
+          @click="transposeOctDown"
+          v-if="keyboardUIoctaveStart !== 0"
+          class="md-icon-button md-plain"
+          style="box-sizing:border-box;margin-left:9.3em;"
+        >
+          <md-icon style="color:#F3FEB0">keyboard_arrow_down</md-icon>
+        </md-button>
+      </div>
+
+      <keyboardUI
+        id="UserKeyboard"
+        ref="UserKeyboard"
+        style="user-select: none;"
         class="pianoKeyboard"
         :key="keyboardUIKey"
         :octave-start="keyboardUIoctaveStart"
         :octave-end="keyboardUIoctaveEnd"
       />
-      <keyboardUI
-        id="UserKeyboard"
-        ref="UserKeyboard"
-        class="pianoKeyboard"
-        :key="keyboardUIKey+1"
-        :octave-start="keyboardUIoctaveStart"
-        :octave-end="keyboardUIoctaveEnd"
-      />
-    </div>
-
-    <!-- logic handled by this file for decoupling purposes. -->
-    <div class="octaveControls">
-      <button class="octs" v-if="clockInitialized" @click="toggleMetronome">
-        {{ metronomeStatus ? "Mute Metronome" : "Unmute Metronome" }}
-      </button>
-
-      <button
-        class="octs"
-        v-if="keyboardUIoctaveEnd !== 8"
-        @click="transposeOctUp"
-      >
-        OCT UP
-      </button>
-
-      <button
-        class="octs"
-        v-if="keyboardUIoctaveStart !== 0"
-        @click="transposeOctDown"
-      >
-        OCT DOWN
-      </button>
-    </div>
-
-    <div class="timingControls">
-      <!-- 
-        Set to automatically binding between this input and the data BPM.
-        v-model.lazy change the value only after the input lose focus.
-      -->
-<!-- <md-field>
-      <label>BPM</label>
-      <md-input id="bpm v-model.lazy="BPM" maxlength="3" size="3"></md-input>
-    </md-field> -->
-
-    <md-field>
-      <label>Type here!</label>
-      <md-input v-model="type"></md-input>
-      <span class="md-helper-text">Helper text</span>
-    </md-field>
-          
-        <div class="input-field col s3">
-          <input id="email" type="email" class="validate">
-          <label for="email">Email</label>
-        </div>
-
-      
-
-      <span style="color: white"
-        >Freq:<input id="freq" v-model.lazy="FREQ" maxlength="2" size="3"
-      /></span>
-
-      <button class="octs" @click="toggleClock">Clock</button>
     </div>
   </div>
 </template>
@@ -90,6 +144,9 @@
 <script>
 import * as Tone from "tone";
 import { Buffer, Sequence, Transport, Event, Draw, context } from "tone";
+import VueSlider from "vue-slider-component";
+import "vue-slider-component/theme/default.css";
+import "vue-material/dist/theme/default-dark.css";
 import keyboardUI from "@/components/keyboardUI.vue";
 import Instruments from "@/library/instruments";
 
@@ -133,8 +190,6 @@ const metronomeBus = new Tone.Channel().toDestination();
 metronomeSampler.connect(metronomeBus);
 //C: how about user and ai bus ?
 
-
-
 // This is for Web Audio restrictions, we need to make an user behavior to trigger the Tone.start() function.
 window.onclick = () => {
   Tone.start();
@@ -146,7 +201,6 @@ export default {
 
   data() {
     return {
-      BPM: 60,
       FREQ: 4,
       bpm: 60,
       intervalIntegar: 4,
@@ -163,10 +217,10 @@ export default {
 
   components: {
     keyboardUI,
+    VueSlider,
   },
 
   mounted() {
-    
     this.renderKeyEvent("A1", true, "User", true);
     this.renderKeyEvent("C4", true, "AI", true);
     this.renderKeyEvent("As3", true, "User", false);
@@ -227,10 +281,17 @@ export default {
         this.intervalIntegar = newValue;
       },
     },
-    BPM: {
+    bpm: {
       immediate: true,
       handler(newValue) {
-        this.bpm = newValue;
+        console.log(newValue);
+      },
+    },
+    metronomeStatus: {
+      immediate: true,
+      handler(newValue) {
+        console.log(newValue);
+        metronomeBus.mute = !this.metronomeStatus;
       },
     },
   },
@@ -240,20 +301,30 @@ export default {
     // send in: renderKeyEvent ("C4", true, "AI", true), or ("C4", false, "User", true)
     renderKeyEvent(note = "", type = true, player = "", whiteOrBlack = true) {
       var AIKeyboardElement = this.$refs.aiKeyboard.$el;
-      var UserKeyboardElement = this.$refs.UserKeyboard.$el
+      var UserKeyboardElement = this.$refs.UserKeyboard.$el;
       if (type) {
         // if it's noteOn
         if (player === "AI") {
-          if (whiteOrBlack) { // if it's white note
-            AIKeyboardElement.getElementsByClassName(note)[0].classList.add("white-activate");
+          if (whiteOrBlack) {
+            // if it's white note
+            AIKeyboardElement.getElementsByClassName(note)[0].classList.add(
+              "white-activate"
+            );
           } else {
-            AIKeyboardElement.getElementsByClassName(note)[0].classList.add("black-activate");
+            AIKeyboardElement.getElementsByClassName(note)[0].classList.add(
+              "black-activate"
+            );
           }
         } else if (player === "User") {
-          if (whiteOrBlack) { // if it's white note
-            UserKeyboardElement.getElementsByClassName(note)[0].classList.add("white-activate");
+          if (whiteOrBlack) {
+            // if it's white note
+            UserKeyboardElement.getElementsByClassName(note)[0].classList.add(
+              "white-activate"
+            );
           } else {
-            UserKeyboardElement.getElementsByClassName(note)[0].classList.add("black-activate");
+            UserKeyboardElement.getElementsByClassName(note)[0].classList.add(
+              "black-activate"
+            );
           }
         } else {
           throw new Error(
@@ -263,16 +334,26 @@ export default {
       } else {
         // if it's noteOff
         if (player === "AI") {
-          if (whiteOrBlack) { // if it's white note
-            AIKeyboardElement.getElementsByClassName(note)[0].classList.remove("white-activate");
+          if (whiteOrBlack) {
+            // if it's white note
+            AIKeyboardElement.getElementsByClassName(note)[0].classList.remove(
+              "white-activate"
+            );
           } else {
-            AIKeyboardElement.getElementsByClassName(note)[0].classList.remove("black-activate");
+            AIKeyboardElement.getElementsByClassName(note)[0].classList.remove(
+              "black-activate"
+            );
           }
         } else if (player === "User") {
-          if (whiteOrBlack) { // if it's white note
-            UserKeyboardElement.getElementsByClassName(note)[0].classList.remove("white-activate");
+          if (whiteOrBlack) {
+            // if it's white note
+            UserKeyboardElement.getElementsByClassName(
+              note
+            )[0].classList.remove("white-activate");
           } else {
-            UserKeyboardElement.getElementsByClassName(note)[0].classList.remove("black-activate");
+            UserKeyboardElement.getElementsByClassName(
+              note
+            )[0].classList.remove("black-activate");
           }
         } else {
           throw new Error(
@@ -308,11 +389,6 @@ export default {
         metronomeSampler.triggerAttackRelease(note, 0.2, Tone.now());
       }
     },
-    // when Metronome is toggled.
-    toggleMetronome() {
-      metronomeBus.mute = this.metronomeStatus;
-      this.metronomeStatus = !this.metronomeStatus;
-    },
 
     transposeOctUp() {
       this.keyboardUIoctaveStart += 1;
@@ -327,7 +403,6 @@ export default {
     // The clock behavior is defined here.
     // This is currently triggered by a button, but you could call this function anywhere to toggle the clock.
     toggleClock() {
-
       // vm is short for ViewModel
       var vm = this;
       // Allowing tickNumber to add to itself.
@@ -423,9 +498,53 @@ export default {
 <style>
 html,
 body {
-  background-image: url("/img/carpet.jpeg");
-  background-position: center;
-  background-size: 110%;
+  background-color: #402504;
+  background-image:
+		/* Pink lines */ linear-gradient(
+      -116deg,
+      transparent 40%,
+      #bf4136 0,
+      #bf4136 42%,
+      transparent 42%
+    ),
+    linear-gradient(
+      116deg,
+      transparent 41%,
+      #bf4136 0,
+      #bf4136 43%,
+      transparent 43%
+    ),
+    /* Black lines */
+      linear-gradient(
+        -116deg,
+        transparent 40%,
+        #bf5b04 0,
+        #bf5b04 42%,
+        transparent 42%
+      ),
+    linear-gradient(
+      116deg,
+      transparent 41%,
+      #bf5b04 41%,
+      #bf5b04 43%,
+      transparent 43%
+    ),
+    /* Black diamonds */ linear-gradient(-135deg, #bf5b04 16.5%, transparent 0),
+    linear-gradient(-45deg, #bf5b04 16.5%, transparent 0),
+    linear-gradient(135deg, #bf5b04 16.5%, transparent 0),
+    linear-gradient(45deg, #bf5b04 16.5%, transparent 0),
+    /* Pink diamonds */ linear-gradient(-135deg, #bf4136 16.5%, transparent 0),
+    linear-gradient(-45deg, #bf4136 16.5%, transparent 0),
+    linear-gradient(135deg, #bf4136 16.5%, transparent 0),
+    linear-gradient(45deg, #bf4136 16.5%, transparent 0);
+  background-size: 
+		/* Pink lines */ 8em 8em, 8em 8em, /* Black Lines */ 8em 8em,
+    8em 8em, /* Black diamonds */ 8em 8em, 8em 8em, 8em 8em, 8em 8em,
+    /* Pink diamonds */ 8em 8em, 8em 8em, 8em 8em, 8em 8em;
+  background-position: 
+		/* Pink lines */ 3em -8em, -3em -8em,
+    /* Black Lines */ -9em 8em, 9em 8em, /* Black diamonds */ 0, 0, 0, 0,
+    /* Pink diamonds */ 4em, 4em, 4em, 4em;
   height: 100%;
   width: 100%;
 }
@@ -449,20 +568,20 @@ body {
   -o-transform: rotate(180deg);
   transform: rotate(180deg);
   margin-bottom: 10px;
-  -webkit-box-shadow: 1px -7px 12px 1px rgba(0, 0, 0, 0.68);
-  box-shadow: 1px -7px 12px 1px rgba(0, 0, 0, 0.68);
+  -webkit-box-shadow: 1px -7px 22px 1px rgba(0, 0, 0, 0.68);
+  box-shadow: 1px -7px 22px 1px rgba(0, 0, 0, 0.68);
 }
 
 #UserKeyboard {
-  -webkit-box-shadow: -1px 5px 12px 1px rgba(0, 0, 0, 0.68);
-  box-shadow: -1px 5px 12px 1px rgba(0, 0, 0, 0.68);
+  -webkit-box-shadow: -1px 5px 22px 1px rgba(0, 0, 0, 0.68);
+  box-shadow: -1px 5px 22px 1px rgba(0, 0, 0, 0.68);
 }
 
 .octaveControls {
   z-index: 3;
-  position: fixed;
-  right: 30px;
-  bottom: 170px;
+  position: absolute;
+  margin-left: calc(50% - 80px);
+  margin-top: 15px;
 }
 
 .timingControls {

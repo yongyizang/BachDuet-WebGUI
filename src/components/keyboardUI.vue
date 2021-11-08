@@ -332,6 +332,7 @@ li.black span {
 .white {
   grid-row: 1 / span 3;
   z-index: 2;
+  color:#812F33;
   box-shadow:-1px 0 0 rgba(255,255,255,0.8) inset,0 0 5px #ccc inset,0 0 3px rgba(0,0,0,0.2);
   background:linear-gradient(to bottom,#eee 0%,#fff 100%)
 }

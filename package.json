@@ -11,6 +11,7 @@
     "@tonaljs/note": "^4.6.5",
     "@tonaljs/tonal": "^4.6.5",
     "@tonejs/midi": "^2.0.27",
+    "@vueform/slider": "^2.0.5",
     "register-service-worker": "^1.7.1",
     "tone": "^14.7.77",
     "vexflow": "^3.0.9",
@@ -19,6 +20,7 @@
     "vue-loader": "^15.9.8",
     "vue-material": "^1.0.0-beta-15",
     "vue-router": "^3.2.0",
+    "vue-slider-component": "^3.2.15",
     "vuex": "^3.6.2"
   },
   "devDependencies": {
@@ -26,6 +28,7 @@
     "@vue/cli-plugin-pwa": "~4.5.0",
     "@vue/cli-plugin-router": "~4.5.0",
     "@vue/cli-service": "~4.5.0",
+    "@vue/composition-api": "^1.4.0-beta.0",
     "deepmerge": "^4.2.2",
     "sass": "~1.32",
     "vue-template-compiler": "^2.6.11",
