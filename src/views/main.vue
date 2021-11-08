@@ -4,6 +4,16 @@
   -->
 
   <div class="home">
+    <md-dialog-alert
+      :md-active.sync="screenRatio"
+      md-content="Although we will support mobile devices in the future, this application only works best on horizontal screens right now. <br /> <br /> We would recommend using this application on a PC or a tablet, or you could try to rotate your phone over in horizontal mode, although you may experience UI problems. <br /><br /> We are sorry for the inconvenience."
+      md-confirm-text="Okay" />
+
+      <md-dialog-alert
+      :md-active.sync="screenWidthTooSmall"
+      md-content="Although we are planning on adding small screen support in the future, this application only works best when screen width is larger than 768 pixels.<br /><br />We would recommend using this application on a PC or a tablet, or you could try to rotate your phone over in horizontal mode, although you may experience UI problems. <br /><br /> We are sorry for the inconvenience."
+      md-confirm-text="Okay" />
+
     <div style="padding:10px;">
       <div
         class="topbar"
@@ -211,6 +221,8 @@ export default {
       clockInitialized: false,
       screenWidth: document.body.clientWidth,
       screenHeight: document.body.clientHeight,
+      screenRatio: false,
+      screenWidthTooSmall: false,
       keyboardUIKey: 0,
       keyboardUIoctaveStart: 1,
       keyboardUIoctaveEnd: 6,
@@ -263,6 +275,12 @@ export default {
           octaves = 6;
         } else {
           octaves = 7;
+        }
+        if (this.screenWidth / this.screenHeight <= 1) {
+          this.screenRatio = true;
+        }
+        if (this.screenWidth < 768) {
+          this.screenWidthTooSmall = true;
         }
         this.keyboardUIoctaveEnd = this.keyboardUIoctaveStart + octaves;
         // A trick, to force keyboardUI re-render itself.
@@ -559,6 +577,14 @@ body {
   -ms-transform: translateY(-50%);
   transform: translateY(-50%);
 }
+
+@media screen and (max-height: 746px) {
+.center {
+  position: absolute;
+  bottom:0;
+}
+}
+
 .pianoKeyboard {
   z-index: 1;
   border-radius: 2px;
