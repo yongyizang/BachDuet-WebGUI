@@ -3,19 +3,24 @@
       main.vue, the application's main UI file.
   -->
   <div class="home">
-    <!-- <scoreUI :height="400" /> -->
+    <div style="background-color:black; opacity: 0.5; display:fixed; top:0; right:0; z-index:999">
+      <!-- <span>NeuralNet Inference: {{ $store.state.neuralNetRefreshTime }}</span><br /> -->
+      <!-- <span>scoreUI Time: {{ $store.state.scoreUIRefreshTime }}</span> -->
+    </div>
+    <!-- <scoreUI /> -->
     <gameUI />
+    <!-- <neuralNet /> -->
     <keyboardUI
       id="pianoKeyboard"
       class="pianoKeyboard"
+      ref="usersKeyboardUIref"
+
       :key="keyboardUIKey"
       :octave-start="keyboardUIoctaveStart"
       :octave-end="keyboardUIoctaveEnd"
-      :midi-input="pressedDeviceKey"
-      :press-status="isKeyPressed"
     />
-    <neuralNet/>
-    <MIDI @midi-input="onMidiInput" @press-status="onKeyPressStatus"/>
+    <!-- <neuralNet/> -->
+
     <!-- logic handled by this file for decoupling purposes. -->
     <div class="octaveControls">
       <button class="octs" v-if="clockInitialized" @click="toggleMetronome">
@@ -45,9 +50,9 @@
         v-model.lazy change the value only after the input lose focus.
       -->
       <span style="color: white"
-        >BPM:<input id="bpm" v-model.lazy="BPM" maxlength="3" size="3" 
+        >BPM:<input id="bpm" v-model.lazy="BPM" maxlength="3" size="3"
       /></span>
-      
+
       <span style="color: white"
         >Freq:<input id="freq" v-model.lazy="FREQ" maxlength="2" size="3"
       /></span>
@@ -57,16 +62,21 @@
   </div>
 </template>
 
-
 <script>
 import * as Tone from "tone";
 import { Buffer, Sequence, Transport, Event, Draw, context } from "tone";
+import {Midi} from "@tonaljs/tonal";
 import keyboardUI from "@/components/keyboardUI.vue";
 import gameUI from "@/components/gameUI.vue";
-import scoreUI from "@/components/scoreUI.vue";
-import neuralNet from "@/components/neuralNet.vue";
-import MIDI from "@/components/MIDI.vue";
+// import scoreUI from "@/components/scoreUI.vue";
+// import neuralNet from "@/components/neuralNet.vue";
+
 import Instruments from "@/library/instruments";
+import * as TokensDict from "@/../public/globalTokenIndexDict.json";
+
+import AudioKeys from 'audiokeys';
+
+// import globalDict from "globalTokenIndexDict.json"
 
 /*
   Initialization Process.
@@ -106,7 +116,7 @@ const metronomeSampler = new Instruments().createSampler(
 // This is the metronome Bus. We would need this for mixing purposes.
 const metronomeBus = new Tone.Channel().toDestination();
 metronomeSampler.connect(metronomeBus);
-//C: how about user and ai bus ? 
+//C: how about user and ai bus ?
 
 // This is for Web Audio restrictions, we need to make an user behavior to trigger the Tone.start() function.
 window.onclick = () => {
@@ -131,36 +141,61 @@ export default {
       keyboardUIoctaveStart: 1,
       keyboardUIoctaveEnd: 6,
       metronomeStatus: true,
-      currentDevice: '',
-      pressedDeviceKey: 0,
-      isKeyPressed: 0
+      // tokensDict: TokensDict
+      lastNoteOnAi: "",
     };
   },
 
   components: {
     keyboardUI,
-    scoreUI,
+    // scoreUI,
     gameUI,
-    MIDI,
-    neuralNet
+    // neuralNet
   },
 
   mounted() {
-    this.neuralWorker = new Worker('neuralWorker.js');//, { type: "module" })
+      // AIKeyboardElement = this.$refs.aiKeyboard;
+    this.$store.commit("setTokensDict", TokensDict.default);
+
+    this.neuralWorker = new Worker("neuralWorker.js"); //, { type: "module" })
 
     // the workerCallback function is called when the neuralWorker returns the AI's prediction
-    this.neuralWorker.onmessage = this.workerCallback
-
+    this.neuralWorker.onmessage = this.workerCallback;
 
     // Everytime the window resizes, update the screenWidth in data immediately.
     const vm = this;
-    
+
     window.onresize = () => {
       return (() => {
         window.screenWidth = document.body.clientWidth;
         vm.screenWidth = window.screenWidth;
       })();
     };
+
+    // let self = this; 
+    // window.addEventListener('keyup', function(event) {
+    //   var whichKey = event.key.toLowerCase();
+    // });
+    // window.addEventListener('keydown', function(event) {
+    //   var whichKey = event.key.toLowerCase();
+        
+    // });
+    let self=this;
+    var keyboard = new AudioKeys({
+                        polyphony: 100,
+                        rows: 1,
+                        priority: 'last',
+                        rootNote: 60
+                      });
+    keyboard.down( function(note) {
+      let name = Midi.midiToNoteName(note.note, { sharps: true })
+      self.$refs.usersKeyboardUIref.toggleAttack(name);
+    });
+
+    keyboard.up( function(note) {
+      let name = Midi.midiToNoteName(note.note, { sharps: true })
+      self.$refs.usersKeyboardUIref.toggleRelease(name);
+    });
   },
 
   watch: {
@@ -200,13 +235,13 @@ export default {
     FREQ: {
       immediate: true,
       handler(newValue) {
-        this.intervalIntegar = newValue
-        }
+        this.intervalIntegar = newValue;
       },
+    },
     BPM: {
       immediate: true,
       handler(newValue) {
-        this.bpm = newValue
+        this.bpm = newValue;
       },
     },
   },
@@ -216,31 +251,55 @@ export default {
     workerCallback(e) {
       var aiOutput = e.data;
       // TODO convert aiOutput['note'] to the midi_artic representation
-      var midi = 60;
-      var artic = 1;
-      var payload = {'currentTick' : aiOutput['tick'],
-                    'prediction' : {'midi':midi, 'artic':artic}
-        }
-      // save AI's prediction to store.state.aiPredictions 
-      this.$store.dispatch('newAiPrediction', payload)
+      var tokensDict = this.$store.getters.getTokensDict
+      var midiArticInd = aiOutput['midiArticInd'];
+      var midiArticToken = tokensDict.midiArtic.index2token[midiArticInd]
+      var midi = parseInt(midiArticToken.split("_")[0])
+      var artic = midiArticToken.split("_")[1]
+      var payload = {
+        currentTick: aiOutput["tick"],
+        prediction: { "midi": midi, "artic": artic, "midiArticInd": midiArticInd},
+      };
+      // save AI's prediction to store.state.aiPredictions
+      this.$store.dispatch("newAiPrediction", payload);
       // console.log('Message received from worker' + e.data);
+      // TODO : the whole if/else situation + the lstNoteOnAi, is not very elegant
+      if (artic==1){
+        if (midi!=0){
+          if (!(this.lastNoteOnAi==="")){
+              AISampler.triggerRelease(this.lastNoteOnAi, Tone.now());
+          }
+          let currentNote = Midi.midiToNoteName(midi);
+          AISampler.triggerAttack(currentNote, Tone.now());
+          this.lastNoteOnAi = currentNote;
+        }
+        else {
+          if (!(this.lastNoteOnAi==="")){
+            AISampler.triggerRelease(this.lastNoteOnAi, Tone.now());
+            this.lastNoteOnAi = "";
+          }
+        }
+      }
     },
     // moved the metronomeTrigger function inside methods
     // it doesn't take any input argument
-    // and it doesn't use a switch statement for to check the interval for every tick. 
+    // and it doesn't use a switch statement for to check the interval for every tick.
     metronomeTrigger() {
       // var vm = this;
-        if (this.$store.getters.getLocalTick % this.intervalIntegar == 0) {
-          var note = this.$store.getters.getLocalTick % 16*this.$store.state === 0 ? "G0" : "C0";
-          metronomeSampler.triggerAttackRelease(note, 0.2, Tone.now());
-        }
+      if (this.$store.getters.getLocalTick % this.intervalIntegar == 0) {
+        var note =
+          (this.$store.getters.getLocalTick % 16) * this.$store.state === 0
+            ? "G0"
+            : "C0";
+        metronomeSampler.triggerAttackRelease(note, 0.2, Tone.now());
+      }
     },
     // when Metronome is toggled.
     toggleMetronome() {
       metronomeBus.mute = this.metronomeStatus;
       this.metronomeStatus = !this.metronomeStatus;
     },
-    
+
     transposeOctUp() {
       this.keyboardUIoctaveStart += 1;
       this.keyboardUIoctaveEnd += 1;
@@ -255,9 +314,13 @@ export default {
     // This is currently triggered by a button, but you could call this function anywhere to toggle the clock.
     toggleClock() {
       // vm is short for ViewModel
+      // this.$refs.mytestref.$el.children[0].getElementsByClassName("A1")[0].classList.add('white-activate')
+      // console.log(this.$refs.mytestref.$el.children[0].children[0].classList)
+      // console.log(this.$refs.mytestref.$el.children[0].getElementsByClassName("A1")[0].classList)
+
       var vm = this;
       // Allowing tickNumber to add to itself.
-
+      // console.log(tokensDict)
       vm.clockStatus = !vm.clockStatus;
 
       // C: we don't need this if else statement
@@ -274,50 +337,52 @@ export default {
         // And intialized it.
 
         // Clock behavior function.
-        function tickBehavior(){
-          if (vm.clockStatus){
-              vm.$store.commit("incrementTick")
+        function tickBehavior() {
+          if (vm.clockStatus) {
+            vm.$store.commit("incrementTick");
             // }
-              // Below are behaviors.
-              console.log(
-                "Tick #" +
-                  vm.$store.getters.getLocalTick +
-                  " sent out!\n Quantized Inputs include: "
-              );
-              vm.metronomeTrigger();
+            // Below are behaviors.
+                      // console.log(
+                      //   "Tick #" +
+                      //     vm.$store.getters.getLocalTick +
+                      //     " sent out!\n Quantized Inputs include: "
+                      // );
+            vm.metronomeTrigger();
 
-              // trigger the ai sampler to play the note the AI predicted
-              vm.triggerAiSampler();
+            // trigger the ai sampler to play the note the AI predicted
+            vm.triggerAiSampler();
 
-              // 3 ways to run inference to the neural net
+            // 3 ways to run inference to the neural net
 
-              // A) using a web worker without async
-              // neuralWorker.postMessage(vm.$store.getters.getLocalTick);//{"currentTickNumber": vm.$store.getters.getLocalTick});
-              // console.log('Message posted to worker');
+            // A) using a web worker without async
+            // neuralWorker.postMessage(vm.$store.getters.getLocalTick);//{"currentTickNumber": vm.$store.getters.getLocalTick});
+            // console.log('Message posted to worker');
 
-              // B) using a web worker with async
-              vm.runTheWorker()
-              
-              // C) without using a web worker
-              // C : any better ways to reference the neuralNet component ???
-              // var neuralNetObj = vm.$children.find(child => { return child.$options.name === "neuralNet"; })
-              // var predictedNote = neuralNetObj.inference(vm.$store.getters.getLocalTick);
+            // B) using a web worker with async
+            // TODO : add a 10ms settimeout to implement the tick centering feature
+            vm.runTheWorker();
 
+            // C) without using a web worker
+            // C : any better ways to reference the neuralNet component ???
+            // var neuralNetObj = vm.$children.find(child => { return child.$options.name === "neuralNet"; })
+            // var predictedNote = neuralNetObj.inference(vm.$store.getters.getLocalTick);
 
-              console.log(vm.$store.getters.getNotesBuffer);
-              console.log(
-                "Last note played: " + vm.$store.getters.getLastNotePlayed
-              );
+                      // console.log(vm.$store.getters.getNotesBuffer);
+                      // console.log(
+                      //   "Last note played: " + vm.$store.getters.getLastNotePlayed
+                      // );
 
-              
-              vm.$store.commit("clearNotesBuffer");
+            vm.$store.commit("clearNotesBuffer");
+
+           
+
           }
         }
 
         function sendOutTicks() {
           // console.log("tick send.");
           tickBehavior();
-          setTimeout(sendOutTicks, ((60 / vm.bpm / 4) * 1000));
+          setTimeout(sendOutTicks, (60 / vm.bpm / 4) * 1000);
         }
 
         // Call it for the first time.
@@ -325,35 +390,114 @@ export default {
       }
     },
 
-    
     triggerAiSampler() {
-        // here, we check the note the AI predicted in the previous tick,
-        // for the tick we are now. If the articulation of the predicted note 
-        // is 1 (hit), then we trigger the AI sampler to play the note. 
-        // if there is already a note active, we have to triggerRelease first
-        // if the predicted note is a rest ... blablabla.
-        var note = this.$store.getters.getAiPredictionFor(this.$store.getters.getLocalTick)
-        // to be continued
+      // TODO
+      // here, we check the note the AI predicted in the previous tick,
+      // for the tick we are now. If the articulation of the predicted note
+      // is 1 (hit), then we trigger the AI sampler to play the note.
+      // if there is already a note active, we have to triggerRelease first
+      // if the predicted note is a rest ... blablabla.
+      var note = this.$store.getters.getAiPredictionFor(
+        this.$store.getters.getLocalTick
+      );
+      // to be continued
     },
+
     // C: using async, improves the neural net's inference speed slightly. Don't know why.
-    async runTheWorker(){
-        var aiInp = {
-          "tick" : this.$store.getters.getLocalTick,
-        }
-        this.neuralWorker.postMessage(aiInp);//{"currentTickNumber": vm.$store.getters.getLocalTick});
-        console.log('Message posted to worker async');
-    },
+    async runTheWorker() {
+      var humanInp=-1;
+      var artic=-1;
+      var cpcInd;
+      // check if keyboard is currently active, namely if there is at least one key pressed
+      // if not, then the users input is rest
 
-    onMidiInput(key) {
-      this.pressedDeviceKey = key;
-    },
+      // 1) an keyboard NOT active 
+      //     a) if buffer adeios
+      //           pausi
+      //     b) if len(buffer)>0
+      //           pop the note or use the lastNote.
+      //           (and its duration is 16th, and a hit)
+      // 2) an keyboard active
+      //     var aa = lastNote
+      //     var bb = activeNotes
+      //     // maybe some more thought here
+      //     a) if lastNote in activeNotes
 
-    onKeyPressStatus(status) {
-      this.isKeyPressed = status;
-    }
+      var activeNotes = this.$store.getters.getActiveNotes;
+      var lastNote = this.$store.getters.getLastNotePlayed;
+                // console.log('notes buffer is ' + this.$store.getters.getNotesBuffer)
+      if (!this.$store.getters.keyboardIsActive){
+          if (this.$store.getters.getNotesBuffer.length==0){
+              humanInp = 0;
+              artic = 1;
+              cpcInd = 12;
+          }
+          else{
+              // sanity check  notesBuffer.pop() === lastNote
+              var lastNote = this.$store.getters.getLastNotePlayed
+              humanInp = Midi.toMidi(lastNote)
+              artic = 1
+              cpcInd = humanInp % 12
+
+          }
+      }
+      else{
+          // there is at least one key pressed. We only care for the last key pressed so
+          // var lastNote = this.$store.getters.getLastNotePlayed
+          // var activeNotes = this.$store.getters.getActiveNotes
+          var lastNoteTickStart = this.$store.getters.getLastNotePlayedOnTick
+          // TODO tick centering feature (maybe not needed here)
+          var currentTick = this.$store.getters.getLocalTick
+          if (activeNotes.includes(lastNote)){
+              // find artic
+              humanInp = Midi.toMidi(lastNote)
+              cpcInd = humanInp % 12
+
+                      // console.log('global ' + this.$store.getters.getGlobalTick);
+                      // console.log('played on ' + this.$store.getters.getLastNotePlayedOnTick)
+              if (this.$store.getters.getGlobalTick-this.$store.getters.getLastNotePlayedOnTick > 1){
+                  artic = 0
+              }
+              else {artic=1}
+          }
+          else {
+              humanInp = 0;
+              artic = 1
+              cpcInd = 12
+          }
+
+      }
+      // empty the noteBuffer
+      // this.$store.commit('clearNotesBuffer')
+      //              console.log("buffer cleared for tick " + this.$store.getters.getLocalTick)
+
+      // TODO tick centering feature
+      // increment the delayed tick here ? (think)
+
+      // go from midi/cpc to AI_tokens
+      var midiArtic = humanInp.toString() + '_' + artic.toString()
+      var tokensDict = this.$store.getters.getTokensDict
+      var midiArticInd = tokensDict.midiArtic.token2index[midiArtic]
+      var rhythmToken = this.$store.getters.getRhythmToken
+      var rhythmTokenInd = tokensDict.rhythm.token2index[rhythmToken]
+
+      // console.log(midiArtic + ' ' + cpcInd + ' ' + rhythmToken)
+      // console.log(midiArticInd + ' ' + cpcInd + ' ' + rhythmTokenInd)
+      var aiInp = {
+        // TODO tick centering feature
+        "tick": this.$store.getters.getLocalTick, //input tick time (the AI will predict a note for time tick+1)
+        "humanInpMidi" : midiArticInd, //users input at time tick
+        "humanInpCpc" : cpcInd,
+        "rhythmInd" : rhythmTokenInd,
+        "aiInp" : this.$store.getters.getAiPredictionFor( this.$store.getters.getLocalTick), 
+                    // for the AI to generate the note for time tick + 1, besides the users input
+                    // it also takes as an input the note it played/generated for at time tick
+      };
+      this.neuralWorker.postMessage(aiInp); //{"currentTickNumber": vm.$store.getters.getLocalTick});
+      //              console.log("Message posted to worker async");
+    },
   },
 };
-
 </script>
 
 <style scoped>

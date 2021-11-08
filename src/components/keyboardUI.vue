@@ -2,6 +2,7 @@
     This is the vue component of Piano Keyboard UI.
 
     It automatically generates the correct amount of keys, with a default piano sampler.
+    DOC: what does line 17 do ?
 -->
 
 <template>
@@ -17,7 +18,7 @@
       >
         <span>{{ key.name }}</span>
       </li>
-    </ul>
+    </ul> 
   </div>
 </template>
 
@@ -25,7 +26,6 @@
 import * as Tone from 'tone'
 import Instruments from "@/library/instruments";
 import { clamp } from "@/library/math"
-import {MIDIKEY_TO_PIANOKEY} from "../library/instruments";
 
 // Here, a set of constants are defined.
 const WHITE_KEYS = ["C", "D", "E", "F", "G", "A", "B"]
@@ -95,16 +95,6 @@ export default {
       default() {
         return WHITE_KEYS.indexOf("C")
       }
-    },
-
-    midiInput: {
-      type: Number,
-      default: 0
-    },
-
-    pressStatus: {
-      type: Number,
-      default: 0
     }
   },
 
@@ -150,25 +140,22 @@ export default {
   methods: {
     noteActive(note) {
       // If the note is active, the state of that note is true.
+      console.log("inside noteActive")
       return this.$store.getters.getPianoState[note.name]=== true;
     },
 
     toggleAttack(currentNote) {
-      console.log('toggle attack ========>', currentNote);
       // Trigger the sampler.
       pianoSampler.triggerAttack(currentNote, Tone.now());
-      // Change the global piano-state.
-      // pianoState[currentNote] = true;
-      // Add into buffer.
-      this.$store.commit('noteOn', currentNote);
+      console.log(currentNote)
+      this.$store.dispatch('noteOn', currentNote);
     },
 
     toggleRelease(currentNote) {
-      console.log('toggle release ========>', currentNote);
       // Release the sampler that's been triggered.
       pianoSampler.triggerRelease(currentNote, Tone.now());
       // Also change the global piano-state.
-      this.$store.commit('noteOff', currentNote);
+      this.$store.dispatch('noteOff', currentNote);
     },
 
     calculateOctave(n) {
@@ -240,7 +227,7 @@ export default {
 
         const key = {
           name: `${keyName}${octave}`,
-          class: ["white", keyName, `${keyName}${octave}`],
+          class: ["white", keyName, `${keyName}${octave}`], // "white-activate",
           style: {
             "grid-column": `${j === 0 ? 1 : 4 + (j - 1) * 3} / span 3`
           }
@@ -278,25 +265,6 @@ export default {
       }
 
       return keys
-    }
-  },
-
-  watch: {
-    // midiInput: function(key) {
-    //   const midiKey = key.toString();
-    //   const pianoKey = MIDIKEY_TO_PIANOKEY[midiKey];
-    //   this.toggleAttack(pianoKey);
-    // },
-    pressStatus: function (status) {sr
-      if (this.pressStatus == 0) {
-        const midiKey = this.midiInput.toString();
-        const pianoKey = MIDIKEY_TO_PIANOKEY[midiKey];
-        this.toggleRelease(pianoKey);
-      } else {
-        const midiKey = this.midiInput.toString();
-        const pianoKey = MIDIKEY_TO_PIANOKEY[midiKey];
-        this.toggleAttack(pianoKey);
-      }
     }
   }
 }
@@ -354,7 +322,7 @@ li.black span {
 
 .white:active {
   box-shadow:2px 0 3px rgba(0,0,0,0.1) inset,-5px 5px 20px rgba(0,0,0,0.2) inset,0 0 3px rgba(0,0,0,0.2);
-  background:linear-gradient(to bottom,#fff 0%,#e9e9e9 100%)
+  background:linear-gradient(to bottom,rgb(170, 26, 26) 0%,#e9e9e9 100%)
 }
 
 .black {
@@ -366,9 +334,16 @@ li.black span {
   background:linear-gradient(45deg,#222 0%,#555 100%)
 }
 
+.white-activate {
+  box-shadow: 2px 0 3px rgba(0, 0, 0, 0.1) inset,
+    -5px 5px 20px rgba(166, 192, 16, 0.2) inset, 0 0 3px rgba(19, 16, 206, 0.2);
+  background: linear-gradient(to bottom, rgb(209, 5, 5) 0%, #05e723 100%);
+}
+
+
 .black:active {
   box-shadow:-1px -1px 2px rgba(255,255,255,0.2) inset,0 -2px 2px 3px rgba(0,0,0,0.6) inset,0 1px 2px rgba(0,0,0,0.5);
-  background:linear-gradient(to right,#444 0%,#222 100%)
+  background:linear-gradient(to right,#444 0%,rgb(170, 26, 26) 100%)
 }
 
 .blank {
