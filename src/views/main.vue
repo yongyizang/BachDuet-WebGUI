@@ -91,7 +91,7 @@
           <md-button
             @click="toggleClock"
             class="md-icon-button md-plain"
-            style="box-sizing:border-box;position:absolute;width:60px;height:60px;margin-top:-10px;grid-area:1/2/2/3"
+            style="box-sizing:border-box;position:fixed;width:60px;height:60px;left:520px;top:45px;margin-top:-10px;grid-area:1/2/2/3"
           >
             <md-icon class="md-size-2x" style="color:#F3FEB0">{{
               clockStatus ? "pause" : "play_arrow"
@@ -236,10 +236,6 @@ export default {
   },
 
   mounted() {
-    // this.renderKeyEvent("A1", true, "User", true);
-    // this.renderKeyEvent("C4", true, "AI", true);
-    // this.renderKeyEvent("As3", true, "User", false);
-    // this.renderKeyEvent("Gs2", true, "AI", false);
     this.neuralWorker = new Worker("neuralWorker.js"); //, { type: "module" })
 
     // the workerCallback function is called when the neuralWorker returns the AI's prediction
