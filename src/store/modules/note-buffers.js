@@ -26,8 +26,6 @@ const noteMapforAI = measureTicks.reduce((map, tick) => {
 // }, {})
 
 // note as observables
-const notesBufferArray = []
-const notesBufferArrayObs = new Vue.observable(notesBufferArray)
 const pianoStateMap = new Vue.observable(noteMapforPiano)
 const aiPredictionsMap = new Vue.observable(noteMapforAI)
 // const lastNotePlayedObs = new Vue.observable("")
@@ -38,7 +36,7 @@ const state = {
     pianoState: pianoStateMap,
     lastNotePlayed: "",
     lastNotePlayedOnTick: -1,
-    notesBuffer: notesBufferArrayObs,
+    notesBuffer: [],
     aiPredictions: aiPredictionsMap,
     tokensDict: {}
 }
@@ -81,35 +79,58 @@ const getters = {
         return state.tokensDict;
     }
 }
-
 const actions = {
     newAiPrediction ({ commit, state, getters }, args) {
         // pred is a dict with keys "currentTick", and "prediction"
         var nextTick = getters.getNextLocalTick(args["currentTick"]);
         state.aiPredictions[nextTick] = args["prediction"];
-    }
-}
+    },
 
-const mutations = {
     /*
         Here the behaviors are defined.
         When a note is "on", turn on pianoState and bufferState for that note, then set the last note played to that note.
         When a note is "off", turn off pianoState
     */
-    noteOn (state, note) {
+   noteOn ({ commit, state, getters }, note) {
         state.pianoState[note] = true;
         // state.bufferState[note] = true;
-        // state.notesBuffer.push[note];
+        state.notesBuffer.push[note];
         state.lastNotePlayed = note;
-        state.lastNotePlayedOnTick = getters.getLocaTick;
+        // TODO: for the tick centering feature. use getLockTickDelayed
+        state.lastNotePlayedOnTick = getters.getGlobalTick;
+                        // console.log('in vuex ' +state.lastNotePlayedOnTick);
+                        // console.log("buffer is " + state.notesBuffer)
+        console.log('NoteOn ', state.lastNotePlayed, '\n',
+                    '   on global tick ', state.lastNotePlayedOnTick ,  '\n',
+                    '   on local tick ', getters.getLocalTick, '\n',
+                    'NotesBuffer ' , state.notesBuffer
+                );
     },
-    noteOff (state, note) {
+    noteOff ({ commit, state, getters }, note) {
         state.pianoState[note] = false;
+        console.log('NoteOff ', note, '\n',
+                    '   on global tick ', getters.getGlobalTick ,  '\n',
+                    '   on local tick ', getters.getLocalTick, '\n',
+                    'NotesBuffer ' , state.notesBuffer 
+        );
     },
+}
+
+const mutations = {
+
+    // noteOnMut (state, note) {
+    //     state.pianoState[note] = true;
+    //     // state.bufferState[note] = true;
+    //     state.notesBuffer.push[note];
+    //     state.lastNotePlayed = note;
+    //     // TODO: for the tick centering feature. use getLockTickDelayed
+    //     state.lastNotePlayedOnTick = state.getGlobalTick;
+        
+    // },
+    
     clearNotesBuffer (state) {
-        // state.notesBuffer = []
-        // C: don't we have to make it observable again ? const notesBufferArrayObs = new Vue.observable(notesBufferArray)
-        // how about 
+        state.notesBuffer = []
+        // how about ?
         // Object.assign(state.notesBuffer, [])
     }, 
     setTokensDict (state, tokensDictFromFile){

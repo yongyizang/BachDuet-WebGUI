@@ -4,6 +4,9 @@ import Vue from "vue";
 //Maximum of the localTick
 const LOCALMAX = 16;
 
+const bar =  [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-1];
+const beat = [0,-2,-1,-2, 0,-2,-1,-2, 0,-2,-1,-2, 0,-2,-1,-2];
+const accent=[0,-3,-2,-3,-2,-4,-3,-4,-1,-3,-2,-3,-2,-4,-3,-4];
 /*Initial state of three Tick number
 globalTick is the Tick number for the whole process of the midi IO
 localTick is the Tick number for only one measure, cannot be greater than 16
@@ -12,7 +15,8 @@ barTick is the number of the measures played
 const state = {
     globalTick: -1,
     localTick: -1,
-    barTick: -1
+    localTickDelayed: -1,
+    barTick: -1,
 }
 
 //Getters for globalTick, localTick, barTick
@@ -23,6 +27,9 @@ const getters = {
     getLocalTick (state){
         return state.localTick;
     },
+    getLocalTickDelayed (state){
+        return state.localTickDelayed;
+    },
     getBarTick (state){
         return state.barTick;
     },
@@ -31,7 +38,10 @@ const getters = {
     },
     getNextLocalTick: (state) => () => {
         return (state.localTick + 1) % 16;
-    }
+    },
+    getRhythmToken (state){
+        return bar[state.localTick].toString() + '_' + beat[state.localTick].toString() + '_' + accent[state.localTick].toString() ;
+    },
 }
 
 const actions = {
@@ -45,8 +55,12 @@ const mutations = {
         state.globalTick += 1;
         state.localTick += 1;
         state.barTick += 1;
-        state.localTick = state.globalTick % 16;
+        state.localTick = state.localTick % 16;
         state.barTick = state.globalTick / 16; //C: we want integer division here
+    },
+    incrementTickDelayed (state) {
+        state.localTickDelayed += 1;
+        state.localTickDelayed = state.localTickDelayed % 16;
     }
 }
 

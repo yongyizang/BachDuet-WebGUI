@@ -147,17 +147,15 @@ export default {
     toggleAttack(currentNote) {
       // Trigger the sampler.
       pianoSampler.triggerAttack(currentNote, Tone.now());
-      // Change the global piano-state.
-      // pianoState[currentNote] = true;
-      // Add into buffer.
-      this.$store.commit('noteOn', currentNote);
+      console.log(currentNote)
+      this.$store.dispatch('noteOn', currentNote);
     },
 
     toggleRelease(currentNote) {
       // Release the sampler that's been triggered.
       pianoSampler.triggerRelease(currentNote, Tone.now());
       // Also change the global piano-state.
-      this.$store.commit('noteOff', currentNote);
+      this.$store.dispatch('noteOff', currentNote);
     },
 
     calculateOctave(n) {
@@ -324,7 +322,7 @@ li.black span {
 
 .white:active {
   box-shadow:2px 0 3px rgba(0,0,0,0.1) inset,-5px 5px 20px rgba(0,0,0,0.2) inset,0 0 3px rgba(0,0,0,0.2);
-  background:linear-gradient(to bottom,#fff 0%,#e9e9e9 100%)
+  background:linear-gradient(to bottom,rgb(170, 26, 26) 0%,#e9e9e9 100%)
 }
 
 .black {
@@ -345,7 +343,7 @@ li.black span {
 
 .black:active {
   box-shadow:-1px -1px 2px rgba(255,255,255,0.2) inset,0 -2px 2px 3px rgba(0,0,0,0.6) inset,0 1px 2px rgba(0,0,0,0.5);
-  background:linear-gradient(to right,#444 0%,#222 100%)
+  background:linear-gradient(to right,#444 0%,rgb(170, 26, 26) 100%)
 }
 
 .blank {

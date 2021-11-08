@@ -75,7 +75,7 @@ onmessage = function(e) {
     // var workerResult = 'Result: ' + (e.data[0] * e.data[1]);
     // console.log('Posting message back to main script');
     var t2 = performance.now();
-    console.log("neuralNet: " + (t2-t1) + " tick " + tick);
+    //          console.log("neuralNet: " + (t2-t1) + " tick " + tick);
     var output = {
         'tick' : e.data['tick'],
         'note' : predictedNote
