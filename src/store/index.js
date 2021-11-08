@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
-import pianobufferstate from './modules/piano-buffer-state'
+// import pianobufferstate from './modules/piano-buffer-state'
 import historicalnotes from './modules/historical-notes'
 import noteBuffers from './modules/note-buffers'
 import tickNumber from './modules/tick-number'
@@ -23,7 +23,7 @@ export default new Vuex.Store({
 
   },
   modules: {
-    pianobufferstate,
+    // pianobufferstate,
     historicalnotes,
     noteBuffers,
     tickNumber,

@@ -7,17 +7,17 @@
 // import * as tf from '@tensorflow/tfjs';
 
 // for know, this does the trick
-importScripts("https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.9.0/dist/tf.min.js")
+importScripts("/tf.min.js")
 
 
 const CHECKPOINT_BASE_URL = "/checkpoints/"
  
 async function loadModels(){
 
-    self.modelLstm = await tf.loadLayersModel('checkpoints/modelsFinal_noEmb/model.json');
-    self.modelEmb =  await tf.loadLayersModel('checkpoints/modelsFinal_Emb/model.json');
+    self.modelLstm = await tf.loadLayersModel('checkpoints/modelsFinal_Lstm/model.json');
+    self.modelEmb =  await tf.loadLayersModel('checkpoints/modelsFinal_Emb/model_cleaned.json');
     console.log("loaded models");
-    tf.setBackend('cpu');
+    tf.setBackend('wasm');
 
     console.log(tf.getBackend());
 
@@ -29,15 +29,26 @@ self.states1A = tf.randomNormal([1,600]);
 self.states1B = tf.randomNormal([1,600]);
 self.states2A = tf.randomNormal([1,600]);
 self.states2B = tf.randomNormal([1,600]);
+// self.states1A = tf.zeros([1,600]);
+// self.states1B = tf.zeros([1,600]);
+// self.states2A = tf.zeros([1,600]);
+// self.states2B = tf.zeros([1,600]);
 self.temperature = 0.1;
-
+self.lastAiPrediction = {'aiInpMidi':96, 'aiInpCpc':12};
 onmessage = function(e) {
-    // console.log(e.data);
-    var tick = e.data['tick'];
+    console.log(e.data);
+    var data = e.data
+    var tick = data['tick'];
     var t1 = performance.now();
-    var midiInp = tf.tensor2d([[60,61]]);
-    var cpcInp = tf.tensor2d([[12, 0]]);
-    var rhyInp = tf.tensor2d([[5]]);
+    // console.time(tick)
+    // var midiInp = tf.tensor2d([[133,123]]);
+    // var cpcInp = tf.tensor2d([[12, 11]]);
+    // var rhyInp = tf.tensor2d([[9]]);
+
+    var midiInp = tf.tensor2d([[self.lastAiPrediction['aiInpMidi'],data['humanInpMidi']]]);
+    var cpcInp = tf.tensor2d([[self.lastAiPrediction['aiInpCpc'], data['humanInpCpc']]]);
+    var rhyInp = tf.tensor2d([[data['rhythmInd']]]);
+
     var exodos = self.modelEmb.predict([midiInp, cpcInp, rhyInp]);
     var embMidi = exodos[0];
     var embCpc = exodos[1];
@@ -54,6 +65,12 @@ onmessage = function(e) {
     var logits = out[0]
     var logits_temp = logits.div(self.temperature);
     var predictedNote = tf.multinomial(logits_temp, 2);
+
+    // console.log('pred is ', predictedNote.print());
+    self.lastAiPrediction['aiInpMidi'] = predictedNote.dataSync()[0]
+    // I have no way to get the aiInpCpc here. I need the tokensDict, and the worker doesn't have 
+    // access to vuex. 
+
     // var predictedNote = 4;
     // predictedNote is a number (0-134) which corresponds to a token of the form "midi_articulation"
     // where midi is the midi number of the note and articulation is either 1 (hit) or 0 (hold)
@@ -69,10 +86,10 @@ onmessage = function(e) {
     // var workerResult = 'Result: ' + (e.data[0] * e.data[1]);
     // console.log('Posting message back to main script');
     var t2 = performance.now();
-    console.log("neuralNet: " + (t2-t1));
+    console.log("neuralNet: " + (t2-t1) + " tick " + tick);
     var output = {
-        'tick' : e.data['tick'],
-        'note' : predictedNote
+        'tick' : data['tick'],
+        'midiArticInd' : predictedNote.dataSync()[0]
     }
     postMessage(output);
 }

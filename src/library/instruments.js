@@ -32,6 +32,62 @@ export const SAMPLE_RANGES = {
   // xylophone: [] // TODO: Find out why samples are missing or find alternatives.
 }
 
+export const MIDIKEY_TO_PIANOKEY = {
+  '21': 'A1',
+  '22': 'A#1',
+  '23': 'B1',
+  '24': 'C2',
+  '25': 'C#2',
+  '26': 'D2',
+  '27': 'D#2',
+  '28': 'E2',
+  '29': 'F2',
+  '30': 'F#2',
+  '31': 'G2',
+  '32': 'G#2',
+  '33': 'A2',
+  '34': 'A#2',
+  '35': 'B2',
+  '36': 'C3',
+  '37': 'C#3',
+  '38': 'D3',
+  '39': 'D#3',
+  '40': 'E3',
+  '41': 'F3',
+  '42': 'F#3',
+  '43': 'G3',
+  '44': 'G#3',
+  '45': 'A3',
+  '46': 'A#3',
+  '47': 'B3',
+  '48': 'C4',
+  '49': 'C#4',
+  '50': 'D4',
+  '51': 'D#4',
+  '52': 'E4',
+  '53': 'F4',
+  '54': 'F#4',
+  '55': 'G4',
+  '56': 'G#4',
+  '57': 'A4',
+  '58': 'A#4',
+  '59': 'B4',
+  '60': 'C5',
+  '61': 'C#5',
+  '62': 'D5',
+  '63': 'D#5',
+  '64': 'E5',
+  '65': 'F5',
+  '66': 'F#5',
+  '67': 'G5',
+  '68': 'G#5',
+  '69': 'A5',
+  '70': 'A#5',
+  '71': 'B5',
+  '72': 'C6',
+  '73': 'C#6'
+}
+
 export const INSTRUMENT_NAMES = Object.keys(SAMPLE_RANGES)
 
 export const AVAILABLE_FORMATS = ["mp3", "ogg", "wav"]
@@ -88,7 +144,6 @@ export default class Instruments {
       `${INSTRUMENT_BASE_URL}${instrument}/`
     )
     this.samplers[instrument] = sampler
-
     return sampler
   }
 }

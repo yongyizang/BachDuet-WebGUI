@@ -25,6 +25,7 @@
 import * as Tone from 'tone'
 import Instruments from "@/library/instruments";
 import { clamp } from "@/library/math"
+import {MIDIKEY_TO_PIANOKEY} from "../library/instruments";
 
 // Here, a set of constants are defined.
 const WHITE_KEYS = ["C", "D", "E", "F", "G", "A", "B"]
@@ -94,6 +95,16 @@ export default {
       default() {
         return WHITE_KEYS.indexOf("C")
       }
+    },
+
+    midiInput: {
+      type: Number,
+      default: 0
+    },
+
+    pressStatus: {
+      type: Number,
+      default: 0
     }
   },
 
@@ -159,6 +170,7 @@ export default {
     },
 
     toggleAttack(currentNote) {
+      console.log('toggle attack ========>', currentNote);
       // Trigger the sampler.
       pianoSampler.triggerAttack(currentNote, Tone.now());
       // Change the global piano-state.
@@ -168,6 +180,7 @@ export default {
     },
 
     toggleRelease(currentNote) {
+      console.log('toggle release ========>', currentNote);
       // Release the sampler that's been triggered.
       pianoSampler.triggerRelease(currentNote, Tone.now());
       // Also change the global piano-state.
@@ -281,6 +294,25 @@ export default {
       }
 
       return keys
+    }
+  },
+
+  watch: {
+    // midiInput: function(key) {
+    //   const midiKey = key.toString();
+    //   const pianoKey = MIDIKEY_TO_PIANOKEY[midiKey];
+    //   this.toggleAttack(pianoKey);
+    // },
+    pressStatus: function (status) {sr
+      if (this.pressStatus == 0) {
+        const midiKey = this.midiInput.toString();
+        const pianoKey = MIDIKEY_TO_PIANOKEY[midiKey];
+        this.toggleRelease(pianoKey);
+      } else {
+        const midiKey = this.midiInput.toString();
+        const pianoKey = MIDIKEY_TO_PIANOKEY[midiKey];
+        this.toggleAttack(pianoKey);
+      }
     }
   }
 }
