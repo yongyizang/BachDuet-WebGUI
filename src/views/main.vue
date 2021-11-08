@@ -513,7 +513,10 @@ export default {
 </script>
 
 <style>
-html,
+html {
+  height: 100vh;
+  width: 100vw;
+}
 body {
   background-color: #402504;
   background-image:
