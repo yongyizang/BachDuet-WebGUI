@@ -236,10 +236,10 @@ export default {
   },
 
   mounted() {
-    this.renderKeyEvent("A1", true, "User", true);
-    this.renderKeyEvent("C4", true, "AI", true);
-    this.renderKeyEvent("As3", true, "User", false);
-    this.renderKeyEvent("Gs2", true, "AI", false);
+    // this.renderKeyEvent("A1", true, "User", true);
+    // this.renderKeyEvent("C4", true, "AI", true);
+    // this.renderKeyEvent("As3", true, "User", false);
+    // this.renderKeyEvent("Gs2", true, "AI", false);
     this.neuralWorker = new Worker("neuralWorker.js"); //, { type: "module" })
 
     // the workerCallback function is called when the neuralWorker returns the AI's prediction
