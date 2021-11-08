@@ -72,16 +72,16 @@
         </div>
         <div
           id="clockToggleBtn"
-          style="position:absolute;margin-top:-45px;margin-left:400px"
+          style="position:absolute;margin-top:-45px;margin-left:400px;display: grid;grid-template-columns: repeat(2, 1fr);grid-template-rows: 1fr;grid-column-gap: 0px;grid-row-gap: 0px;"
         >
           <md-tooltip md-direction="bottom"
             >Click to start or pause the session.</md-tooltip
           >
-          <span style="font-weight:bold;"> SESSION<br />CONTROL </span>
+          <span style="font-weight:bold;grid-area: 1/1/2/2"> SESSION<br />CONTROL </span>
           <md-button
             @click="toggleClock"
             class="md-icon-button md-plain"
-            style="box-sizing:border-box;position:absolute;width:60px;height:60px;margin-top:-2rem"
+            style="box-sizing:border-box;position:absolute;width:60px;height:60px;margin-top:-10px;grid-area:1/2/2/3"
           >
             <md-icon class="md-size-2x" style="color:#F3FEB0">{{
               clockStatus ? "pause" : "play_arrow"
@@ -117,7 +117,10 @@
         >
           <md-icon style="color:#F3FEB0">keyboard_arrow_up</md-icon>
         </md-button>
-        <span style="position:absolute;color:#F3FE80;margin-top:9px;font-weight:bold;width:130px;">OCTAVE CONTROL</span>
+        <span
+          style="position:absolute;color:#F3FE80;margin-top:9px;font-weight:bold;min-width:150px;"
+          >OCTAVE CONTROL</span
+        >
         <md-button
           @click="transposeOctDown"
           v-if="keyboardUIoctaveStart !== 0"
