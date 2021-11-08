@@ -7,101 +7,116 @@
     <md-dialog-alert
       :md-active.sync="screenRatio"
       md-content="Although we will support mobile devices in the future, this application only works best on horizontal screens right now. <br /> <br /> We would recommend using this application on a PC or a tablet, or you could try to rotate your phone over in horizontal mode, although you may experience UI problems. <br /><br /> We are sorry for the inconvenience."
-      md-confirm-text="Okay" />
+      md-confirm-text="Okay"
+    />
 
-      <md-dialog-alert
+    <md-dialog-alert
       :md-active.sync="screenWidthTooSmall"
       md-content="Although we are planning on adding small screen support in the future, this application only works best when screen width is larger than 768 pixels.<br /><br />We would recommend using this application on a PC or a tablet, or you could try to rotate your phone over in horizontal mode, although you may experience UI problems. <br /><br /> We are sorry for the inconvenience."
-      md-confirm-text="Okay" />
+      md-confirm-text="Okay"
+    />
 
     <div style="padding:10px;">
       <div
         class="topbar"
-        style="padding: 30px; backdrop-filter: blur(15px); border-radius: 30px;box-shadow: 0px 1px 22px 5px rgba(0,0,0,0.66); color: #F3FEB0; "
+        style="padding: 30px; backdrop-filter: blur(15px); border-radius: 30px;box-shadow: 0px 1px 22px 5px rgba(0,0,0,0.66); color: #F3FEB0; min-height:60px; "
       >
-        <img src="/img/logo.png" style=" height: 48px; width: auto" />
-        <div style="color:white;margin-top: -41px; margin-left: 55px">
-          <span
-            style="
+        <img
+          class="disappear-on-small-screen"
+          src="/img/logo.png"
+          style=" height: 48px; width: auto"
+        />
+        <div class="small-screen-displacement">
+          <div
+            id="BachDuetLogoText"
+            style="color:white;margin-top: -41px; margin-left: 55px"
+          >
+            <span
+              style="
               font-weight: 600;
               font-size: 1.8em;
               padding: 0;
               line-height: 0;
             "
-            >BachDuet</span
-          >
-          <div style="margin-top: -0.3em; padding: 1px">
-            <span style="font-size: 0.3em">by </span>
-          </div>
-          <div
-            style="margin-top: -1.1rem; margin-left: 1.1em; font-size: 1.3em"
-          >
-            <span
-              onclick="location='http://www2.ece.rochester.edu/projects/air/index.html'"
-              >AIR Lab</span
+              >BachDuet</span
             >
+            <div style="margin-top: -5px; margin-left:1px">
+              <span style="font-size: 12px">by </span>
+            </div>
+            <div
+              style="margin-top: -0.9rem; margin-left: 1.1em; font-size: 1.3em"
+            >
+              <span
+                onclick="location='http://www2.ece.rochester.edu/projects/air/index.html'"
+                >AIR Lab</span
+              >
+            </div>
+          </div>
+
+          <div
+            id="bpmSlider"
+            style="position:absolute;margin-top:-70px;margin-left:200px;width:auto"
+          >
+            <span style="font-size:0.8em">BPM</span><br />
+            <span style="font-size:1.5em;font-weight:bold">{{ bpm }}</span>
+            <vue-slider
+              style="margin-top:-30px;margin-left:3em"
+              v-model="bpm"
+              :contained="true"
+              :width="100"
+              :lazy="true"
+              :min="60"
+              :max="120"
+              :tooltip-placement="'right'"
+              :tooltip-formatter="(val) => val + ' bpm'"
+            ></vue-slider>
+          </div>
+
+          <div
+            id="freqSlider"
+            style="position:absolute;margin-top:-22px;margin-left:200px;"
+          >
+            <span style="font-size:0.8em">FREQ</span><br />
+            <span style="font-size:1.5em;font-weight:bold">{{ FREQ }}</span>
+            <vue-slider
+              style="margin-top:-30px;margin-left:3em"
+              v-model="FREQ"
+              :contained="true"
+              :width="100"
+              :lazy="true"
+              :min="2"
+              :max="16"
+              :tooltip-placement="'right'"
+              :tooltip-formatter="(val) => val + ' beats / bar'"
+            ></vue-slider>
           </div>
         </div>
-
-        <div
-          id="bpmSlider"
-          style="position:absolute;margin-top:-70px;margin-left:200px;width:auto"
-        >
-          <span style="font-size:0.8em">BPM</span><br />
-          <span style="font-size:1.5em;font-weight:bold">{{ bpm }}</span>
-          <vue-slider
-            style="margin-top:-30px;margin-left:3em"
-            v-model="bpm"
-            :contained="true"
-            :width="100"
-            :lazy="true"
-            :min="60"
-            :max="120"
-            :tooltip-placement="'right'"
-            :tooltip-formatter="(val) => val + ' bpm'"
-          ></vue-slider>
-        </div>
-
-        <div
-          id="freqSlider"
-          style="position:absolute;margin-top:-22px;margin-left:200px;"
-        >
-          <span style="font-size:0.8em">FREQ</span><br />
-          <span style="font-size:1.5em;font-weight:bold">{{ FREQ }}</span>
-          <vue-slider
-            style="margin-top:-30px;margin-left:3em"
-            v-model="FREQ"
-            :contained="true"
-            :width="100"
-            :lazy="true"
-            :min="2"
-            :max="16"
-            :tooltip-placement="'right'"
-            :tooltip-formatter="(val) => val + ' beats / bar'"
-          ></vue-slider>
-        </div>
-        <div
-          id="clockToggleBtn"
-          style="position:absolute;margin-top:-45px;margin-left:400px;display: grid;grid-template-columns: repeat(2, 1fr);grid-template-rows: 1fr;grid-column-gap: 0px;grid-row-gap: 0px;"
-        >
+        <div id="clockToggleBtn">
           <md-tooltip md-direction="bottom"
             >Click to start or pause the session.</md-tooltip
           >
-          <span style="font-weight:bold;grid-area: 1/1/2/2"> SESSION<br />CONTROL </span>
+          <span
+            class="disappear-on-small-screen"
+            style="font-weight:bold;grid-area: 1/1/2/2"
+          >
+            SESSION<br />CONTROL
+          </span>
           <md-button
             @click="toggleClock"
+            id="clockBtn"
             class="md-icon-button md-plain"
-            style="box-sizing:border-box;position:fixed;width:60px;height:60px;left:520px;top:45px;margin-top:-10px;grid-area:1/2/2/3"
+            style="box-sizing:border-box;position:relative;width:60px;height:60px;left:0px;top:0px;margin-top:-10px;grid-area:1/2/2/3"
           >
             <md-icon class="md-size-2x" style="color:#F3FEB0">{{
               clockStatus ? "pause" : "play_arrow"
             }}</md-icon>
           </md-button>
         </div>
-        <div style="position:absolute;margin-top:-45px;margin-left:565px;">
+        <div id="metronomeToggle" style="">
           <span style="font-weight:bold;">METRONOME<br />SOUND</span><br />
           <md-switch
-            style="position:absolute;margin-top:-2rem;margin-left:8em;"
+          id="metronomeSwitch"
+            style=""
             v-model="metronomeStatus"
           ></md-switch>
         </div>
@@ -569,6 +584,11 @@ body {
   width: 100%;
 }
 
+.home {
+  height: 100vh;
+  width: 100vw;
+}
+
 .center {
   margin: 0;
   position: absolute;
@@ -578,10 +598,51 @@ body {
 }
 
 @media screen and (max-height: 746px) {
-.center {
-  position: absolute;
-  bottom:0;
+  .center {
+    position: absolute;
+    bottom: 0;
+  }
 }
+
+@media screen and (min-width:769px) {
+
+#metronomeToggle {
+  position:absolute;margin-top:-60px;margin-left:575px;
+}
+#metronomeSwitch {
+  position:absolute;top:0;margin-left:8em;
+}
+
+}
+
+@media screen and (max-width: 768px) {
+  .disappear-on-small-screen {
+    display: none;
+  }
+  .small-screen-displacement {
+    margin-top: 52px;
+    margin-left: -50px;
+  }
+  #clockBtn {
+    margin-left:-80px;
+  }
+  #metronomeToggle {
+    position:absolute;
+    left:450px;
+    top:30px;
+  }
+}
+
+
+#clockToggleBtn {
+  position: absolute;
+  margin-top: -45px;
+  margin-left: 400px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: 1fr;
+  grid-column-gap: 0px;
+  grid-row-gap: 0px;
 }
 
 .pianoKeyboard {
