@@ -250,15 +250,24 @@ export default {
     workerCallback(e) {
       var aiOutput = e.data;
       // TODO convert aiOutput['note'] to the midi_artic representation
-      var midi = 60;
-      var artic = 1;
+      var tokensDict = this.$store.getters.getTokensDict
+      var midiArticInd = aiOutput['midiArticInd'];
+      var midiArticToken = tokensDict.midiArtic.index2token[midiArticInd]
+      var midi = parseInt(midiArticToken.split("_")[0])
+      var artic = midiArticToken.split("_")[1]
       var payload = {
         currentTick: aiOutput["tick"],
-        prediction: { midi: midi, artic: artic },
+        prediction: { "midi": midi, "artic": artic, "midiArticInd": midiArticInd},
       };
       // save AI's prediction to store.state.aiPredictions
       this.$store.dispatch("newAiPrediction", payload);
       // console.log('Message received from worker' + e.data);
+      if (artic==1){
+        if (midi!=0){
+          let currentNote = Midi.midiToNoteName(midi)
+          AISampler.triggerAttack(currentNote, Tone.now());
+        }
+      }
     },
     // moved the metronomeTrigger function inside methods
     // it doesn't take any input argument
@@ -434,7 +443,7 @@ export default {
 
                       // console.log('global ' + this.$store.getters.getGlobalTick);
                       // console.log('played on ' + this.$store.getters.getLastNotePlayedOnTick)
-              if (this.$store.getters.getGlobalTick-this.$store.getters.getLastNotePlayedOnTick > 0){
+              if (this.$store.getters.getGlobalTick-this.$store.getters.getLastNotePlayedOnTick > 1){
                   artic = 0
               }
               else {artic=1}
@@ -447,7 +456,7 @@ export default {
 
       }
       // empty the noteBuffer
-      this.$store.commit('clearNotesBuffer')
+      // this.$store.commit('clearNotesBuffer')
       //              console.log("buffer cleared for tick " + this.$store.getters.getLocalTick)
 
       // TODO tick centering feature
@@ -456,17 +465,18 @@ export default {
       // go from midi/cpc to AI_tokens
       var midiArtic = humanInp.toString() + '_' + artic.toString()
       var tokensDict = this.$store.getters.getTokensDict
-      var midiArticInd = tokensDict.midiArtic.token2index[tokensDict]
+      var midiArticInd = tokensDict.midiArtic.token2index[midiArtic]
       var rhythmToken = this.$store.getters.getRhythmToken
-      var rhythmTokenId = tokensDict.rhythm.token2index[rhythmToken]
+      var rhythmTokenInd = tokensDict.rhythm.token2index[rhythmToken]
 
-      //            console.log(midiArtic + ' ' + cpcInd + ' ' + rhythmToken)
+      // console.log(midiArtic + ' ' + cpcInd + ' ' + rhythmToken)
+      // console.log(midiArticInd + ' ' + cpcInd + ' ' + rhythmTokenInd)
       var aiInp = {
         // TODO tick centering feature
         "tick": this.$store.getters.getLocalTick, //input tick time (the AI will predict a note for time tick+1)
         "humanInpMidi" : midiArticInd, //users input at time tick
         "humanInpCpc" : cpcInd,
-        "rhythmInd" : rhythmTokenId,
+        "rhythmInd" : rhythmTokenInd,
         "aiInp" : this.$store.getters.getAiPredictionFor( this.$store.getters.getLocalTick), 
                     // for the AI to generate the note for time tick + 1, besides the users input
                     // it also takes as an input the note it played/generated for at time tick
