@@ -98,8 +98,9 @@ const actions = {
         // state.bufferState[note] = true;
         state.notesBuffer.push(note);
         state.lastNotePlayed = note;
-        // TODO: for the tick centering feature. use getLockTickDelayed
-        state.lastNotePlayedOnTick = getters.getGlobalTick;
+        // TODO: for the tick centering feature. use getLockTickDelayed	
+        // state.lastNotePlayedOnTick = getters.getGlobalTick;	
+        state.lastNotePlayedOnTick = getters.getLocalTickDelayed;
                         // console.log('in vuex ' +state.lastNotePlayedOnTick);
                         // console.log("buffer is " + state.notesBuffer)
         // console.log('NoteOn ', state.lastNotePlayed, '\n',

@@ -176,7 +176,7 @@ export default {
       // Change the global piano-state.
       // pianoState[currentNote] = true;
       // Add into buffer.
-      this.$store.commit('noteOn', currentNote);
+      this.$store.dispatch('noteOn', currentNote);
     },
 
     toggleRelease(currentNote) {
@@ -184,7 +184,7 @@ export default {
       // Release the sampler that's been triggered.
       pianoSampler.triggerRelease(currentNote, Tone.now());
       // Also change the global piano-state.
-      this.$store.commit('noteOff', currentNote);
+      this.$store.dispatch('noteOff', currentNote);
     },
 
     calculateOctave(n) {
