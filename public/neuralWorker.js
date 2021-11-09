@@ -8,6 +8,8 @@
 
 // for know, this does the trick
 importScripts("/tf.min.js")
+// importScripts("https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.9.0/dist/tf.min.js")
+
 
 
 const CHECKPOINT_BASE_URL = "/checkpoints/"
@@ -17,7 +19,7 @@ async function loadModels(){
     self.modelLstm = await tf.loadLayersModel('checkpoints/modelsFinal_Lstm/model.json');
     self.modelEmb =  await tf.loadLayersModel('checkpoints/modelsFinal_Emb/model_cleaned.json');
     console.log("loaded models");
-    tf.setBackend('wasm');
+    tf.setBackend('webgl');
 
     console.log(tf.getBackend());
 

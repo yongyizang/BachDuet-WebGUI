@@ -23,4 +23,4 @@ pnpm-debug.log*
 *.sw?
 
 # neural net related
-*.bin
+# *.bin
