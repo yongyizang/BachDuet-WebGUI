@@ -84,8 +84,8 @@ const actions = {
         // pred is a dict with keys "currentTick", and "prediction"
         var nextTick = getters.getNextLocalTick(args.currentTick);
         state.aiPredictions[nextTick] = args.prediction;
-        console.log("Stored ", args.prediction.midi + '_' + args.prediction.artic);
-        console.log("    to be played at ", nextTick)
+        // console.log("Stored ", args.prediction.midi + '_' + args.prediction.artic);
+        // console.log("    to be played at ", nextTick)
     },
 
     /*
@@ -100,7 +100,7 @@ const actions = {
         state.lastNotePlayed = note;
         // TODO: for the tick centering feature. use getLockTickDelayed	
         // state.lastNotePlayedOnTick = getters.getGlobalTick;	
-        state.lastNotePlayedOnTick = getters.getLocalTickDelayed;
+        state.lastNotePlayedOnTick = getters.getGlobalTickDelayed;
                         // console.log('in vuex ' +state.lastNotePlayedOnTick);
                         // console.log("buffer is " + state.notesBuffer)
         // console.log('NoteOn ', state.lastNotePlayed, '\n',

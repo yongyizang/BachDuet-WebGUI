@@ -3,7 +3,7 @@
 // couldn't use import *...  because of errors
 // to use that, I have to create the worker as a module, in main.vue in the following way :
 //          const neuralWorker = new Worker('neuralWorker.js', { type: "module" })
-// when I did that, the postMessage wasn't working, and no errors where displayed in console to debug it
+// when I did that, the postMessage wasn't working, and no errors where displayed in console to debug it    
 // import * as tf from '@tensorflow/tfjs';
 
 // for know, this does the trick
@@ -35,10 +35,16 @@ self.states2B = tf.randomNormal([1,600]);
 // self.states1B = tf.zeros([1,600]);
 // self.states2A = tf.zeros([1,600]);
 // self.states2B = tf.zeros([1,600]);
-self.temperature = 0.1;
+self.temperature = 0.0000001;
 self.lastAiPrediction = {'aiInpMidi':96, 'aiInpCpc':12};
+
+// self.humanTestInputMidi = [52,53,60,61]
+// self.humanTestInputCpc = [0,0,2,2]
+// self.humanTestInputRhythm = [4,1,2,1,5,6,7,6,0,1,2,1,5,6,7,8]
+
+
 onmessage = function(e) {
-    console.log(e.data);
+    // console.log(e.data);
     var data = e.data
     var tick = data['tick'];
     var t1 = performance.now();
@@ -51,6 +57,12 @@ onmessage = function(e) {
     var cpcInp = tf.tensor2d([[self.lastAiPrediction['aiInpCpc'], data['humanInpCpc']]]);
     var rhyInp = tf.tensor2d([[data['rhythmInd']]]);
 
+    // var midiInp = tf.tensor2d([[self.lastAiPrediction['aiInpMidi'], self.humanTestInputMidi[tick]]]);
+    // var cpcInp = tf.tensor2d([[self.lastAiPrediction['aiInpCpc'], self.humanTestInputCpc[tick]]]);
+    // var rhyInp = tf.tensor2d([[self.humanTestInputRhythm[tick]]]);
+
+    // console.log("midiInp" + midiInp.arraySync() + "cpcInp" + cpcInp.arraySync() + "rhyInp" + rhyInp.arraySync())
+
     var exodos = self.modelEmb.predict([midiInp, cpcInp, rhyInp]);
     var embMidi = exodos[0];
     var embCpc = exodos[1];
@@ -58,18 +70,26 @@ onmessage = function(e) {
     var embMidiC = tf.concat([embMidi.slice([0,0,0],[1,1,150]),embMidi.slice([0,1,0],[1,1,150])], 2);
     var embCpcC = tf.concat([embCpc.slice([0,0,0],[1,1,150]),embCpc.slice([0,1,0],[1,1,150])], 2);
     var totalInp = tf.concat([embMidiC, embCpcC, embRhy],2);
+
     var out = self.modelLstm.predict([totalInp, self.states1A, self.states1B, self.states2A, self.states2B]);
+
+
     self.states1A = out[1];
     self.states1B = out[2];
     self.states2A = out[3];
     self.states2B = out[4]
 
+    
     var logits = out[0]
+    
+
     var logits_temp = logits.div(self.temperature);
     var predictedNote = tf.multinomial(logits_temp, 2);
 
     // console.log('pred is ', predictedNote.print());
     self.lastAiPrediction['aiInpMidi'] = predictedNote.dataSync()[0]
+
+    // console.log("tick " + tick + " logits mean " + logits.mean().arraySync() + " totalInp mean " + totalInp.mean().arraySync() + " out " + predictedNote.dataSync()[0])
     // I have no way to get the aiInpCpc here. I need the tokensDict, and the worker doesn't have 
     // access to vuex. 
 
@@ -88,7 +108,7 @@ onmessage = function(e) {
     // var workerResult = 'Result: ' + (e.data[0] * e.data[1]);
     // console.log('Posting message back to main script');
     var t2 = performance.now();
-    console.log("neuralNet: " + (t2-t1) + " tick " + tick);
+    // console.log("neuralNet: " + (t2`-t1) + " tick " + tick);
     var output = {
         'tick' : data['tick'],
         'midiArticInd' : predictedNote.dataSync()[0]

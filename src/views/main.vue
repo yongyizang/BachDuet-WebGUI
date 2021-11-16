@@ -256,6 +256,7 @@ export default {
       pressedDeviceKey: 0,
       isKeyPressed: 0,
       lastNoteOnAi: "",
+      tempHistory : []
     };
   },
 
@@ -443,6 +444,7 @@ export default {
         currentTick: aiOutput["tick"],
         prediction: { "midi": midi, "artic": artic, "midiArticInd": midiArticInd},
       };
+      console.log("AI OUT " + midiArticToken)
       // save AI's prediction to store.state.aiPredictions
       this.$store.dispatch("newAiPrediction", payload);
     },
@@ -451,8 +453,10 @@ export default {
     // and it doesn't use a switch statement for to check the interval for every tick. 
     metronomeTrigger() {
       // var vm = this;
+      // console.log("IN METRONOMETRIGGER " + this.$store.getters.getLocalTick)
         if (this.$store.getters.getLocalTick % this.intervalIntegar == 0) {
-          var note = this.$store.getters.getLocalTick % 16*this.$store.state === 0 ? "G0" : "C0";
+          var note = this.$store.getters.getLocalTick % 16 === 0 ? "G0" : "C0";
+          // console.log(note);
           metronomeSampler.triggerAttackRelease(note, 0.2, Tone.now());
         }
     },
@@ -503,7 +507,7 @@ export default {
               console.log(
                 "Tick #" +
                   vm.$store.getters.getLocalTick +
-                  " sent out!\n Quantized Inputs include: "
+                  " sent out at "  +"\n"
               );
               vm.metronomeTrigger();
 
@@ -518,7 +522,10 @@ export default {
 
               // B) using a web worker with async
               // vm.runTheWorker()
-              setTimeout(vm.runTheWorker(), 30);
+              // setTimeout(vm.runTheWorker(), 1000);
+              setTimeout(function () {
+                vm.runTheWorker()
+              }, 50)
               
               // C) without using a web worker
               // C : any better ways to reference the neuralNet component ???
@@ -526,10 +533,10 @@ export default {
               // var predictedNote = neuralNetObj.inference(vm.$store.getters.getLocalTick);
 
 
-              console.log(vm.$store.getters.getNotesBuffer);
-              console.log(
-                "Last note played: " + vm.$store.getters.getLastNotePlayed
-              );
+              // console.log(vm.$store.getters.getNotesBuffer);
+              // console.log(
+              //   "Last note played: " + vm.$store.getters.getLastNotePlayed
+              // );
 
               
               vm.$store.commit("clearNotesBuffer");
@@ -556,7 +563,7 @@ export default {
       // if there is already a note active, we have to triggerRelease first
       // if the predicted note is a rest ... blablabla.
       var aiPrediction = this.$store.getters.getAiPredictions[this.$store.getters.getLocalTick];
-
+      // console.log("in triger " + aiPrediction.midi + "_" + aiPrediction.artic)
       // to be continued
       if (aiPrediction.artic==1){
         if (aiPrediction.midi!=0){
@@ -656,6 +663,9 @@ export default {
 
       // console.log(midiArtic + ' ' + cpcInd + ' ' + rhythmToken)
       // console.log(midiArticInd + ' ' + cpcInd + ' ' + rhythmTokenInd)
+      // this.tempHistory.push({"tick":this.$store.getters.getLocalTick, "played" : midiArtic})
+      // console.log(midiArtic + " ")
+
       var aiInp = {
         // TODO tick centering feature
         "tick": this.$store.getters.getLocalTick, //input tick time (the AI will predict a note for time tick+1)

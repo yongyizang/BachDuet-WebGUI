@@ -170,7 +170,7 @@ export default {
     },
 
     toggleAttack(currentNote) {
-      console.log('toggle attack ========>', currentNote);
+      // console.log('toggle attack ========>', currentNote);
       // Trigger the sampler.
       pianoSampler.triggerAttack(currentNote, Tone.now());
       // Change the global piano-state.
@@ -180,7 +180,7 @@ export default {
     },
 
     toggleRelease(currentNote) {
-      console.log('toggle release ========>', currentNote);
+      // console.log('toggle release ========>', currentNote);
       // Release the sampler that's been triggered.
       pianoSampler.triggerRelease(currentNote, Tone.now());
       // Also change the global piano-state.
