@@ -15,6 +15,7 @@
         @mousedown="toggleAttack(key.name)"
         @mouseup="toggleRelease(key.name)"
         :class="[...key.class, {active: noteActive(key.name)}]"
+        :ref="key.name"
       >
         <span>{{ key.name }}</span>
       </li>
@@ -148,12 +149,15 @@ export default {
       // Trigger the sampler.
       pianoSampler.triggerAttack(currentNote, Tone.now());
       console.log(currentNote)
+      // set the second parameter here to False for human.
+      this.$root.$refs.gameUI.keyDown(currentNote, true);
       this.$store.dispatch('noteOn', currentNote);
     },
 
     toggleRelease(currentNote) {
       // Release the sampler that's been triggered.
       pianoSampler.triggerRelease(currentNote, Tone.now());
+      this.$root.$refs.gameUI.keyUp(currentNote, true);
       // Also change the global piano-state.
       this.$store.dispatch('noteOff', currentNote);
     },
