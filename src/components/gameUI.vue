@@ -6,9 +6,12 @@
 <script>
 import * as THREE from 'three'
 
+const colorForAI = 0x7dd87d;
+const colorForHuman = 0x4c9173;
+
 const geometry = new THREE.PlaneGeometry( 1, 1, 1 )
-const material = new THREE.MeshBasicMaterial( {color: 0x1FB7EE, side: THREE.DoubleSide} )
-const aiMaterial = new THREE.MeshBasicMaterial( {color: 0xFFB729, side: THREE.DoubleSide} )
+const material = new THREE.MeshBasicMaterial( {color: colorForAI, side: THREE.DoubleSide} )
+const aiMaterial = new THREE.MeshBasicMaterial( {color: colorForHuman, side: THREE.DoubleSide} )
 
 const KeyboardUIHeight = 200;
 const NoteAnimationMargin = 10;
