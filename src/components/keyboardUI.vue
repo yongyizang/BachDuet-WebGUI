@@ -147,19 +147,20 @@ export default {
 
     toggleAttack(currentNote) {
       // Trigger the sampler.
-      pianoSampler.triggerAttack(currentNote, Tone.now());
+
       console.log(currentNote)
       // set the second parameter here to False for human.
       this.$root.$refs.gameUI.keyDown(currentNote, true);
       this.$store.dispatch('noteOn', currentNote);
+      pianoSampler.triggerAttack(currentNote, Tone.now());
     },
 
     toggleRelease(currentNote) {
       // Release the sampler that's been triggered.
-      pianoSampler.triggerRelease(currentNote, Tone.now());
       this.$root.$refs.gameUI.keyUp(currentNote, true);
-      // Also change the global piano-state.
       this.$store.dispatch('noteOff', currentNote);
+      pianoSampler.triggerRelease(currentNote, Tone.now());
+      // Also change the global piano-state.
     },
 
     calculateOctave(n) {

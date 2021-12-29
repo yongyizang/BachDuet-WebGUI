@@ -113,11 +113,5 @@ export default {
     this.animate();
     this.resize();
   },
-
-  computed: {
-    bottom: function (){
-      return this.camera.position.y + this.$refs.canvas.clientHeight;
-    }
-  }
 }
 </script>
