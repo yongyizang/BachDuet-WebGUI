@@ -4,203 +4,308 @@
 
 <script>
 import * as vextab from "@/library/vextab-div";
-const DEFAULT_HEIGHT = 400;
+import { Note } from "@tonaljs/tonal";
+const CLEF_SEPARATE_AT = "C4"; // Here, we define the separate point between treble clef and bass clef for both staff.
 
-const maxBarNum = 4;
-
-const fakeAIData = [
-  [1, "C4", "4n"],
-  [5, "C#4", "4n"],
-  [9, "C3", "4n"],
-  [13, "C#3", "4n"],
-  [17, "C4", "4n"],
-  [23, "C#4", "4n"],
-  [27, "C3", "4n"],
-  [31, "C#3", "4n"],
-];
+/*
+  data need to be in this format as shown in fakeHumanData and fakeAIData, and we currently only support 2n, 4n, 8n and 16n.
+  functionailities such as automatically adding barlines, automactially coupling same notes together are not (and should not) being handled here;
+  this is just the front-end display.
+*/
 
 const fakeHumanData = [
-  [1, ["D4","C3"], "4n"],
-  [5, "D#4", "4n"],
-  [9, "D3", "4n"],
-  [13, "D#3", "4n"],
-  [17, "D4", "4n"],
-  [23, "D#4", "4n"],
-  [27, "D3", "4n"],
-  [31, "D#3", "4n"],
+  [["D4", "C3"], "4n"], // This encode a multi-voice note.
+  [["C#4"], "8n"], // This is a single note.
+  [0], // This would encode a barline
+  [-1, "4n"], // This would encode a rest
+  [["D4", "C3"], "16n"],
+  [["C#4"], "8n"],
 ];
 
-function random_item(items) {
-  return items[Math.floor(Math.random() * items.length)];
-}
+const fakeAIData = [
+  [["E4", "C3"], "4n"],
+  [["C#4"], "8n"],
+  [0],
+  [-1, "4n"],
+  [["D4", "C3"], "16n"],
+  [["C#4"], "8n"],
+];
 
-function randomNote(input, clef = "high") {
-  const notesArray = ["C", "D", "E", "F", "G", "A", "B"];
-  const accidentals = ["#", "##", "@", "@@", ""];
-  const rangesHigh = ["/4", "/5"];
-  const rangesLow = ["/2", "/3"];
-  var connector;
-  if (input !== 15){
-    connector = "-";
-  } else {
-    connector = " ";
-  }
-  var ranges;
-  if (clef == "high"){
-    ranges = rangesHigh;
-  } else {
-    ranges = rangesLow;
-  }
-  return random_item(notesArray) + random_item(ranges) + connector;
-}
-
-function noteParser(input, measureCount){
-  // This function would pass an array of data for 1 player into a way VexTab could parse. Note: This function doesn't automatically generate rests. If you need rest, you have to pass it in manually.
-  // call it as noteParser([], 3);
-  if (!isNumber(measureCount) || measureCount < 1 || measureCount > 4){
-    throw new Error("measureCount parameter is wrong. You entered: " + measureCount + ". We currently only support integar from 1 to 4. Try again.")
-  }
-
-  if (input[input.length-1][0] + input[1][0])
-
-
-  var measure1 = [[],[]];
-  var measure2 = [[],[]];
-  var measure3 = [[],[]];
-  var measure4 = [[],[]];
-
-  var lastTickNumber = 1;
-/*
-  // Iterate through every element within input array.
-  for (var i = 0; i < input.length; i++) {
-    var currentElement = input[i];
-    if (i == 0) {
-      var currentTickNumber = 1;
-    } else {
-      var currentTickNumber = currentElement[0]
-    }
-    // We fetch currentElememt from input.
-    // so now, the currentElement would look like this:
-    // [1, ["D4","C3"], "4n"]
-    lastTickNumber = currentElement[0];
-    // Set the lastTickNumber to the tickNumber of currentElement.
-    // Haven't finished writing this.
-  }
-*/
-};
-
-function isNumber (n) {
-  return ! isNaN (n-0);
-}
-
-function vexTabParser(inputData) {
-  // This function takes in data that's in the format of fakeHumanData or fakeAIData.
-  var highClefUser = "";
-  var bassClefUser = "";
-  var highClefAI = "";
-  var bassClefAI = "";
-  if (!inputData) {
-    for (var i = 0; i < maxBarNum; i++) {
-      for (var j = 0; j < 16; j++){
-      highClefUser += randomNote(j);
-      bassClefUser += randomNote(j,"bass");
-      highClefAI += randomNote(j);
-      bassClefAI += randomNote(j,"bass");
-      }
-      highClefUser += "| ";
-      bassClefUser += "| ";
-      highClefAI += "| ";
-      bassClefAI += "| ";
-    }
-    highClefUser += "||";
-      bassClefUser += "|| ";
-      highClefAI += "||";
-      bassClefAI += "||";
-  }
+function note2Symbol(note) {
+  // Expecting input like "C#4", would give out "C#/4"
   return (
-    "options width=" +
-    (document.body.clientWidth - 100) +
-    "\ntabstave notation=true tablature=false\nnotes " + ":16" +
-    highClefUser +
-    "\n\ntabstave notation=true tablature=false clef=bass\nnotes " +
-    bassClefUser +
-    "\ntabstave notation=true tablature=false\nnotes " +
-    highClefAI +
-    "\n\ntabstave notation=true tablature=false clef=bass\nnotes " +
-    bassClefAI
+    note.substring(0, note.length - 1) + "/" + note.charAt(note.length - 1)
   );
 }
 
+function multipleNote2Symbol(notes) {
+  // Expect input array, like ["D4","C3"], would give out "(D#4.C#3)"
+  let result = "(";
+  notes.forEach((note) => {
+    note = note2Symbol(note); // convert note into symbol
+    result = result + note + ".";
+  });
+  return result.substring(0, result.length - 1) + ")";
+}
+
+function noteLength2Symbol(length) {
+  // This function would convert 16n, 8n, 4n and 2n to the corresponding vextab grammar.
+  switch (length) {
+    case "16n":
+      return ":16";
+    case "8n":
+      return ":8";
+    case "4n":
+      return ":q";
+    case "2n":
+      return ":h";
+    default:
+      throw new Error(
+        "note-length-to-symbol function is having trouble with the note length you passed in. You passed in: " +
+          length +
+          ". We could only process 16n, 8n, 4n or 2n."
+      );
+  }
+}
+
+function clefSeparater(notes) {
+  // This function would separate the input data into two sets, one for treble clef and one for bass clef.
+  // Init the notes array.
+  let trebleNotes = [];
+  let bassNotes = [];
+  let clefSeparateNum = Note.midi(CLEF_SEPARATE_AT);
+  notes.forEach((note) => {
+    if (note[0] == 0 || note[0] == -1) {
+      // If we have a barline, or a rest, which is equal on both clefs
+      trebleNotes.push(note);
+      bassNotes.push(note);
+    } else {
+      if (note[0].length == 1) {
+        // If there's only one note
+        if (Note.midi(note[0][0]) <= clefSeparateNum) {
+          // If that note is lower than or equal to the clef separating note
+          bassNotes.push(note); // put the note to bass clef
+          trebleNotes.push([-1, note[1]]); // put a rest to the treble clef
+        } else {
+          // If it's higher
+          trebleNotes.push(note); // put the note to treble clef
+          bassNotes.push([-1, note[1]]); // put a rest to the bass clef
+        }
+      } else if (note[0].length > 1) {
+        // If there's more than one note
+        // initialize two arrays waiting to be pushed
+        let trebleVoices = [];
+        let bassVoices = [];
+
+        note[0].forEach((note) => {
+          if (Note.midi(note) <= clefSeparateNum) {
+            // If that note is lower than or equal to the clef separating note
+            bassVoices.push(note); // put it to bass voices
+          } else {
+            // If it's higher
+            trebleVoices.push(note); // put it to treble voices
+          }
+        });
+
+        // In case any one is empty
+        if (trebleVoices.length == 0) {
+          trebleVoices = -1;
+        }
+        if (bassVoices.length == 0) {
+          bassVoices = -1;
+        }
+
+        // If none is empty, then push the voices into corresponding clefs
+        trebleNotes.push([trebleVoices, note[1]]);
+        bassNotes.push([bassVoices, note[1]]);
+      }
+    }
+  });
+  return [trebleNotes, bassNotes];
+}
+
+function note2VexTabNote(note) {
+  if (note[0] == 0) {
+    // If we have a barline,
+    return " | "; // return barline vextab symbol.
+  } else if (note[0] == -1) {
+    // If we have a rest,
+    return noteLength2Symbol(note[1]) + " ##";
+  } else {
+    // If we have a note
+    if (note[0].length == 1) {
+      // If there's only 1 note currently played
+      return noteLength2Symbol(note[1]) + " " + note2Symbol(note[0][0]);
+    } else if (note[0].length > 1) {
+      console.log(note);
+      // If there's more than 1 note being played
+      return noteLength2Symbol(note[1]) + " " + multipleNote2Symbol(note[0]);
+    } else {
+      throw new Error(
+        "note-to-vextab-note function is having trouble processing your input. You passed in: " +
+          note
+      );
+    }
+  }
+}
+
+function notes2vextabContent(
+  width = 400,
+  scale = 1.0,
+  space = 40,
+  notation = true,
+  tablature = false,
+  humanNotes,
+  AINotes
+) {
+  // This would convert lines to vextab content.
+  // all parameters are the same as vextab.
+  /*
+    keyword	        values/descriptions
+    width	        Set the width of the stave in pixels.
+    scale	        The zoom level of the notation. Default is 1.0.
+    space	        Adds space (given in pixels) before the next stave.
+    notation	    true/false
+    tablature	    true/false
+    clef	        treble, alto, tenor, bass, percussion
+    key	            C, Am, F, Dm, Bb, Gm, Eb, Cm, Ab, Fm, Db, Bbm, Gb, Ebm, Cb, Abm, G, Em, D, Bm, A, F#m, E, C#m, B, G#m, F#, D#m, C#, A#m
+    time	        C, C|, #/#
+    tuning	        standard, dropd, eb, E/5,B/4,G/4,D/4,A/3,E/3
+    */
+
+  humanNotes = clefSeparater(humanNotes);
+  var humanTrebleClef = "";
+  var humanBassClef = "";
+  humanNotes[0].forEach((note) => {
+    humanTrebleClef = humanTrebleClef + note2VexTabNote(note);
+  });
+  humanNotes[1].forEach((note) => {
+    humanBassClef = humanBassClef + note2VexTabNote(note);
+  });
+
+  AINotes = clefSeparater(AINotes);
+  var AITrebleClef = "";
+  var AIBassClef = "";
+  AINotes[0].forEach((note) => {
+    AITrebleClef = AITrebleClef + note2VexTabNote(note);
+  });
+  AINotes[1].forEach((note) => {
+    AIBassClef = AIBassClef + note2VexTabNote(note);
+  });
+
+  var result =
+    "options font-size=18 width = " +
+    width +
+    " scale = " +
+    scale +
+    " space = " +
+    space +
+    "\ntabstave notation=" +
+    notation +
+    " tablature=" +
+    tablature +
+    " clef=treble" +
+    "\nnotes" +
+    humanTrebleClef +
+    "\ntext .0,You are Playing:" +
+    "\ntabstave notation=" +
+    notation +
+    " tablature=" +
+    tablature +
+    " clef=bass" +
+    "\nnotes" +
+    humanBassClef +
+    "\noptions font-size=18 width = " +
+    width +
+    " scale = " +
+    scale +
+    " space = " +
+    (space + 50) +
+    "\ntabstave notation=" +
+    notation +
+    " tablature=" +
+    tablature +
+    " clef=treble" +
+    "\nnotes" +
+    AITrebleClef +
+    "\ntext .0, BachDuet is Playing:" +
+    "\ntabstave notation=" +
+    notation +
+    " tablature=" +
+    tablature +
+    " clef=bass" +
+    "\nnotes" +
+    AIBassClef;
+
+  return result;
+}
 
 export default {
   name: "scoreUI",
   props: {
-    height: {
-      type: Number,
-      validator(value) {
-        return value > 0 && value < document.body.clientWidth;
-      },
-      default() {
-        return DEFAULT_HEIGHT;
-      },
-    },
   },
 
   data() {
     return {
       screenWidth: document.body.clientWidth,
-      barWidth: document.body.clientWidth / maxBarNum,
-      vextabContent: "",
+      VF: null,
+      Renderer: null,
+      artist: null,
+      tab: null,
+      targetDiv: null,
     };
   },
 
-  watch: {
-    screenWidth: {
-      immediate: true,
-      handler(newValue) {
-        console.log("changed");
-      },
-    },
+  created() {
+    window.addEventListener("resize", this.resize);
+  },
+
+  destroyed() {
+    window.removeEventListener("resize", this.resize);
   },
 
   mounted() {
-    const vm = this;
-    window.onresize = () => {
-      return (() => {
-        window.screenWidth = document.body.clientWidth;
-        vm.screenWidth = window.screenWidth;
-      })();
-    };
-
-    const VF = vextab.Flow;
-    const Renderer = VF.Renderer;
-    // Create VexFlow Renderer from canvas element with id #boo
-    const renderer = new Renderer($("#pianoScores")[0], Renderer.Backends.SVG);
-
-    // Initialize VexTab artist and parser.
-    const artist = new vextab.Artist(50, 50, document.body.clientWidth, {
-      scale: 1,
-    });
-    const tab = new vextab.VexTab(artist);
-
-    var currentTime = performance.now();
-    setInterval(function(){
-      var t1 = performance.now();
-      tab.reset();
-      artist.reset();
-      tab.parse(vexTabParser());
-      artist.render(renderer);
-      var t2 = performance.now();
-      console.log("scoreUI: " + (t2-t1))
-    }, 60);
+    this.init();
+    this.resize();
   },
 
   methods: {
-    renderScore(){
-    }
+    resize() {
+        this.screenWidth = document.body.clientWidth;
+        this.draw();
+    },
+
+    init() {
+      this.VF = vextab.Flow;
+      this.Renderer = this.VF.Renderer;
+      this.targetDiv = new this.Renderer(
+        $("#pianoScores")[0],
+        this.Renderer.Backends.SVG
+      );
+      this.artist = new vextab.Artist(50, 50, this.screenWidth, {
+        scale: 1,
+      });
+      this.tab = new vextab.VexTab(this.artist);
+    },
+
+    draw() {
+      this.tab.reset();
+      this.artist.reset();
+      this.tab.parse(
+        notes2vextabContent(
+          this.screenWidth - 50,
+          1.0,
+          0,
+          true,
+          false,
+          fakeHumanData,
+          fakeAIData
+        )
+      );
+      this.artist.render(this.targetDiv);
+    },
   },
 };
-
 </script>
 
 <style scoped>

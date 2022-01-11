@@ -1,5 +1,5 @@
 <!--
-    This is the vue component of ScoreUI, a musical game style interface for interaction.
+    This is the vue component of gameUI, a musical game style interface for interaction.
 
     This component is inspired by and referenced based on AI Duet's implementation of the same feature
     with some significant changes to the code.
@@ -72,8 +72,8 @@ export default {
   methods: {
     init() {
       // Initialize the scene, camera and renderer.
-      this.scene = new THREE.Scene()
-      this.camera = new THREE.OrthographicCamera(0, 1, 1, 0, 1, 1000)
+      this.scene = new THREE.Scene();
+      this.camera = new THREE.OrthographicCamera(0, 1, 1, 0, 1, 1000);
       this.camera.position.z = 1;
       this.camera.lookAt (new THREE.Vector3(0,0,0));
       this.renderer = new THREE.WebGLRenderer();

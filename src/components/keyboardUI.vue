@@ -2,12 +2,17 @@
     This is the vue component of Piano Keyboard UI.
 
     It automatically generates the correct amount of keys, with a default piano sampler.
-    DOC: what does line 17 do ?
 -->
 
 <template>
   <div class="keyboard" :style="style">
     <ul>
+      <!--
+        This is an iteration for every key on the keyboard.
+        the reference of the key's name is "key.name"
+        the CSS class of the key is "key.class", while the active state is defined by noteActive(key.name).
+        For more information, please check the doc on Vue.js.
+        -->
       <li
         v-for="(key, index) in keys"
         :key="index"
@@ -147,7 +152,6 @@ export default {
 
     toggleAttack(currentNote) {
       // Trigger the sampler.
-
       console.log(currentNote)
       // set the second parameter here to False for human.
       this.$root.$refs.gameUI.keyDown(currentNote, true);
@@ -224,11 +228,6 @@ export default {
       for (let i = this.offsetStart, j = 0; j < this.totalWhiteKeys; i++, j++) {
         const octave = this.calculateOctave(i)
         const keyName = WHITE_KEYS[i % 7]
-
-        // Skip < A0
-        // if (octave === 0 && WHITE_KEYS.indexOf(keyName) < 5) {
-        //   continue
-        // }
 
         const key = {
           name: `${keyName}${octave}`,

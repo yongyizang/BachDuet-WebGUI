@@ -7,8 +7,8 @@
       <!-- <span>NeuralNet Inference: {{ $store.state.neuralNetRefreshTime }}</span><br /> -->
       <!-- <span>scoreUI Time: {{ $store.state.scoreUIRefreshTime }}</span> -->
     </div>
-    <!-- <scoreUI /> -->
-    <gameUI />
+     <scoreUI /> 
+    <!-- <gameUI /> -->
     <!-- <neuralNet /> -->
     <keyboardUI
       id="pianoKeyboard"
@@ -68,7 +68,7 @@ import { Buffer, Sequence, Transport, Event, Draw, context } from "tone";
 import {Midi} from "@tonaljs/tonal";
 import keyboardUI from "@/components/keyboardUI.vue";
 import gameUI from "@/components/gameUI.vue";
-// import scoreUI from "@/components/scoreUI.vue";
+import scoreUI from "@/components/scoreUI.vue";
 // import neuralNet from "@/components/neuralNet.vue";
 
 import Instruments from "@/library/instruments";
@@ -148,7 +148,7 @@ export default {
 
   components: {
     keyboardUI,
-    // scoreUI,
+    scoreUI,
     gameUI,
     // neuralNet
   },

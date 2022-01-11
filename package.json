@@ -14,6 +14,7 @@
     "audiokeys": "^0.1.1",
     "core-js": "^3.16.2",
     "pixi-piano-roll": "^1.2.3",
+    "postprocessing": "^6.23.3",
     "register-service-worker": "^1.7.1",
     "three": "^0.133.1",
     "three-trackballcontrols": "^0.9.0",

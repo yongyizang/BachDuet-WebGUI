@@ -14,7 +14,6 @@ export default{
     } else {
       alert("No Midi Support for the browser"); // eslint-disable-line
     }
-
   },
   methods: {
     onMIDISuccess(midi) {
