@@ -8,7 +8,7 @@
       <!-- <span>scoreUI Time: {{ $store.state.scoreUIRefreshTime }}</span> -->
     </div>
      <scoreUI /> 
-    <!-- <gameUI /> -->
+    <gameUI />
     <!-- <neuralNet /> -->
     <keyboardUI
       id="pianoKeyboard"

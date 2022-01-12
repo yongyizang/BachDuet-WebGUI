@@ -5,7 +5,7 @@
 <script>
 import * as vextab from "@/library/vextab-div";
 import { Note } from "@tonaljs/tonal";
-const CLEF_SEPARATE_AT = "C4"; // Here, we define the separate point between treble clef and bass clef for both staff.
+const CLEF_SEPARATE_AT = "B4"; // Here, we define the separate point between treble clef and bass clef for both staff.
 
 /*
   data need to be in this format as shown in fakeHumanData and fakeAIData, and we currently only support 2n, 4n, 8n and 16n.
@@ -15,7 +15,9 @@ const CLEF_SEPARATE_AT = "C4"; // Here, we define the separate point between tre
 
 const fakeHumanData = [
   [["D4", "C3"], "4n"], // This encode a multi-voice note.
-  [["C#4"], "8n"], // This is a single note.
+  [["C#4"], "8n"],
+  [["C#4"], "8n"],
+  [["C#4"], "8n"],
   [0], // This would encode a barline
   [-1, "4n"], // This would encode a rest
   [["D4", "C3"], "16n"],
@@ -30,6 +32,115 @@ const fakeAIData = [
   [["D4", "C3"], "16n"],
   [["C#4"], "8n"],
 ];
+
+function note2num(note) {
+  switch (note) {
+    case "2n":
+      return 8;
+    case "4n":
+      return 4;
+    case "8n":
+      return 2;
+    case "16n":
+      return 1;
+    default:
+      throw new Error(
+        "We currently only support 2n, 4n, 8n or 16n length to num. You passed in: " +
+          note
+      );
+  }
+}
+
+function note2x(note) {
+  switch (note) {
+    case "2n":
+      return "1n";
+    case "4n":
+      return "2n";
+    case "8n":
+      return "4n";
+    case "16n":
+      return "8n";
+    default:
+      throw new Error(
+        "We currently only support 2n, 4n, 8n or 16n multiply. You passed in: " +
+          note
+      );
+  }
+}
+
+function formatNotesData(data) {
+  // This function would format notes data in two ways:
+  // first it determines if there's any overlapping notes. If there are, then it would combine them.
+  // second it determines if there's more bars currently than maximum bar num. If there are, then it would eliminate the first bar.
+
+  var bar_num = 4;
+  var tick_per_bar = 16; // 4/4
+  var firstBarline = -1;
+  var barCount = 1;
+  var tickCount = 0;
+  var previousNote = [];
+
+  for (let i = 0; i < data.length; i++) {
+    //count bar num
+    if (data[i].length == 1) {
+      // If we hit a barline
+      if (firstBarline < 0) {
+        firstBarline = i; //save the index for first barline.
+      }
+      barCount = barCount + 1;
+      tickCount = 0; //reset tickCount
+    } else {
+      tickCount = tickCount + note2num(data[i][1]); // add currentNote's length to tickCount.
+    }
+
+    //combining same notes
+    // This part still doesn't work right now for some reason.
+    if (data[i][0] == previousNote[0] && data[i][1] == previousNote[1]) {
+      // If there are two identical notes
+      data[i] = note2x(data[i][1]); // multiply the note length on the second note
+      console.log("here");
+      data.splice(i-1, 0); // then remove the first note
+    }
+    previousNote = data[i];
+  }
+
+  // Fill in the rests at the end of the bar.
+  var needToFillTicks = tick_per_bar - tickCount;
+  var halfRestCount = parseInt(needToFillTicks / 8);
+  needToFillTicks = needToFillTicks - halfRestCount * 8;
+  var quarterRestCount = parseInt(needToFillTicks / 4);
+  needToFillTicks = needToFillTicks - quarterRestCount * 4;
+  var eighthRestCount = parseInt(needToFillTicks / 2);
+  needToFillTicks = needToFillTicks - eighthRestCount * 2;
+  var sixteenthRestCount = needToFillTicks;
+
+  for (let i = 0; i < sixteenthRestCount; i++) {
+    data.push([-1, "16n"]);
+  }
+  for (let i = 0; i < eighthRestCount; i++) {
+    data.push([-1, "8n"]);
+  }
+  for (let i = 0; i < quarterRestCount; i++) {
+    data.push([-1, "4n"]);
+  }
+  for (let i = 0; i < halfRestCount; i++) {
+    data.push([-1, "2n"]);
+  }
+
+  if (barCount > bar_num) {
+    // If there's more bar in the data than the bar num
+    data.splice(0, firstBarline); // Then remove the first elements until the barline (including the barline itself)
+  } else if (barCount < bar_num) {
+    // If there's less bar, then fill in some whole bar rests at the end
+    for (let i = 0; i < bar_num - barCount; i++) {
+      data.push([0]);
+      data.push([-1, "1n"]);
+    }
+  }
+
+  return data;
+}
 
 function note2Symbol(note) {
   // Expecting input like "C#4", would give out "C#/4"
@@ -59,6 +170,8 @@ function noteLength2Symbol(length) {
       return ":q";
     case "2n":
       return ":h";
+    case "1n":
+      return ":1";
     default:
       throw new Error(
         "note-length-to-symbol function is having trouble with the note length you passed in. You passed in: " +
@@ -137,7 +250,6 @@ function note2VexTabNote(note) {
       // If there's only 1 note currently played
       return noteLength2Symbol(note[1]) + " " + note2Symbol(note[0][0]);
     } else if (note[0].length > 1) {
-      console.log(note);
       // If there's more than 1 note being played
       return noteLength2Symbol(note[1]) + " " + multipleNote2Symbol(note[0]);
     } else {
@@ -173,7 +285,7 @@ function notes2vextabContent(
     tuning	        standard, dropd, eb, E/5,B/4,G/4,D/4,A/3,E/3
     */
 
-  humanNotes = clefSeparater(humanNotes);
+  humanNotes = clefSeparater(formatNotesData(humanNotes));
   var humanTrebleClef = "";
   var humanBassClef = "";
   humanNotes[0].forEach((note) => {
@@ -183,7 +295,7 @@ function notes2vextabContent(
     humanBassClef = humanBassClef + note2VexTabNote(note);
   });
 
-  AINotes = clefSeparater(AINotes);
+  AINotes = clefSeparater(formatNotesData(AINotes));
   var AITrebleClef = "";
   var AIBassClef = "";
   AINotes[0].forEach((note) => {
@@ -242,8 +354,7 @@ function notes2vextabContent(
 
 export default {
   name: "scoreUI",
-  props: {
-  },
+  props: {},
 
   data() {
     return {
@@ -271,8 +382,8 @@ export default {
 
   methods: {
     resize() {
-        this.screenWidth = document.body.clientWidth;
-        this.draw();
+      this.screenWidth = document.body.clientWidth;
+      this.draw();
     },
 
     init() {
