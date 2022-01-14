@@ -179,37 +179,25 @@ import "vue-material/dist/theme/default-dark.css";
 import keyboardUI from "@/components/keyboardUI.vue";
 import MIDI from "@/components/MIDI.vue";
 import {Midi} from "@tonaljs/tonal";
-
 import Instruments from "@/library/instruments";
-
 import * as TokensDict from "@/../public/globalTokenIndexDict.json";
-
 import AudioKeys from 'audiokeys';
-
-
-
 /*
   Initialization Process.
   Here we initialize all necessary samplers, buses, functions, etc.
 */
-
 // Initialize Piano Sampler 1. This is for User.
 // C: where is the User piano sampler 1 ? ???
-
 // Initialize is done within the UI Component. See components/keyboardUI.vue
-
 // For every user in userMap, we create a sampler, which sends to a separate bus.
 // Then, for each user, we create another "AI" piano sampler, which also, sends to a separate bus.
 // This is done by changing the "piano.toDestination()" code, which should determine which bus it got send to.
-
 const AISampler = new Instruments().createSampler("piano", (piano) => {
   piano.release = 2;
   piano.toDestination();
 });
-
 // initalize the worker that runs the neural network
 // const neuralWorker = new Worker('neuralWorker.js');//, { type: "module" })
-
 // this function is called when the neuralWorker returns the AI's prediction
 // how can I put this function inside methods
 // neuralWorker.onmessage = function(e) {
@@ -227,16 +215,13 @@ const metronomeSampler = new Instruments().createSampler(
 const metronomeBus = new Tone.Channel().toDestination();
 metronomeSampler.connect(metronomeBus);
 //C: how about user and ai bus ? 
-
 // This is for Web Audio restrictions, we need to make an user behavior to trigger the Tone.start() function.
 window.onclick = () => {
   Tone.start();
   Tone.context.lookAhead = 0;
 };
-
 export default {
   name: "mainScreen",
-
   data() {
     return {
       FREQ: 4,
@@ -259,22 +244,16 @@ export default {
       tempHistory : []
     };
   },
-
   components: {
     keyboardUI,
     VueSlider,
     MIDI,
   },
-
   mounted() {
     this.$store.commit("setTokensDict", TokensDict.default);
-
-    this.neuralWorker = new Worker('neuralWorker2.js');//, { type: "module" })
-
+    this.neuralWorker = new Worker('neuralWorker.js');//, { type: "module" })
     // the workerCallback function is called when the neuralWorker returns the AI's prediction
     this.neuralWorker.onmessage = this.workerCallback
-
-
     // Everytime the window resizes, update the screenWidth in data immediately.
     const vm = this;
     
@@ -284,7 +263,6 @@ export default {
         vm.screenWidth = window.screenWidth;
       })();
     };
-
     let self=this;
     var keyboard = new AudioKeys({
                         polyphony: 100,
@@ -296,14 +274,11 @@ export default {
       let name = Midi.midiToNoteName(note.note, { sharps: true })
       self.$refs.UserKeyboard.toggleAttack(name);
     });
-
     keyboard.up( function(note) {
       let name = Midi.midiToNoteName(note.note, { sharps: true })
       self.$refs.UserKeyboard.toggleRelease(name);
     });
-
   },
-
   watch: {
     // At every screenWidth data change, this would automatically change the keyboardUI's octave number.
     screenWidth: {
@@ -364,7 +339,6 @@ export default {
       },
     },
   },
-
   methods: {
     // Toggle Keys using this.
     // send in: renderKeyEvent ("C4", true, "AI", true), or ("C4", false, "User", true)
@@ -439,16 +413,12 @@ export default {
       var midiArticInd = aiOutput['midiArticInd'];
       var midiArticToken = tokensDict.midiArtic.index2token[midiArticInd]
       var midi = parseInt(midiArticToken.split("_")[0])
-      var cpc = midi % 12
-      if (midi == 0){
-         cpc = 12
-      }
       var artic = midiArticToken.split("_")[1]
       var payload = {
         currentTick: aiOutput["tick"],
-        prediction: { "midi": midi, "artic": artic, "cpc":cpc, "midiArticInd": midiArticInd},
+        prediction: { "midi": midi, "artic": artic, "midiArticInd": midiArticInd},
       };
-      console.log("in callback tick is ", this.$store.getters.getLocalTick, "tick from AI is ", payload.currentTick, "\nand payload is \n" + payload.prediction.midi, payload.prediction.cpc)
+      console.log("AI OUT " + midiArticToken)
       // save AI's prediction to store.state.aiPredictions
       this.$store.dispatch("newAiPrediction", payload);
     },
@@ -474,52 +444,46 @@ export default {
       this.keyboardUIoctaveStart += 1;
       this.keyboardUIoctaveEnd += 1;
     },
-
     transposeOctDown() {
       this.keyboardUIoctaveStart -= 1;
       this.keyboardUIoctaveEnd -= 1;
     },
-
     // The clock behavior is defined here.
     // This is currently triggered by a button, but you could call this function anywhere to toggle the clock.
     toggleClock() {
       // vm is short for ViewModel
       var vm = this;
       // Allowing tickNumber to add to itself.
-
       vm.clockStatus = !vm.clockStatus;
-
       // C: we don't need this if else statement
       // if (vm.clockStatus) {
       //   if (metronomeBus.muted) metronomeBus.mute = false;
       // } else {
       //   metronomeBus.mute = true;
       // }
-
       // If the clock is not yet initialized...
       if (!vm.clockInitialized) {
         // Then set it to intialized
         vm.clockInitialized = true;
         // And intialized it.
-
         // Clock behavior function.
         function tickBehavior(){
           if (vm.clockStatus){
               vm.$store.commit("incrementTick")
+            // }
+              // Below are behaviors.
+              console.log(
+                "Tick #" +
+                  vm.$store.getters.getLocalTick +
+                  " sent out at "  +"\n"
+              );
               vm.metronomeTrigger();
               // trigger the ai sampler to play the note the AI predicted
               vm.triggerAiSampler();
-              console.log("Tick #" + vm.$store.getters.getLocalTick + " sent out at "  +"\n");
-            // }
-              // Below are behaviors.
-              
-
               // 3 ways to run inference to the neural net
-
               // A) using a web worker without async
               // neuralWorker.postMessage(vm.$store.getters.getLocalTick);//{"currentTickNumber": vm.$store.getters.getLocalTick});
               // console.log('Message posted to worker');
-
               // B) using a web worker with async
               // vm.runTheWorker()
               // setTimeout(vm.runTheWorker(), 1000);
@@ -531,29 +495,23 @@ export default {
               // C : any better ways to reference the neuralNet component ???
               // var neuralNetObj = vm.$children.find(child => { return child.$options.name === "neuralNet"; })
               // var predictedNote = neuralNetObj.inference(vm.$store.getters.getLocalTick);
-
-
               // console.log(vm.$store.getters.getNotesBuffer);
               // console.log(
               //   "Last note played: " + vm.$store.getters.getLastNotePlayed
               // );
-
               
               vm.$store.commit("clearNotesBuffer");
           }
         }
-
         function sendOutTicks() {
           // console.log("tick send.");
           tickBehavior();
           setTimeout(sendOutTicks, ((60 / vm.bpm / 4) * 1000));
         }
-
         // Call it for the first time.
         sendOutTicks();
       }
     },
-
     
     triggerAiSampler() {
       // TODO
@@ -590,7 +548,6 @@ export default {
       var cpcInd;
       // check if keyboard is currently active, namely if there is at least one key pressed
       // if not, then the users input is rest
-
       // 1) an keyboard NOT active 
       //     a) if buffer adeios
       //           pausi
@@ -602,7 +559,6 @@ export default {
       //     var bb = activeNotes
       //     // maybe some more thought here
       //     a) if lastNote in activeNotes
-
       var activeNotes = this.$store.getters.getActiveNotes;
       var lastNote = this.$store.getters.getLastNotePlayed;
                 // console.log('notes buffer is ' + this.$store.getters.getNotesBuffer)
@@ -618,21 +574,19 @@ export default {
               humanInp = Midi.toMidi(lastNote)
               artic = 1
               cpcInd = humanInp % 12
-
           }
       }
       else{
           // there is at least one key pressed. We only care for the last key pressed so
           // var lastNote = this.$store.getters.getLastNotePlayed
           // var activeNotes = this.$store.getters.getActiveNotes
-          // var lastNoteTickStart = this.$store.getters.getLastNotePlayedOnTick
+          var lastNoteTickStart = this.$store.getters.getLastNotePlayedOnTick
           // TODO tick centering feature (maybe not needed here)
-          // var currentTick = this.$store.getters.getLocalTick
+          var currentTick = this.$store.getters.getLocalTick
           if (activeNotes.includes(lastNote)){
               // find artic
               humanInp = Midi.toMidi(lastNote)
               cpcInd = humanInp % 12
-
                       // console.log('global ' + this.$store.getters.getGlobalTick);
                       // console.log('played on ' + this.$store.getters.getLastNotePlayedOnTick)
               if (this.$store.getters.getGlobalTick-this.$store.getters.getLastNotePlayedOnTick > 1){
@@ -645,12 +599,10 @@ export default {
               artic = 1
               cpcInd = 12
           }
-
       }
       // empty the noteBuffer
       // this.$store.commit('clearNotesBuffer')
       //              console.log("buffer cleared for tick " + this.$store.getters.getLocalTick)
-
       // TODO tick centering feature
       // increment the delayed tick here ? (think)
       this.$store.commit('incrementTickDelayed');
@@ -660,12 +612,10 @@ export default {
       var midiArticInd = tokensDict.midiArtic.token2index[midiArtic]
       var rhythmToken = this.$store.getters.getRhythmToken
       var rhythmTokenInd = tokensDict.rhythm.token2index[rhythmToken]
-
       // console.log(midiArtic + ' ' + cpcInd + ' ' + rhythmToken)
       // console.log(midiArticInd + ' ' + cpcInd + ' ' + rhythmTokenInd)
       // this.tempHistory.push({"tick":this.$store.getters.getLocalTick, "played" : midiArtic})
       // console.log(midiArtic + " ")
-
       var aiInp = {
         // TODO tick centering feature
         "tick": this.$store.getters.getLocalTick, //input tick time (the AI will predict a note for time tick+1)
@@ -676,21 +626,17 @@ export default {
                     // for the AI to generate the note for time tick + 1, besides the users input
                     // it also takes as an input the note it played/generated for at time tick
       };
-      console.log("to run the worker with ", aiInp, " tick is ", this.$store.getters.getLocalTick)
       this.neuralWorker.postMessage(aiInp); //{"currentTickNumber": vm.$store.getters.getLocalTick});
       //              console.log("Message posted to worker async");
     },
-
     onMidiInput(key) {
       this.pressedDeviceKey = key;
     },
-
     onKeyPressStatus(status) {
       this.isKeyPressed = status;
     }
   },
 };
-
 </script>
 
 <style>
@@ -749,12 +695,10 @@ body {
   height: 100%;
   width: 100%;
 }
-
 .home {
   height: 100vh;
   width: 100vw;
 }
-
 .center {
   margin: 0;
   position: absolute;
@@ -762,25 +706,20 @@ body {
   -ms-transform: translateY(-50%);
   transform: translateY(-50%);
 }
-
 @media screen and (max-height: 746px) {
   .center {
     position: absolute;
     bottom: 0;
   }
 }
-
 @media screen and (min-width:769px) {
-
 #metronomeToggle {
   position:absolute;margin-top:-60px;margin-left:575px;
 }
 #metronomeSwitch {
   position:absolute;top:0;margin-left:8em;
 }
-
 }
-
 @media screen and (max-width: 768px) {
   .disappear-on-small-screen {
     display: none;
@@ -798,8 +737,6 @@ body {
     top:30px;
   }
 }
-
-
 #clockToggleBtn {
   position: absolute;
   margin-top: -45px;
@@ -810,12 +747,10 @@ body {
   grid-column-gap: 0px;
   grid-row-gap: 0px;
 }
-
 .pianoKeyboard {
   z-index: 1;
   border-radius: 2px;
 }
-
 #AIKeyboard {
   -webkit-transform: rotate(180deg);
   -moz-transform: rotate(180deg);
@@ -826,32 +761,27 @@ body {
   -webkit-box-shadow: 1px -7px 22px 1px rgba(0, 0, 0, 0.68);
   box-shadow: 1px -7px 22px 1px rgba(0, 0, 0, 0.68);
 }
-
 #UserKeyboard {
   -webkit-box-shadow: -1px 5px 22px 1px rgba(0, 0, 0, 0.68);
   box-shadow: -1px 5px 22px 1px rgba(0, 0, 0, 0.68);
 }
-
 .octaveControls {
   z-index: 3;
   position: absolute;
   margin-left: calc(50% - 80px);
   margin-top: 15px;
 }
-
 .timingControls {
   z-index: 3;
   position: fixed;
   left: 30px;
   bottom: 0px;
 }
-
 .octs {
   background-color: rgba(0, 0, 0, 0);
   color: white;
   padding: 5px;
 }
-
 #pianoRoll {
   z-index: 0;
   padding: 0;

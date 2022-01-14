@@ -44,6 +44,8 @@ const getters = {
         return (state.localTick + 1) % 16;
     },
     getRhythmToken (state){
+        // var aa = state.localTick;
+        // if (state.localTick==-1){aa = 0}
         return bar[state.localTick].toString() + '_' + beat[state.localTick].toString() + '_' + accent[state.localTick].toString() ;
     },
 }
