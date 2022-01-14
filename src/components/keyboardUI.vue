@@ -7,6 +7,12 @@
 <template>
   <div class="keyboard" :style="style">
     <ul>
+      <!--
+        This is an iteration for every key on the keyboard.
+        the reference of the key's name is "key.name"
+        the CSS class of the key is "key.class", while the active state is defined by noteActive(key.name).
+        For more information, please check the doc on Vue.js.
+        -->
       <li
         v-for="(key, index) in keys"
         :key="index"
@@ -14,10 +20,11 @@
         @mousedown="toggleAttack(key.name)"
         @mouseup="toggleRelease(key.name)"
         :class="[...key.class, {active: noteActive(key.name)}]"
+        :ref="key.name"
       >
         <span>{{ key.name }}</span>
       </li>
-    </ul>
+    </ul> 
   </div>
 </template>
 
@@ -25,7 +32,6 @@
 import * as Tone from 'tone'
 import Instruments from "@/library/instruments";
 import { clamp } from "@/library/math"
-import {MIDIKEY_TO_PIANOKEY} from "../library/instruments";
 
 // Here, a set of constants are defined.
 const WHITE_KEYS = ["C", "D", "E", "F", "G", "A", "B"]
@@ -95,16 +101,6 @@ export default {
       default() {
         return WHITE_KEYS.indexOf("C")
       }
-    },
-
-    midiInput: {
-      type: Number,
-      default: 0
-    },
-
-    pressStatus: {
-      type: Number,
-      default: 0
     }
   },
 
@@ -150,6 +146,7 @@ export default {
   methods: {
     noteActive(note) {
       // If the note is active, the state of that note is true.
+      console.log("inside noteActive")
       return this.$store.getters.getPianoState[note.name]=== true;
     },
 
@@ -170,21 +167,20 @@ export default {
     },
 
     toggleAttack(currentNote) {
-      // console.log('toggle attack ========>', currentNote);
       // Trigger the sampler.
-      pianoSampler.triggerAttack(currentNote, Tone.now());
-      // Change the global piano-state.
-      // pianoState[currentNote] = true;
-      // Add into buffer.
+      console.log(currentNote)
+      // set the second parameter here to False for human.
+      this.$root.$refs.gameUI.keyDown(currentNote, true);
       this.$store.dispatch('noteOn', currentNote);
+      pianoSampler.triggerAttack(currentNote, Tone.now());
     },
 
     toggleRelease(currentNote) {
-      // console.log('toggle release ========>', currentNote);
       // Release the sampler that's been triggered.
+      this.$root.$refs.gameUI.keyUp(currentNote, true);
+      this.$store.dispatch('noteOff', currentNote);
       pianoSampler.triggerRelease(currentNote, Tone.now());
       // Also change the global piano-state.
-      this.$store.dispatch('noteOff', currentNote);
     },
 
     calculateOctave(n) {
@@ -249,14 +245,9 @@ export default {
         const octave = this.calculateOctave(i)
         const keyName = WHITE_KEYS[i % 7]
 
-        // Skip < A0
-        // if (octave === 0 && WHITE_KEYS.indexOf(keyName) < 5) {
-        //   continue
-        // }
-
         const key = {
           name: `${keyName}${octave}`,
-          class: ["white", keyName, `${keyName}${octave}`],
+          class: ["white", keyName, `${keyName}${octave}`], // "white-activate",
           style: {
             "grid-column": `${j === 0 ? 1 : 4 + (j - 1) * 3} / span 3`
           }
@@ -294,25 +285,6 @@ export default {
       }
 
       return keys
-    }
-  },
-
-  watch: {
-    // midiInput: function(key) {
-    //   const midiKey = key.toString();
-    //   const pianoKey = MIDIKEY_TO_PIANOKEY[midiKey];
-    //   this.toggleAttack(pianoKey);
-    // },
-    pressStatus: function (status) {sr
-      if (this.pressStatus == 0) {
-        const midiKey = this.midiInput.toString();
-        const pianoKey = MIDIKEY_TO_PIANOKEY[midiKey];
-        this.toggleRelease(pianoKey);
-      } else {
-        const midiKey = this.midiInput.toString();
-        const pianoKey = MIDIKEY_TO_PIANOKEY[midiKey];
-        this.toggleAttack(pianoKey);
-      }
     }
   }
 }
@@ -369,9 +341,9 @@ li.black span {
   background:linear-gradient(to bottom,#eee 0%,#fff 100%)
 }
 
-.white:active{
-  box-shadow:2px 0 10px rgba(0,0,0,0.2) inset,-5px 5px 30px rgba(0,0,0,0.3) inset,0 0 3px rgba(0,0,0,0.3), 0 -20px 35px rgba(250,250,250,0.4);
-  background:linear-gradient(to bottom,#fff 0%,#e9e9e9 100%)
+.white:active {
+  box-shadow:2px 0 3px rgba(0,0,0,0.1) inset,-5px 5px 20px rgba(0,0,0,0.2) inset,0 0 3px rgba(0,0,0,0.2);
+  background:linear-gradient(to bottom,rgb(170, 26, 26) 0%,#e9e9e9 100%)
 }
 .black:active{
   box-shadow:-1px -1px 2px rgba(255,255,255,0.3) inset,0 -2px 2px 3px rgba(0,0,0,0.7) inset,0 1px 2px rgba(0,0,0,0.6), 0 -28px 35px rgba(250,250,250,0.4);
@@ -385,13 +357,17 @@ li.black span {
   box-shadow:-1px -1px 2px rgba(255,255,255,0.2) inset,0 -5px 2px 3px rgba(0,0,0,0.6) inset,0 2px 4px rgba(0,0,0,0.5);
   background:linear-gradient(45deg,#222 0%,#555 100%)
 }
+
 .white-activate {
-  box-shadow:2px 0 10px rgba(0,0,0,0.2) inset,-5px 5px 30px rgba(0,0,0,0.3) inset,0 0 3px rgba(0,0,0,0.3), 0 -20px 35px rgba(250,250,250,0.4);
-  background:linear-gradient(to bottom,#fff 0%,#e9e9e9 100%)
+  box-shadow: 2px 0 3px rgba(0, 0, 0, 0.1) inset,
+    -5px 5px 20px rgba(166, 192, 16, 0.2) inset, 0 0 3px rgba(19, 16, 206, 0.2);
+  background: linear-gradient(to bottom, rgb(209, 5, 5) 0%, #05e723 100%);
 }
-.black-activate {
-  box-shadow:-1px -1px 2px rgba(255,255,255,0.3) inset,0 -2px 2px 3px rgba(0,0,0,0.7) inset,0 1px 2px rgba(0,0,0,0.6), 0 -28px 35px rgba(250,250,250,0.4);
-  background:linear-gradient(to right,#444 0%,#222 100%)
+
+
+.black:active {
+  box-shadow:-1px -1px 2px rgba(255,255,255,0.2) inset,0 -2px 2px 3px rgba(0,0,0,0.6) inset,0 1px 2px rgba(0,0,0,0.5);
+  background:linear-gradient(to right,#444 0%,rgb(170, 26, 26) 100%)
 }
 
 

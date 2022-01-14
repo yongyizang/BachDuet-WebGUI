@@ -4,11 +4,29 @@
   -->
 
   <div class="home">
-    <md-dialog-alert
-      :md-active.sync="screenRatio"
-      md-content="Although we will support mobile devices in the future, this application only works best on horizontal screens right now. <br /> <br /> We would recommend using this application on a PC or a tablet, or you could try to rotate your phone over in horizontal mode, although you may experience UI problems. <br /><br /> We are sorry for the inconvenience."
-      md-confirm-text="Okay"
+    <div style="background-color:black; opacity: 0.5; display:fixed; top:0; right:0; z-index:999">
+      <!-- <span>NeuralNet Inference: {{ $store.state.neuralNetRefreshTime }}</span><br /> -->
+      <!-- <span>scoreUI Time: {{ $store.state.scoreUIRefreshTime }}</span> -->
+    </div>
+     <scoreUI /> 
+    <gameUI />
+    <!-- <neuralNet /> -->
+    <keyboardUI
+      id="pianoKeyboard"
+      class="pianoKeyboard"
+      ref="usersKeyboardUIref"
+
+      :key="keyboardUIKey"
+      :octave-start="keyboardUIoctaveStart"
+      :octave-end="keyboardUIoctaveEnd"
     />
+    <!-- <neuralNet/> -->
+
+    <!-- logic handled by this file for decoupling purposes. -->
+    <div class="octaveControls">
+      <button class="octs" v-if="clockInitialized" @click="toggleMetronome">
+        {{ metronomeStatus ? "Mute Metronome" : "Unmute Metronome" }}
+      </button>
 
     <md-dialog-alert
       :md-active.sync="screenWidthTooSmall"
@@ -123,38 +141,18 @@
       </div>
     </div>
 
-    <div class="center">
-      <keyboardUI
-        id="AIKeyboard"
-        style="pointer-events: none; user-select: none;"
-        ref="aiKeyboard"
-        class="pianoKeyboard"
-        :octave-start="4"
-        :octave-end="7"
-      />
-      <!-- logic handled by this file for decoupling purposes. -->
-      <div class="octaveControls">
-        <md-button
-          @click="transposeOctUp"
-          v-if="keyboardUIoctaveEnd !== 8"
-          class="md-icon-button md-plain"
-          style="box-sizing:border-box;"
-        >
-          <md-icon style="color:#F3FEB0">keyboard_arrow_up</md-icon>
-        </md-button>
-        <span
-          style="position:absolute;color:#F3FE80;margin-top:9px;font-weight:bold;min-width:150px;"
-          >OCTAVE CONTROL</span
-        >
-        <md-button
-          @click="transposeOctDown"
-          v-if="keyboardUIoctaveStart !== 0"
-          class="md-icon-button md-plain"
-          style="box-sizing:border-box;margin-left:9.3em;"
-        >
-          <md-icon style="color:#F3FEB0">keyboard_arrow_down</md-icon>
-        </md-button>
-      </div>
+    <div class="timingControls">
+      <!-- 
+        Set to automatically binding between this input and the data BPM.
+        v-model.lazy change the value only after the input lose focus.
+      -->
+      <span style="color: white"
+        >BPM:<input id="bpm" v-model.lazy="BPM" maxlength="3" size="3"
+      /></span>
+
+      <span style="color: white"
+        >Freq:<input id="freq" v-model.lazy="FREQ" maxlength="2" size="3"
+      /></span>
 
       <keyboardUI
         id="UserKeyboard"
@@ -169,18 +167,21 @@
   </div>
 </template>
 
-
 <script>
 import * as Tone from "tone";
 import { Buffer, Sequence, Transport, Event, Draw, context } from "tone";
-import VueSlider from "vue-slider-component";
-import "vue-slider-component/theme/default.css";
-import "vue-material/dist/theme/default-dark.css";
-import keyboardUI from "@/components/keyboardUI.vue";
-import MIDI from "@/components/MIDI.vue";
 import {Midi} from "@tonaljs/tonal";
+import keyboardUI from "@/components/keyboardUI.vue";
+import gameUI from "@/components/gameUI.vue";
+import scoreUI from "@/components/scoreUI.vue";
+// import neuralNet from "@/components/neuralNet.vue";
 
 import Instruments from "@/library/instruments";
+import * as TokensDict from "@/../public/globalTokenIndexDict.json";
+
+import AudioKeys from 'audiokeys';
+
+// import globalDict from "globalTokenIndexDict.json"
 
 import * as TokensDict from "@/../public/globalTokenIndexDict.json";
 
@@ -226,7 +227,7 @@ const metronomeSampler = new Instruments().createSampler(
 // This is the metronome Bus. We would need this for mixing purposes.
 const metronomeBus = new Tone.Channel().toDestination();
 metronomeSampler.connect(metronomeBus);
-//C: how about user and ai bus ? 
+//C: how about user and ai bus ?
 
 // This is for Web Audio restrictions, we need to make an user behavior to trigger the Tone.start() function.
 window.onclick = () => {
@@ -252,32 +253,30 @@ export default {
       keyboardUIoctaveStart: 1,
       keyboardUIoctaveEnd: 6,
       metronomeStatus: true,
-      currentDevice: '',
-      pressedDeviceKey: 0,
-      isKeyPressed: 0,
+      // tokensDict: TokensDict
       lastNoteOnAi: "",
-      tempHistory : []
     };
   },
 
   components: {
     keyboardUI,
-    VueSlider,
-    MIDI,
+    scoreUI,
+    gameUI,
+    // neuralNet
   },
 
   mounted() {
+      // AIKeyboardElement = this.$refs.aiKeyboard;
     this.$store.commit("setTokensDict", TokensDict.default);
 
-    this.neuralWorker = new Worker('neuralWorker2.js');//, { type: "module" })
+    this.neuralWorker = new Worker("neuralWorker2.js"); //, { type: "module" })
 
     // the workerCallback function is called when the neuralWorker returns the AI's prediction
-    this.neuralWorker.onmessage = this.workerCallback
-
+    this.neuralWorker.onmessage = this.workerCallback;
 
     // Everytime the window resizes, update the screenWidth in data immediately.
     const vm = this;
-    
+
     window.onresize = () => {
       return (() => {
         window.screenWidth = document.body.clientWidth;
@@ -294,14 +293,13 @@ export default {
                       });
     keyboard.down( function(note) {
       let name = Midi.midiToNoteName(note.note, { sharps: true })
-      self.$refs.UserKeyboard.toggleAttack(name);
+      self.$refs.usersKeyboardUIref.toggleAttack(name);
     });
 
     keyboard.up( function(note) {
       let name = Midi.midiToNoteName(note.note, { sharps: true })
-      self.$refs.UserKeyboard.toggleRelease(name);
+      self.$refs.usersKeyboardUIref.toggleRelease(name);
     });
-
   },
 
   watch: {
@@ -347,20 +345,13 @@ export default {
     FREQ: {
       immediate: true,
       handler(newValue) {
-        this.intervalIntegar = newValue
-        }
-      },
-    bpm: {
-      immediate: true,
-      handler(newValue) {
-        console.log(newValue);
+        this.intervalIntegar = newValue;
       },
     },
-    metronomeStatus: {
+    BPM: {
       immediate: true,
       handler(newValue) {
-        console.log(newValue);
-        metronomeBus.mute = !this.metronomeStatus;
+        this.bpm = newValue;
       },
     },
   },
@@ -454,7 +445,7 @@ export default {
     },
     // moved the metronomeTrigger function inside methods
     // it doesn't take any input argument
-    // and it doesn't use a switch statement for to check the interval for every tick. 
+    // and it doesn't use a switch statement for to check the interval for every tick.
     metronomeTrigger() {
       // var vm = this;
       // console.log("IN METRONOMETRIGGER " + this.$store.getters.getLocalTick)
@@ -469,7 +460,7 @@ export default {
       metronomeBus.mute = this.metronomeStatus;
       this.metronomeStatus = !this.metronomeStatus;
     },
-    
+
     transposeOctUp() {
       this.keyboardUIoctaveStart += 1;
       this.keyboardUIoctaveEnd += 1;
@@ -484,9 +475,13 @@ export default {
     // This is currently triggered by a button, but you could call this function anywhere to toggle the clock.
     toggleClock() {
       // vm is short for ViewModel
+      // this.$refs.mytestref.$el.children[0].getElementsByClassName("A1")[0].classList.add('white-activate')
+      // console.log(this.$refs.mytestref.$el.children[0].children[0].classList)
+      // console.log(this.$refs.mytestref.$el.children[0].getElementsByClassName("A1")[0].classList)
+
       var vm = this;
       // Allowing tickNumber to add to itself.
-
+      // console.log(tokensDict)
       vm.clockStatus = !vm.clockStatus;
 
       // C: we don't need this if else statement
@@ -514,11 +509,11 @@ export default {
               // Below are behaviors.
               
 
-              // 3 ways to run inference to the neural net
+            // 3 ways to run inference to the neural net
 
-              // A) using a web worker without async
-              // neuralWorker.postMessage(vm.$store.getters.getLocalTick);//{"currentTickNumber": vm.$store.getters.getLocalTick});
-              // console.log('Message posted to worker');
+            // A) using a web worker without async
+            // neuralWorker.postMessage(vm.$store.getters.getLocalTick);//{"currentTickNumber": vm.$store.getters.getLocalTick});
+            // console.log('Message posted to worker');
 
               // B) using a web worker with async
               // vm.runTheWorker()
@@ -532,21 +527,27 @@ export default {
               // var neuralNetObj = vm.$children.find(child => { return child.$options.name === "neuralNet"; })
               // var predictedNote = neuralNetObj.inference(vm.$store.getters.getLocalTick);
 
+            // C) without using a web worker
+            // C : any better ways to reference the neuralNet component ???
+            // var neuralNetObj = vm.$children.find(child => { return child.$options.name === "neuralNet"; })
+            // var predictedNote = neuralNetObj.inference(vm.$store.getters.getLocalTick);
 
-              // console.log(vm.$store.getters.getNotesBuffer);
-              // console.log(
-              //   "Last note played: " + vm.$store.getters.getLastNotePlayed
-              // );
+                      // console.log(vm.$store.getters.getNotesBuffer);
+                      // console.log(
+                      //   "Last note played: " + vm.$store.getters.getLastNotePlayed
+                      // );
 
-              
-              vm.$store.commit("clearNotesBuffer");
+            vm.$store.commit("clearNotesBuffer");
+
+           
+
           }
         }
 
         function sendOutTicks() {
           // console.log("tick send.");
           tickBehavior();
-          setTimeout(sendOutTicks, ((60 / vm.bpm / 4) * 1000));
+          setTimeout(sendOutTicks, (60 / vm.bpm / 4) * 1000);
         }
 
         // Call it for the first time.
@@ -554,7 +555,6 @@ export default {
       }
     },
 
-    
     triggerAiSampler() {
       // TODO
       // here, we check the note the AI predicted in the previous tick,
@@ -582,6 +582,7 @@ export default {
         }
       }
     },
+
     // C: using async, improves the neural net's inference speed slightly. Don't know why.
     // update: removed async in order to use setTimeout(runTheWorker, 30)
     runTheWorker() {
@@ -681,16 +682,8 @@ export default {
       //              console.log("Message posted to worker async");
     },
 
-    onMidiInput(key) {
-      this.pressedDeviceKey = key;
-    },
-
-    onKeyPressStatus(status) {
-      this.isKeyPressed = status;
-    }
   },
 };
-
 </script>
 
 <style>
