@@ -2,7 +2,6 @@
   <!--
       main.vue, the application's main UI file.
   -->
-
   <div class="home">
     <div style="background-color:black; opacity: 0.5; display:fixed; top:0; right:0; z-index:999">
       <!-- <span>NeuralNet Inference: {{ $store.state.neuralNetRefreshTime }}</span><br /> -->
@@ -28,117 +27,21 @@
         {{ metronomeStatus ? "Mute Metronome" : "Unmute Metronome" }}
       </button>
 
-    <md-dialog-alert
-      :md-active.sync="screenWidthTooSmall"
-      md-content="Although we are planning on adding small screen support in the future, this application only works best when screen width is larger than 768 pixels.<br /><br />We would recommend using this application on a PC or a tablet, or you could try to rotate your phone over in horizontal mode, although you may experience UI problems. <br /><br /> We are sorry for the inconvenience."
-      md-confirm-text="Okay"
-    />
-
-    <div style="padding:10px;">
-      <div
-        class="topbar"
-        style="padding: 30px; backdrop-filter: blur(15px); border-radius: 30px;box-shadow: 0px 1px 22px 5px rgba(0,0,0,0.66); color: #F3FEB0; min-height:60px; "
+      <button
+        class="octs"
+        v-if="keyboardUIoctaveEnd !== 8"
+        @click="transposeOctUp"
       >
-        <img
-          class="disappear-on-small-screen"
-          src="/img/logo.png"
-          style=" height: 48px; width: auto"
-        />
-        <div class="small-screen-displacement">
-          <div
-            id="BachDuetLogoText"
-            style="color:white;margin-top: -41px; margin-left: 55px"
-          >
-            <span
-              style="
-              font-weight: 600;
-              font-size: 1.8em;
-              padding: 0;
-              line-height: 0;
-            "
-              >BachDuet</span
-            >
-            <div style="margin-top: -5px; margin-left:1px">
-              <span style="font-size: 12px">by </span>
-            </div>
-            <div
-              style="margin-top: -0.9rem; margin-left: 1.1em; font-size: 1.3em"
-            >
-              <span
-                onclick="location='http://www2.ece.rochester.edu/projects/air/index.html'"
-                >AIR Lab</span
-              >
-            </div>
-          </div>
+        OCT UP
+      </button>
 
-          <div
-            id="bpmSlider"
-            style="position:absolute;margin-top:-70px;margin-left:200px;width:auto"
-          >
-            <span style="font-size:0.8em">BPM</span><br />
-            <span style="font-size:1.5em;font-weight:bold">{{ bpm }}</span>
-            <vue-slider
-              style="margin-top:-30px;margin-left:3em"
-              v-model="bpm"
-              :contained="true"
-              :width="100"
-              :lazy="true"
-              :min="60"
-              :max="120"
-              :tooltip-placement="'right'"
-              :tooltip-formatter="(val) => val + ' bpm'"
-            ></vue-slider>
-          </div>
-
-          <div
-            id="freqSlider"
-            style="position:absolute;margin-top:-22px;margin-left:200px;"
-          >
-            <span style="font-size:0.8em">FREQ</span><br />
-            <span style="font-size:1.5em;font-weight:bold">{{ FREQ }}</span>
-            <vue-slider
-              style="margin-top:-30px;margin-left:3em"
-              v-model="FREQ"
-              :contained="true"
-              :width="100"
-              :lazy="true"
-              :min="2"
-              :max="16"
-              :tooltip-placement="'right'"
-              :tooltip-formatter="(val) => val + ' beats / bar'"
-            ></vue-slider>
-          </div>
-        </div>
-        <div id="clockToggleBtn">
-          <md-tooltip md-direction="bottom"
-            >Click to start or pause the session.</md-tooltip
-          >
-          <span
-            class="disappear-on-small-screen"
-            style="font-weight:bold;grid-area: 1/1/2/2"
-          >
-            SESSION<br />CONTROL
-          </span>
-          <md-button
-            @click="toggleClock"
-            id="clockBtn"
-            class="md-icon-button md-plain"
-            style="box-sizing:border-box;position:relative;width:60px;height:60px;left:0px;top:0px;margin-top:-10px;grid-area:1/2/2/3"
-          >
-            <md-icon class="md-size-2x" style="color:#F3FEB0">{{
-              clockStatus ? "pause" : "play_arrow"
-            }}</md-icon>
-          </md-button>
-        </div>
-        <div id="metronomeToggle" style="">
-          <span style="font-weight:bold;">METRONOME<br />SOUND</span><br />
-          <md-switch
-          id="metronomeSwitch"
-            style=""
-            v-model="metronomeStatus"
-          ></md-switch>
-        </div>
-      </div>
+      <button
+        class="octs"
+        v-if="keyboardUIoctaveStart !== 0"
+        @click="transposeOctDown"
+      >
+        OCT DOWN
+      </button>
     </div>
 
     <div class="timingControls">
@@ -154,20 +57,13 @@
         >Freq:<input id="freq" v-model.lazy="FREQ" maxlength="2" size="3"
       /></span>
 
-      <keyboardUI
-        id="UserKeyboard"
-        ref="UserKeyboard" 
-        style="user-select: none;"
-        class="pianoKeyboard"
-        :key="keyboardUIKey"
-        :octave-start="keyboardUIoctaveStart"
-        :octave-end="keyboardUIoctaveEnd"
-      />
+      <button class="octs" @click="toggleClock">Clock</button>
     </div>
   </div>
 </template>
 
 <script>
+
 import * as Tone from "tone";
 import { Buffer, Sequence, Transport, Event, Draw, context } from "tone";
 import {Midi} from "@tonaljs/tonal";
@@ -175,19 +71,11 @@ import keyboardUI from "@/components/keyboardUI.vue";
 import gameUI from "@/components/gameUI.vue";
 import scoreUI from "@/components/scoreUI.vue";
 // import neuralNet from "@/components/neuralNet.vue";
-
 import Instruments from "@/library/instruments";
 import * as TokensDict from "@/../public/globalTokenIndexDict.json";
-
 import AudioKeys from 'audiokeys';
 
 // import globalDict from "globalTokenIndexDict.json"
-
-import * as TokensDict from "@/../public/globalTokenIndexDict.json";
-
-import AudioKeys from 'audiokeys';
-
-
 
 /*
   Initialization Process.
