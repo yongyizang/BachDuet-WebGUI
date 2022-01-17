@@ -1,9 +1,19 @@
 <template>
 
   <div class="home">
+<<<<<<< HEAD
     <div style="background-color:black; opacity: 0.5; display:fixed; top:0; right:0; z-index:999"></div>
     <scoreUI /> 
     <gameUI />
+=======
+    <div style="background-color:black; opacity: 0.5; display:fixed; top:0; right:0; z-index:999">
+      <!-- <span>NeuralNet Inference: {{ $store.state.neuralNetRefreshTime }}</span><br /> -->
+      <!-- <span>scoreUI Time: {{ $store.state.scoreUIRefreshTime }}</span> -->
+    </div>
+     <scoreUI /> 
+    <!-- <gameUI /> -->
+    <!-- <neuralNet /> -->
+>>>>>>> parent of aec03f5 (scoreUI formatter)
     <keyboardUI
       id="pianoKeyboard"
       class="pianoKeyboard"
