@@ -2,14 +2,11 @@
   <!--
       main.vue, the application's main UI file.
   -->
+
   <div class="home">
-    <div style="background-color:black; opacity: 0.5; display:fixed; top:0; right:0; z-index:999">
-      <!-- <span>NeuralNet Inference: {{ $store.state.neuralNetRefreshTime }}</span><br /> -->
-      <!-- <span>scoreUI Time: {{ $store.state.scoreUIRefreshTime }}</span> -->
-    </div>
-     <scoreUI /> 
+    <div style="background-color:black; opacity: 0.5; display:fixed; top:0; right:0; z-index:999"></div>
+    <scoreUI /> 
     <gameUI />
-    <!-- <neuralNet /> -->
     <keyboardUI
       id="pianoKeyboard"
       class="pianoKeyboard"
@@ -19,7 +16,6 @@
       :octave-start="keyboardUIoctaveStart"
       :octave-end="keyboardUIoctaveEnd"
     />
-    <!-- <neuralNet/> -->
 
     <!-- logic handled by this file for decoupling purposes. -->
     <div class="octaveControls">
@@ -35,13 +31,111 @@
         OCT UP
       </button>
 
-      <button
-        class="octs"
-        v-if="keyboardUIoctaveStart !== 0"
-        @click="transposeOctDown"
+    <div style="padding:10px;">
+      <div
+        class="topbar"
+        style="padding: 30px; backdrop-filter: blur(15px); border-radius: 30px;box-shadow: 0px 1px 22px 5px rgba(0,0,0,0.66); color: #F3FEB0; min-height:60px; "
       >
-        OCT DOWN
-      </button>
+        <img
+          class="disappear-on-small-screen"
+          src="/img/logo.png"
+          style=" height: 48px; width: auto"
+        />
+        <div class="small-screen-displacement">
+          <div
+            id="BachDuetLogoText"
+            style="color:white;margin-top: -41px; margin-left: 55px"
+          >
+            <span
+              style="
+              font-weight: 600;
+              font-size: 1.8em;
+              padding: 0;
+              line-height: 0;
+            "
+              >BachDuet</span
+            >
+            <div style="margin-top: -5px; margin-left:1px">
+              <span style="font-size: 12px">by </span>
+            </div>
+            <div
+              style="margin-top: -0.9rem; margin-left: 1.1em; font-size: 1.3em"
+            >
+              <span
+                onclick="location='http://www2.ece.rochester.edu/projects/air/index.html'"
+                >AIR Lab</span
+              >
+            </div>
+          </div>
+
+          <div
+            id="bpmSlider"
+            style="position:absolute;margin-top:-70px;margin-left:200px;width:auto"
+          >
+            <span style="font-size:0.8em">BPM</span><br />
+            <span style="font-size:1.5em;font-weight:bold">{{ bpm }}</span>
+            <vue-slider
+              style="margin-top:-30px;margin-left:3em"
+              v-model="bpm"
+              :contained="true"
+              :width="100"
+              :lazy="true"
+              :min="60"
+              :max="120"
+              :tooltip-placement="'right'"
+              :tooltip-formatter="(val) => val + ' bpm'"
+            ></vue-slider>
+          </div>
+
+          <div
+            id="freqSlider"
+            style="position:absolute;margin-top:-22px;margin-left:200px;"
+          >
+            <span style="font-size:0.8em">FREQ</span><br />
+            <span style="font-size:1.5em;font-weight:bold">{{ FREQ }}</span>
+            <vue-slider
+              style="margin-top:-30px;margin-left:3em"
+              v-model="FREQ"
+              :contained="true"
+              :width="100"
+              :lazy="true"
+              :min="2"
+              :max="16"
+              :tooltip-placement="'right'"
+              :tooltip-formatter="(val) => val + ' beats / bar'"
+            ></vue-slider>
+          </div>
+        </div>
+        <div id="clockToggleBtn">
+          <md-tooltip md-direction="bottom"
+            >Click to start or pause the session.</md-tooltip
+          >
+          <span
+            class="disappear-on-small-screen"
+            style="font-weight:bold;grid-area: 1/1/2/2"
+          >
+            SESSION<br />CONTROL
+          </span>
+          <md-button
+            @click="toggleClock"
+            id="clockBtn"
+            class="md-icon-button md-plain"
+            style="box-sizing:border-box;position:relative;width:60px;height:60px;left:0px;top:0px;margin-top:-10px;grid-area:1/2/2/3"
+          >
+            <md-icon class="md-size-2x" style="color:#F3FEB0">{{
+              clockStatus ? "pause" : "play_arrow"
+            }}</md-icon>
+          </md-button>
+        </div>
+        <div id="metronomeToggle" style="">
+          <span style="font-weight:bold;">METRONOME<br />SOUND</span><br />
+          <md-switch
+          id="metronomeSwitch"
+            style=""
+            v-model="metronomeStatus"
+          ></md-switch>
+        </div>
+      </div>
     </div>
 
     <div class="timingControls">
@@ -65,18 +159,15 @@
 <script>
 import * as Tone from "tone";
 import { Buffer, Sequence, Transport, Event, Draw, context } from "tone";
-import {Midi} from "@tonaljs/tonal";
 import keyboardUI from "@/components/keyboardUI.vue";
 import gameUI from "@/components/gameUI.vue";
 import scoreUI from "@/components/scoreUI.vue";
-// import neuralNet from "@/components/neuralNet.vue";
-
+import MIDI from "@/components/MIDI.vue";
+import {Midi} from "@tonaljs/tonal";
 import Instruments from "@/library/instruments";
 import * as TokensDict from "@/../public/globalTokenIndexDict.json";
-
 import AudioKeys from 'audiokeys';
 
-// import globalDict from "globalTokenIndexDict.json"
 
 /*
   Initialization Process.
@@ -129,7 +220,6 @@ export default {
 
   data() {
     return {
-      BPM: 60,
       FREQ: 4,
       bpm: 60,
       intervalIntegar: 4,
@@ -137,12 +227,16 @@ export default {
       clockInitialized: false,
       screenWidth: document.body.clientWidth,
       screenHeight: document.body.clientHeight,
+      screenRatio: false,
+      screenWidthTooSmall: false,
       keyboardUIKey: 0,
       keyboardUIoctaveStart: 1,
       keyboardUIoctaveEnd: 6,
       metronomeStatus: true,
-      // tokensDict: TokensDict
-      lastNoteOnAi: "",
+      // MIDI code require these variables to run
+      currentDevice: '',
+      pressedDeviceKey: 0,
+      isKeyPressed: 0,
     };
   },
 
@@ -150,21 +244,12 @@ export default {
     keyboardUI,
     scoreUI,
     gameUI,
-    // neuralNet
+    MIDI,
   },
 
   mounted() {
-      // AIKeyboardElement = this.$refs.aiKeyboard;
-    this.$store.commit("setTokensDict", TokensDict.default);
-
-    this.neuralWorker = new Worker("neuralWorker.js"); //, { type: "module" })
-
-    // the workerCallback function is called when the neuralWorker returns the AI's prediction
-    this.neuralWorker.onmessage = this.workerCallback;
-
-    // Everytime the window resizes, update the screenWidth in data immediately.
     const vm = this;
-
+    // Everytime the window resizes, update the screenWidth in data immediately.
     window.onresize = () => {
       return (() => {
         window.screenWidth = document.body.clientWidth;
@@ -172,29 +257,31 @@ export default {
       })();
     };
 
-    // let self = this; 
-    // window.addEventListener('keyup', function(event) {
-    //   var whichKey = event.key.toLowerCase();
-    // });
-    // window.addEventListener('keydown', function(event) {
-    //   var whichKey = event.key.toLowerCase();
-        
-    // });
-    let self=this;
+    // neuralWorker part of the code
+    // Commit the tokens dict to Vuex at the beginning of the program
+    this.$store.commit("setTokensDict", TokensDict.default);
+
+    this.neuralWorker = new Worker('neuralWorker2.js');//, { type: "module" })
+
+    // the workerCallback function is called when the neuralWorker returns the AI's prediction
+    this.neuralWorker.onmessage = this.workerCallback;
+
+    // AudioKeys part of the code: to make computer keyboard be able to map to notes.
     var keyboard = new AudioKeys({
                         polyphony: 100,
                         rows: 1,
                         priority: 'last',
                         rootNote: 60
                       });
+
     keyboard.down( function(note) {
       let name = Midi.midiToNoteName(note.note, { sharps: true })
-      self.$refs.usersKeyboardUIref.toggleAttack(name);
+      vm.$refs.usersKeyboardUIref.toggleAttack(name);
     });
 
     keyboard.up( function(note) {
       let name = Midi.midiToNoteName(note.note, { sharps: true })
-      self.$refs.usersKeyboardUIref.toggleRelease(name);
+      vm.$refs.usersKeyboardUIref.toggleRelease(name);
     });
   },
 
@@ -217,6 +304,12 @@ export default {
           octaves = 6;
         } else {
           octaves = 7;
+        }
+        if (this.screenWidth / this.screenHeight <= 1) {
+          this.screenRatio = true;
+        }
+        if (this.screenWidth < 768) {
+          this.screenWidthTooSmall = true;
         }
         this.keyboardUIoctaveEnd = this.keyboardUIoctaveStart + octaves;
         // A trick, to force keyboardUI re-render itself.
@@ -247,6 +340,72 @@ export default {
   },
 
   methods: {
+    // Toggle Keys using this.
+    // send in: renderKeyEvent ("C4", true, "AI", true), or ("C4", false, "User", true)
+    renderKeyEvent(note = "", type = true, player = "", whiteOrBlack = true) {
+      var AIKeyboardElement = this.$refs.aiKeyboard.$el;
+      var UserKeyboardElement = this.$refs.UserKeyboard.$el;
+      if (type) {
+        // if it's noteOn
+        if (player === "AI") {
+          if (whiteOrBlack) {
+            // if it's white note
+            AIKeyboardElement.getElementsByClassName(note)[0].classList.add(
+              "white-activate"
+            );
+          } else {
+            AIKeyboardElement.getElementsByClassName(note)[0].classList.add(
+              "black-activate"
+            );
+          }
+        } else if (player === "User") {
+          if (whiteOrBlack) {
+            // if it's white note
+            UserKeyboardElement.getElementsByClassName(note)[0].classList.add(
+              "white-activate"
+            );
+          } else {
+            UserKeyboardElement.getElementsByClassName(note)[0].classList.add(
+              "black-activate"
+            );
+          }
+        } else {
+          throw new Error(
+            "the player parameter in renderKeyEvent is wrong. Try again."
+          );
+        }
+      } else {
+        // if it's noteOff
+        if (player === "AI") {
+          if (whiteOrBlack) {
+            // if it's white note
+            AIKeyboardElement.getElementsByClassName(note)[0].classList.remove(
+              "white-activate"
+            );
+          } else {
+            AIKeyboardElement.getElementsByClassName(note)[0].classList.remove(
+              "black-activate"
+            );
+          }
+        } else if (player === "User") {
+          if (whiteOrBlack) {
+            // if it's white note
+            UserKeyboardElement.getElementsByClassName(
+              note
+            )[0].classList.remove("white-activate");
+          } else {
+            UserKeyboardElement.getElementsByClassName(
+              note
+            )[0].classList.remove("black-activate");
+          }
+        } else {
+          throw new Error(
+            "the player parameter in renderKeyEvent is wrong. Try again."
+          );
+        }
+      }
+    },
+
     // neuralWorker's callback. Called every tick, and processes the AI's output
     workerCallback(e) {
       var aiOutput = e.data;
@@ -255,45 +414,32 @@ export default {
       var midiArticInd = aiOutput['midiArticInd'];
       var midiArticToken = tokensDict.midiArtic.index2token[midiArticInd]
       var midi = parseInt(midiArticToken.split("_")[0])
+      var cpc = midi % 12
+      if (midi == 0){
+         cpc = 12
+      }
       var artic = midiArticToken.split("_")[1]
       var payload = {
         currentTick: aiOutput["tick"],
-        prediction: { "midi": midi, "artic": artic, "midiArticInd": midiArticInd},
+        prediction: { "midi": midi, "artic": artic, "cpc":cpc, "midiArticInd": midiArticInd},
       };
+      console.log("in callback tick is ", this.$store.getters.getLocalTick, "tick from AI is ", payload.currentTick, "\nand payload is \n" + payload.prediction.midi, payload.prediction.cpc)
       // save AI's prediction to store.state.aiPredictions
       this.$store.dispatch("newAiPrediction", payload);
-      // console.log('Message received from worker' + e.data);
-      // TODO : the whole if/else situation + the lstNoteOnAi, is not very elegant
-      if (artic==1){
-        if (midi!=0){
-          if (!(this.lastNoteOnAi==="")){
-              AISampler.triggerRelease(this.lastNoteOnAi, Tone.now());
-          }
-          let currentNote = Midi.midiToNoteName(midi);
-          AISampler.triggerAttack(currentNote, Tone.now());
-          this.lastNoteOnAi = currentNote;
-        }
-        else {
-          if (!(this.lastNoteOnAi==="")){
-            AISampler.triggerRelease(this.lastNoteOnAi, Tone.now());
-            this.lastNoteOnAi = "";
-          }
-        }
-      }
     },
     // moved the metronomeTrigger function inside methods
     // it doesn't take any input argument
     // and it doesn't use a switch statement for to check the interval for every tick.
     metronomeTrigger() {
       // var vm = this;
-      if (this.$store.getters.getLocalTick % this.intervalIntegar == 0) {
-        var note =
-          (this.$store.getters.getLocalTick % 16) * this.$store.state === 0
-            ? "G0"
-            : "C0";
-        metronomeSampler.triggerAttackRelease(note, 0.2, Tone.now());
-      }
+      // console.log("IN METRONOMETRIGGER " + this.$store.getters.getLocalTick)
+        if (this.$store.getters.getLocalTick % this.intervalIntegar == 0) {
+          var note = this.$store.getters.getLocalTick % 16 === 0 ? "G0" : "C0";
+          // console.log(note);
+          metronomeSampler.triggerAttackRelease(note, 0.2, Tone.now());
+        }
     },
+
     // when Metronome is toggled.
     toggleMetronome() {
       metronomeBus.mute = this.metronomeStatus;
@@ -337,45 +483,43 @@ export default {
         // And intialized it.
 
         // Clock behavior function.
-        function tickBehavior() {
-          if (vm.clockStatus) {
-            vm.$store.commit("incrementTick");
+        function tickBehavior(){
+          if (vm.clockStatus){
+              vm.$store.commit("incrementTick")
+              vm.metronomeTrigger();
+              // trigger the ai sampler to play the note the AI predicted
+              vm.triggerAiSampler();
+              console.log("Tick #" + vm.$store.getters.getLocalTick + " sent out at "  +"\n");
             // }
-            // Below are behaviors.
-                      // console.log(
-                      //   "Tick #" +
-                      //     vm.$store.getters.getLocalTick +
-                      //     " sent out!\n Quantized Inputs include: "
-                      // );
-            vm.metronomeTrigger();
+              // Below are behaviors.
+              
 
-            // trigger the ai sampler to play the note the AI predicted
-            vm.triggerAiSampler();
+              // 3 ways to run inference to the neural net
 
-            // 3 ways to run inference to the neural net
+              // A) using a web worker without async
+              // neuralWorker.postMessage(vm.$store.getters.getLocalTick);//{"currentTickNumber": vm.$store.getters.getLocalTick});
+              // console.log('Message posted to worker');
 
-            // A) using a web worker without async
-            // neuralWorker.postMessage(vm.$store.getters.getLocalTick);//{"currentTickNumber": vm.$store.getters.getLocalTick});
-            // console.log('Message posted to worker');
+              // B) using a web worker with async
+              // vm.runTheWorker()
+              // setTimeout(vm.runTheWorker(), 1000);
+              setTimeout(function () {
+                vm.runTheWorker()
+              }, 50)
+              
+              // C) without using a web worker
+              // C : any better ways to reference the neuralNet component ???
+              // var neuralNetObj = vm.$children.find(child => { return child.$options.name === "neuralNet"; })
+              // var predictedNote = neuralNetObj.inference(vm.$store.getters.getLocalTick);
 
-            // B) using a web worker with async
-            // TODO : add a 10ms settimeout to implement the tick centering feature
-            vm.runTheWorker();
 
-            // C) without using a web worker
-            // C : any better ways to reference the neuralNet component ???
-            // var neuralNetObj = vm.$children.find(child => { return child.$options.name === "neuralNet"; })
-            // var predictedNote = neuralNetObj.inference(vm.$store.getters.getLocalTick);
+              // console.log(vm.$store.getters.getNotesBuffer);
+              // console.log(
+              //   "Last note played: " + vm.$store.getters.getLastNotePlayed
+              // );
 
-                      // console.log(vm.$store.getters.getNotesBuffer);
-                      // console.log(
-                      //   "Last note played: " + vm.$store.getters.getLastNotePlayed
-                      // );
-
-            vm.$store.commit("clearNotesBuffer");
-
-           
-
+              
+              vm.$store.commit("clearNotesBuffer");
           }
         }
 
@@ -397,14 +541,30 @@ export default {
       // is 1 (hit), then we trigger the AI sampler to play the note.
       // if there is already a note active, we have to triggerRelease first
       // if the predicted note is a rest ... blablabla.
-      var note = this.$store.getters.getAiPredictionFor(
-        this.$store.getters.getLocalTick
-      );
+      var aiPrediction = this.$store.getters.getAiPredictions[this.$store.getters.getLocalTick];
+      // console.log("in triger " + aiPrediction.midi + "_" + aiPrediction.artic)
       // to be continued
+      if (aiPrediction.artic==1){
+        if (aiPrediction.midi!=0){
+          if (!(this.lastNoteOnAi==="")){
+              AISampler.triggerRelease(this.lastNoteOnAi, Tone.now());
+          }
+          let currentNote = Midi.midiToNoteName(aiPrediction.midi);
+          AISampler.triggerAttack(currentNote, Tone.now());
+          this.lastNoteOnAi = currentNote;
+        }
+        else {
+          if (!(this.lastNoteOnAi==="")){
+            AISampler.triggerRelease(this.lastNoteOnAi, Tone.now());
+            this.lastNoteOnAi = "";
+          }
+        }
+      }
     },
 
     // C: using async, improves the neural net's inference speed slightly. Don't know why.
-    async runTheWorker() {
+    // update: removed async in order to use setTimeout(runTheWorker, 30)
+    runTheWorker() {
       var humanInp=-1;
       var artic=-1;
       var cpcInd;
@@ -438,16 +598,15 @@ export default {
               humanInp = Midi.toMidi(lastNote)
               artic = 1
               cpcInd = humanInp % 12
-
           }
       }
       else{
           // there is at least one key pressed. We only care for the last key pressed so
           // var lastNote = this.$store.getters.getLastNotePlayed
           // var activeNotes = this.$store.getters.getActiveNotes
-          var lastNoteTickStart = this.$store.getters.getLastNotePlayedOnTick
+          // var lastNoteTickStart = this.$store.getters.getLastNotePlayedOnTick
           // TODO tick centering feature (maybe not needed here)
-          var currentTick = this.$store.getters.getLocalTick
+          // var currentTick = this.$store.getters.getLocalTick
           if (activeNotes.includes(lastNote)){
               // find artic
               humanInp = Midi.toMidi(lastNote)
@@ -473,7 +632,7 @@ export default {
 
       // TODO tick centering feature
       // increment the delayed tick here ? (think)
-
+      this.$store.commit('incrementTickDelayed');
       // go from midi/cpc to AI_tokens
       var midiArtic = humanInp.toString() + '_' + artic.toString()
       var tokensDict = this.$store.getters.getTokensDict
@@ -483,6 +642,9 @@ export default {
 
       // console.log(midiArtic + ' ' + cpcInd + ' ' + rhythmToken)
       // console.log(midiArticInd + ' ' + cpcInd + ' ' + rhythmTokenInd)
+      // this.tempHistory.push({"tick":this.$store.getters.getLocalTick, "played" : midiArtic})
+      // console.log(midiArtic + " ")
+
       var aiInp = {
         // TODO tick centering feature
         "tick": this.$store.getters.getLocalTick, //input tick time (the AI will predict a note for time tick+1)
@@ -493,6 +655,7 @@ export default {
                     // for the AI to generate the note for time tick + 1, besides the users input
                     // it also takes as an input the note it played/generated for at time tick
       };
+      console.log("to run the worker with ", aiInp, " tick is ", this.$store.getters.getLocalTick)
       this.neuralWorker.postMessage(aiInp); //{"currentTickNumber": vm.$store.getters.getLocalTick});
       //              console.log("Message posted to worker async");
     },
@@ -500,28 +663,157 @@ export default {
 };
 </script>
 
-<style scoped>
+<style>
+html {
+  height: 100vh;
+  width: 100vw;
+}
+body {
+  background-color: #402504;
+  background-image:
+		/* Pink lines */ linear-gradient(
+      -116deg,
+      transparent 40%,
+      #bf4136 0,
+      #bf4136 42%,
+      transparent 42%
+    ),
+    linear-gradient(
+      116deg,
+      transparent 41%,
+      #bf4136 0,
+      #bf4136 43%,
+      transparent 43%
+    ),
+    /* Black lines */
+      linear-gradient(
+        -116deg,
+        transparent 40%,
+        #bf5b04 0,
+        #bf5b04 42%,
+        transparent 42%
+      ),
+    linear-gradient(
+      116deg,
+      transparent 41%,
+      #bf5b04 41%,
+      #bf5b04 43%,
+      transparent 43%
+    ),
+    /* Black diamonds */ linear-gradient(-135deg, #bf5b04 16.5%, transparent 0),
+    linear-gradient(-45deg, #bf5b04 16.5%, transparent 0),
+    linear-gradient(135deg, #bf5b04 16.5%, transparent 0),
+    linear-gradient(45deg, #bf5b04 16.5%, transparent 0),
+    /* Pink diamonds */ linear-gradient(-135deg, #bf4136 16.5%, transparent 0),
+    linear-gradient(-45deg, #bf4136 16.5%, transparent 0),
+    linear-gradient(135deg, #bf4136 16.5%, transparent 0),
+    linear-gradient(45deg, #bf4136 16.5%, transparent 0);
+  background-size: 
+		/* Pink lines */ 8em 8em, 8em 8em, /* Black Lines */ 8em 8em,
+    8em 8em, /* Black diamonds */ 8em 8em, 8em 8em, 8em 8em, 8em 8em,
+    /* Pink diamonds */ 8em 8em, 8em 8em, 8em 8em, 8em 8em;
+  background-position: 
+		/* Pink lines */ 3em -8em, -3em -8em,
+    /* Black Lines */ -9em 8em, 9em 8em, /* Black diamonds */ 0, 0, 0, 0,
+    /* Pink diamonds */ 4em, 4em, 4em, 4em;
+  height: 100%;
+  width: 100%;
+}
+
+.home {
+  height: 100vh;
+  width: 100vw;
+}
+
+.center {
+  margin: 0;
+  position: absolute;
+  top: 50%;
+  -ms-transform: translateY(-50%);
+  transform: translateY(-50%);
+}
+
+@media screen and (max-height: 746px) {
+  .center {
+    position: absolute;
+    bottom: 0;
+  }
+}
+
+@media screen and (min-width:769px) {
+
+#metronomeToggle {
+  position:absolute;margin-top:-60px;margin-left:575px;
+}
+#metronomeSwitch {
+  position:absolute;top:0;margin-left:8em;
+}
+
+}
+
+@media screen and (max-width: 768px) {
+  .disappear-on-small-screen {
+    display: none;
+  }
+  .small-screen-displacement {
+    margin-top: 52px;
+    margin-left: -50px;
+  }
+  #clockBtn {
+    margin-left:-80px;
+  }
+  #metronomeToggle {
+    position:absolute;
+    left:450px;
+    top:30px;
+  }
+}
+
+
+#clockToggleBtn {
+  position: absolute;
+  margin-top: -45px;
+  margin-left: 400px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: 1fr;
+  grid-column-gap: 0px;
+  grid-row-gap: 0px;
+}
+
 .pianoKeyboard {
   z-index: 1;
-  position: fixed;
-  bottom: 0;
   border-radius: 2px;
-  -webkit-box-shadow: 0px 3px 19px 8px rgba(0, 0, 0, 0.68);
-  box-shadow: 0px 3px 19px 8px rgba(0, 0, 0, 0.68);
+}
+
+#AIKeyboard {
+  -webkit-transform: rotate(180deg);
+  -moz-transform: rotate(180deg);
+  -ms-transform: rotate(180deg);
+  -o-transform: rotate(180deg);
+  transform: rotate(180deg);
+  margin-bottom: 10px;
+  -webkit-box-shadow: 1px -7px 22px 1px rgba(0, 0, 0, 0.68);
+  box-shadow: 1px -7px 22px 1px rgba(0, 0, 0, 0.68);
+}
+
+#UserKeyboard {
+  -webkit-box-shadow: -1px 5px 22px 1px rgba(0, 0, 0, 0.68);
+  box-shadow: -1px 5px 22px 1px rgba(0, 0, 0, 0.68);
 }
 
 .octaveControls {
   z-index: 3;
-  position: fixed;
-  right: 30px;
-  bottom: 170px;
+  position: absolute;
+  margin-left: calc(50% - 80px);
+  margin-top: 15px;
 }
 
 .timingControls {
   z-index: 3;
   position: fixed;
   left: 30px;
-  bottom: 170px;
+  bottom: 0px;
 }
 
 .octs {

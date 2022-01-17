@@ -16,6 +16,7 @@ const state = {
     globalTick: -1,
     localTick: -1,
     localTickDelayed: -1,
+    globalTickDelayed: -1,
     barTick: -1,
 }
 
@@ -30,6 +31,9 @@ const getters = {
     getLocalTickDelayed (state){
         return state.localTickDelayed;
     },
+    getGlobalTickDelayed (state){
+        return state.globalTickDelayed;
+    },
     getBarTick (state){
         return state.barTick;
     },
@@ -40,6 +44,8 @@ const getters = {
         return (state.localTick + 1) % 16;
     },
     getRhythmToken (state){
+        // var aa = state.localTick;
+        // if (state.localTick==-1){aa = 0}
         return bar[state.localTick].toString() + '_' + beat[state.localTick].toString() + '_' + accent[state.localTick].toString() ;
     },
 }
@@ -61,6 +67,7 @@ const mutations = {
     incrementTickDelayed (state) {
         state.localTickDelayed += 1;
         state.localTickDelayed = state.localTickDelayed % 16;
+        state.globalTickDelayed += 1;
     }
 }
 
