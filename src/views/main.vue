@@ -584,6 +584,13 @@ export default {
 </script>
 
 <style>
+<<<<<<< Updated upstream
+=======
+html {
+  height: 100vh;
+  width: 100vw;
+}
+>>>>>>> Stashed changes
 
 .pianoKeyboard {
   z-index: 1;
