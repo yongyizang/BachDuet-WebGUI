@@ -1,7 +1,4 @@
 <template>
-  <!--
-      main.vue, the application's main UI file.
-  -->
 
   <div class="home">
     <div style="background-color:black; opacity: 0.5; display:fixed; top:0; right:0; z-index:999"></div>
@@ -31,113 +28,13 @@
         OCT UP
       </button>
 
-    <div style="padding:10px;">
-      <div
-        class="topbar"
-        style="padding: 30px; backdrop-filter: blur(15px); border-radius: 30px;box-shadow: 0px 1px 22px 5px rgba(0,0,0,0.66); color: #F3FEB0; min-height:60px; "
+      <button
+        class="octs"
+        v-if="keyboardUIoctaveStart !== 1"
+        @click="transposeOctDown"
       >
-        <img
-          class="disappear-on-small-screen"
-          src="/img/logo.png"
-          style=" height: 48px; width: auto"
-        />
-        <div class="small-screen-displacement">
-          <div
-            id="BachDuetLogoText"
-            style="color:white;margin-top: -41px; margin-left: 55px"
-          >
-            <span
-              style="
-              font-weight: 600;
-              font-size: 1.8em;
-              padding: 0;
-              line-height: 0;
-            "
-              >BachDuet</span
-            >
-            <div style="margin-top: -5px; margin-left:1px">
-              <span style="font-size: 12px">by </span>
-            </div>
-            <div
-              style="margin-top: -0.9rem; margin-left: 1.1em; font-size: 1.3em"
-            >
-              <span
-                onclick="location='http://www2.ece.rochester.edu/projects/air/index.html'"
-                >AIR Lab</span
-              >
-            </div>
-          </div>
-
-          <div
-            id="bpmSlider"
-            style="position:absolute;margin-top:-70px;margin-left:200px;width:auto"
-          >
-            <span style="font-size:0.8em">BPM</span><br />
-            <span style="font-size:1.5em;font-weight:bold">{{ bpm }}</span>
-            <vue-slider
-              style="margin-top:-30px;margin-left:3em"
-              v-model="bpm"
-              :contained="true"
-              :width="100"
-              :lazy="true"
-              :min="60"
-              :max="120"
-              :tooltip-placement="'right'"
-              :tooltip-formatter="(val) => val + ' bpm'"
-            ></vue-slider>
-          </div>
-
-          <div
-            id="freqSlider"
-            style="position:absolute;margin-top:-22px;margin-left:200px;"
-          >
-            <span style="font-size:0.8em">FREQ</span><br />
-            <span style="font-size:1.5em;font-weight:bold">{{ FREQ }}</span>
-            <vue-slider
-              style="margin-top:-30px;margin-left:3em"
-              v-model="FREQ"
-              :contained="true"
-              :width="100"
-              :lazy="true"
-              :min="2"
-              :max="16"
-              :tooltip-placement="'right'"
-              :tooltip-formatter="(val) => val + ' beats / bar'"
-            ></vue-slider>
-          </div>
-        </div>
-        <div id="clockToggleBtn">
-          <md-tooltip md-direction="bottom"
-            >Click to start or pause the session.</md-tooltip
-          >
-          <span
-            class="disappear-on-small-screen"
-            style="font-weight:bold;grid-area: 1/1/2/2"
-          >
-            SESSION<br />CONTROL
-          </span>
-          <md-button
-            @click="toggleClock"
-            id="clockBtn"
-            class="md-icon-button md-plain"
-            style="box-sizing:border-box;position:relative;width:60px;height:60px;left:0px;top:0px;margin-top:-10px;grid-area:1/2/2/3"
-          >
-            <md-icon class="md-size-2x" style="color:#F3FEB0">{{
-              clockStatus ? "pause" : "play_arrow"
-            }}</md-icon>
-          </md-button>
-        </div>
-        <div id="metronomeToggle" style="">
-          <span style="font-weight:bold;">METRONOME<br />SOUND</span><br />
-          <md-switch
-          id="metronomeSwitch"
-            style=""
-            v-model="metronomeStatus"
-          ></md-switch>
-        </div>
-      </div>
-    </div>
-
+        OCT DOWN
+      </button>
     <div class="timingControls">
       <!-- 
         Set to automatically binding between this input and the data BPM.
@@ -153,6 +50,7 @@
 
       <button class="octs" @click="toggleClock">Clock</button>
     </div>
+  </div>
   </div>
 </template>
 
@@ -266,6 +164,7 @@ export default {
     // the workerCallback function is called when the neuralWorker returns the AI's prediction
     this.neuralWorker.onmessage = this.workerCallback;
 
+    let self = this;
     // AudioKeys part of the code: to make computer keyboard be able to map to notes.
     var keyboard = new AudioKeys({
                         polyphony: 100,
@@ -276,12 +175,12 @@ export default {
 
     keyboard.down( function(note) {
       let name = Midi.midiToNoteName(note.note, { sharps: true })
-      vm.$refs.usersKeyboardUIref.toggleAttack(name);
+      self.$refs.usersKeyboardUIref.toggleAttack(name);
     });
 
     keyboard.up( function(note) {
       let name = Midi.midiToNoteName(note.note, { sharps: true })
-      vm.$refs.usersKeyboardUIref.toggleRelease(name);
+      self.$refs.usersKeyboardUIref.toggleRelease(name);
     });
   },
 
@@ -664,142 +563,10 @@ export default {
 </script>
 
 <style>
-html {
-  height: 100vh;
-  width: 100vw;
-}
-body {
-  background-color: #402504;
-  background-image:
-		/* Pink lines */ linear-gradient(
-      -116deg,
-      transparent 40%,
-      #bf4136 0,
-      #bf4136 42%,
-      transparent 42%
-    ),
-    linear-gradient(
-      116deg,
-      transparent 41%,
-      #bf4136 0,
-      #bf4136 43%,
-      transparent 43%
-    ),
-    /* Black lines */
-      linear-gradient(
-        -116deg,
-        transparent 40%,
-        #bf5b04 0,
-        #bf5b04 42%,
-        transparent 42%
-      ),
-    linear-gradient(
-      116deg,
-      transparent 41%,
-      #bf5b04 41%,
-      #bf5b04 43%,
-      transparent 43%
-    ),
-    /* Black diamonds */ linear-gradient(-135deg, #bf5b04 16.5%, transparent 0),
-    linear-gradient(-45deg, #bf5b04 16.5%, transparent 0),
-    linear-gradient(135deg, #bf5b04 16.5%, transparent 0),
-    linear-gradient(45deg, #bf5b04 16.5%, transparent 0),
-    /* Pink diamonds */ linear-gradient(-135deg, #bf4136 16.5%, transparent 0),
-    linear-gradient(-45deg, #bf4136 16.5%, transparent 0),
-    linear-gradient(135deg, #bf4136 16.5%, transparent 0),
-    linear-gradient(45deg, #bf4136 16.5%, transparent 0);
-  background-size: 
-		/* Pink lines */ 8em 8em, 8em 8em, /* Black Lines */ 8em 8em,
-    8em 8em, /* Black diamonds */ 8em 8em, 8em 8em, 8em 8em, 8em 8em,
-    /* Pink diamonds */ 8em 8em, 8em 8em, 8em 8em, 8em 8em;
-  background-position: 
-		/* Pink lines */ 3em -8em, -3em -8em,
-    /* Black Lines */ -9em 8em, 9em 8em, /* Black diamonds */ 0, 0, 0, 0,
-    /* Pink diamonds */ 4em, 4em, 4em, 4em;
-  height: 100%;
-  width: 100%;
-}
-
-.home {
-  height: 100vh;
-  width: 100vw;
-}
-
-.center {
-  margin: 0;
-  position: absolute;
-  top: 50%;
-  -ms-transform: translateY(-50%);
-  transform: translateY(-50%);
-}
-
-@media screen and (max-height: 746px) {
-  .center {
-    position: absolute;
-    bottom: 0;
-  }
-}
-
-@media screen and (min-width:769px) {
-
-#metronomeToggle {
-  position:absolute;margin-top:-60px;margin-left:575px;
-}
-#metronomeSwitch {
-  position:absolute;top:0;margin-left:8em;
-}
-
-}
-
-@media screen and (max-width: 768px) {
-  .disappear-on-small-screen {
-    display: none;
-  }
-  .small-screen-displacement {
-    margin-top: 52px;
-    margin-left: -50px;
-  }
-  #clockBtn {
-    margin-left:-80px;
-  }
-  #metronomeToggle {
-    position:absolute;
-    left:450px;
-    top:30px;
-  }
-}
-
-
-#clockToggleBtn {
-  position: absolute;
-  margin-top: -45px;
-  margin-left: 400px;
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  grid-template-rows: 1fr;
-  grid-column-gap: 0px;
-  grid-row-gap: 0px;
-}
 
 .pianoKeyboard {
   z-index: 1;
   border-radius: 2px;
-}
-
-#AIKeyboard {
-  -webkit-transform: rotate(180deg);
-  -moz-transform: rotate(180deg);
-  -ms-transform: rotate(180deg);
-  -o-transform: rotate(180deg);
-  transform: rotate(180deg);
-  margin-bottom: 10px;
-  -webkit-box-shadow: 1px -7px 22px 1px rgba(0, 0, 0, 0.68);
-  box-shadow: 1px -7px 22px 1px rgba(0, 0, 0, 0.68);
-}
-
-#UserKeyboard {
-  -webkit-box-shadow: -1px 5px 22px 1px rgba(0, 0, 0, 0.68);
-  box-shadow: -1px 5px 22px 1px rgba(0, 0, 0, 0.68);
 }
 
 .octaveControls {
