@@ -122,6 +122,7 @@ export default {
 
         I know this is not elegant. I know there must be better ways. I just can't think of them right now.
       */
+      console.log("in gameUI DOWN is ", noteInput, " human ", AI)
       const notePosition = document.getElementsByClassName(noteInput.replace("#","s"))[0].getBoundingClientRect();
     
       // Define the noteblock plane.
@@ -150,6 +151,7 @@ export default {
 
     keyUp(noteInput, AI){
       // Retrieve the noteblock from the currentNotes data.
+      console.log("in gameUI UP is ", noteInput, " human ", AI)
       const selector = noteInput + AI ? "AI" : "Human";
       // If there is the noteblock we are looking for:
       if (this.currentNotes[selector] && this.currentNotes[selector].length){

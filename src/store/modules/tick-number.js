@@ -16,6 +16,7 @@ const state = {
     globalTick: -1,
     localTick: -1,
     localTickDelayed: -1,
+    globalTickDelayed: -1,
     barTick: -1,
 }
 
@@ -29,6 +30,9 @@ const getters = {
     },
     getLocalTickDelayed (state){
         return state.localTickDelayed;
+    },
+    getGlobalTickDelayed (state){
+        return state.globalTickDelayed;
     },
     getBarTick (state){
         return state.barTick;
@@ -61,6 +65,7 @@ const mutations = {
     incrementTickDelayed (state) {
         state.localTickDelayed += 1;
         state.localTickDelayed = state.localTickDelayed % 16;
+        state.globalTickDelayed += 1;
     }
 }
 
