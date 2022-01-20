@@ -187,11 +187,13 @@ export default {
     let self=this;
     var keyboard = new AudioKeys({
                         polyphony: 100,
-                        rows: 1,
+                        rows: 2,
                         priority: 'last',
                         rootNote: 60
                       });
     keyboard.down( function(note) {
+      // console.log("in down")
+      // console.log(note)
       let name = Midi.midiToNoteName(note.note, { sharps: true })
       self.$refs.usersKeyboardUIref.toggleAttack(name);
     });
