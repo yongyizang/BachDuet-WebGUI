@@ -1,7 +1,8 @@
 <!--
     This is the vue component of Neural Net.
 
-    It doesn't have any UI
+    It doesn't have any UI. The sole purpose of this vue component,
+    is to inject the neural network codes onto the main view itself.
 -->
 <template>
   <div id="neuralNet">
