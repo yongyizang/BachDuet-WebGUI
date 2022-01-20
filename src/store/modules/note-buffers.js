@@ -17,7 +17,7 @@ const noteMapforPiano = notes.reduce((map, note) => {
 }, {})
 
 const noteMapforAI = measureTicks.reduce((map, tick) => {
-    map[tick] = {"midi" : -1, "artic" : -1, "midiArticInd" : -1}
+    map[tick] = {"midi" : 0, "artic" : 1, "cpc" : 12, "midiArticInd" : 96}
     return map
 }, {})
 // const note2MidiMap = notes.reduce((map, note) => {
@@ -98,7 +98,7 @@ const actions = {
         // state.bufferState[note] = true;
         state.notesBuffer.push(note);
         state.lastNotePlayed = note;
-        // TODO: for the tick centering feature. use getLockTickDelayed	
+        // TODO: for the tick centering feature. use getLockTickDelayed
         // state.lastNotePlayedOnTick = getters.getGlobalTick;	
         state.lastNotePlayedOnTick = getters.getGlobalTickDelayed;
                         // console.log('in vuex ' +state.lastNotePlayedOnTick);

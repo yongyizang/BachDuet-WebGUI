@@ -150,39 +150,22 @@ export default {
       return this.$store.getters.getPianoState[note.name]=== true;
     },
 
-    toggleBlackKeyDown(note) {
-
-    },
-
-    toggleBlackKeyUp(note) {
-
-    },
-
-    toggleWhiteKeyDown(note) {
-
-    },
-
-    toggleWhiteKeyUp(note){
-
-    },
-
     toggleAttack(currentNote) {
-      // Trigger GameUI
+      // Trigger the sampler.
+      console.log("The CURRENT note IS ", currentNote)
+      // set the second parameter here to False for human.
       this.$root.$refs.gameUI.keyDown(currentNote, true);
-      // Change the global piano-state.
-      // pianoState[currentNote] = true;
-      // Add into buffer.
       this.$store.dispatch('noteOn', currentNote);
-      // Trigger Sampler
       pianoSampler.triggerAttack(currentNote, Tone.now());
     },
 
     toggleRelease(currentNote) {
       // Release the sampler that's been triggered.
+      console.log("The RELEASED note IS ", currentNote)
       this.$root.$refs.gameUI.keyUp(currentNote, true);
+      this.$store.dispatch('noteOff', currentNote);
       pianoSampler.triggerRelease(currentNote, Tone.now());
       // Also change the global piano-state.
-      this.$store.dispatch('noteOff', currentNote);
     },
 
     calculateOctave(n) {
@@ -301,21 +284,21 @@ ul {
 
 .keyboard {
   width: 100vw;
-  height: 250px;
+  height: 200px;
   overflow-x: hidden;
 }
 
 .keyboard ul {
-  height: calc(100% - 60px);
+  height: calc(100% - 40px);
   width: 96%;
-  padding-top:60px;
+  padding-top:40px;
   padding-left:2%;
   padding-right:2%;
   list-style-type: none;
   display: grid;
   grid-template-columns: repeat(calc(var(--keys) * 3), 1fr);
   grid-template-rows: repeat(3, 1fr);
-  background:linear-gradient(to bottom right,rgba(0,0,0,0.3),rgba(0,0,0,0)),url('/img/vwood.jpg');
+  background:linear-gradient(to bottom right,rgba(0,0,0,0.3),rgba(0,0,0,0)),url('/vwood.png');
 }
 
 li {
@@ -338,7 +321,6 @@ li.black span {
 .white {
   grid-row: 1 / span 3;
   z-index: 2;
-  color:#812F33;
   box-shadow:-1px 0 0 rgba(255,255,255,0.8) inset,0 0 5px #ccc inset,0 0 3px rgba(0,0,0,0.2);
   background:linear-gradient(to bottom,#eee 0%,#fff 100%)
 }
@@ -347,10 +329,7 @@ li.black span {
   box-shadow:2px 0 3px rgba(0,0,0,0.1) inset,-5px 5px 20px rgba(0,0,0,0.2) inset,0 0 3px rgba(0,0,0,0.2);
   background:linear-gradient(to bottom,rgb(170, 26, 26) 0%,#e9e9e9 100%)
 }
-.black:active{
-  box-shadow:-1px -1px 2px rgba(255,255,255,0.3) inset,0 -2px 2px 3px rgba(0,0,0,0.7) inset,0 1px 2px rgba(0,0,0,0.6), 0 -28px 35px rgba(250,250,250,0.4);
-  background:linear-gradient(to right,#444 0%,#222 100%)
-}
+
 .black {
   grid-row: 1 / span 2;
   background-color: black;
@@ -371,7 +350,6 @@ li.black span {
   box-shadow:-1px -1px 2px rgba(255,255,255,0.2) inset,0 -2px 2px 3px rgba(0,0,0,0.6) inset,0 1px 2px rgba(0,0,0,0.5);
   background:linear-gradient(to right,#444 0%,rgb(170, 26, 26) 100%)
 }
-
 
 .blank {
   border-width: 0;
