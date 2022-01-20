@@ -24,12 +24,14 @@ export default {
       context: null,
       staves: [],
       notes: null,
-      durations: null
+      durations: null,
+      viewX: 0
     };
   },
 
   created() {
     window.addEventListener("resize", this.resize);
+    this.$root.$refs.scoreUI = this;
   },
 
   destroyed() {
@@ -88,72 +90,8 @@ export default {
       return note;  
       });
       
-      this.context.beginPath() // start recording our pen's moves
-        .moveTo(0, 0) // pickup the pen and set it down at X=0, Y=0. NOTE: Y=0 is the top of the screen.
-        .lineTo(50, 0) // now add a line to the right from (0, 0) to (50, 0) to our path
-        .lineTo(25, 50) // add a line to the left and down from (50, 0) to (25, 50)
-        .closePath() // now add a line back to wherever the path started, in this case (0, 0), closing the triangle.
-        .fill({ fill: 'black' }); // now fill our triangle in yellow.
-
-
       this.xTreble = 20
       this.xBass = 20
-      var root = this
-      setInterval(() => {
-          for (let i=0; i<1; i+=1){
-            // console.log(root.notes)
-            // console.log(this.notes)
-            const noteTreble = this.notes[Math.floor(Math.random() * this.notes.length)];
-            const noteBass = this.notes[Math.floor(Math.random() * this.notes.length)];
-            console.log(noteTreble)
-            noteTreble.setStave(this.staves[0]);
-            noteBass.setStave(this.staves[1]);
-            noteTreble.setContext(this.context);
-            noteBass.setContext(this.context);
-            this.tickContexts[0].addTickable(noteTreble)
-            this.tickContexts[1].addTickable(noteBass)
-            // noteTreble.setPreFormatted(true)
-            // noteBass.setPreFormatted(true)
-
-
-            noteTreble.preFormat()
-            noteBass.preFormat()
-            // this.tickContextTreble.preFormat().setX(30);
-            this.tickContexts[0].setX(this.xTreble);
-            this.tickContexts[1].setX(this.xBass);
-            
-
-            // this.staveTreble.setBegBarType(Vex.Flow.Barline.type.BEG); 
-
-            // const group = context.openGroup();
-            // this.visibleNoteGroups.push(group);
-            noteTreble.draw();
-            noteBass.draw();
-            // context.closeGroup();
-
-            // let barLine = new Vex.Flow.BarNote("single")
-            // barLine.setContext(context)
-            // barLine.setStave(this.staveTreble)
-            // this.tickContextTreble.addTickable(barLine)
-            // this.tickContextTreble.setX(this.xTreble + 50);
-            // barLine.draw();
-            let thickness = 1;
-            let topY = this.staves[0].getYForLine(0);
-            let botY = this.staves[1].getYForLine(this.staves[1].getNumLines() - 1) + thickness;
-            // let width = this.width;
-            let x_shift = 60;
-            // let topX = this.top_stave.getX();
-            this.context.fillRect(this.xTreble+50 + x_shift, topY, 1, botY - topY);
-            
-
-            this.xTreble += 100 
-            this.xBass += 100
-          }
-          
-      }, 1000);
-
-
-
 
       var brace = new this.VF.StaveConnector(this.staves[0], this.staves[1]).setType(3);
       var lineLeft = new this.VF.StaveConnector(this.staves[0], this.staves[1]).setType(1);
@@ -165,17 +103,69 @@ export default {
 
       this.viewX = 0
       setInterval(() => {
-        // const index = visibleNoteGroups.indexOf(group);
-        // if(index === -1) return;
-        // group.classList.add('too-slow');
-          // visibleNoteGroups.shift();
-          // console.log("repeat")
+        // I created a ref to main in order to access clockStatus. Is this a good way ? Or maybe store clockStatus in vuex ?
+        if (this.$root.$refs.main.clockStatus){
           this.context.setViewBox(this.viewX,0,1000,1000)
-          this.viewX += 40;   
-      }, 1000 );
+          this.viewX += 2;   
+        }
+          
+      }, 10 );
     },
 
     draw() {
+      
+      const noteTreble = this.notes[Math.floor(Math.random() * this.notes.length)];
+      const noteBass = this.notes[Math.floor(Math.random() * this.notes.length)];
+      console.log(noteTreble)
+      noteTreble.setStave(this.staves[0]);
+      noteBass.setStave(this.staves[1]);
+      noteTreble.setContext(this.context);
+      noteBass.setContext(this.context);
+      this.tickContexts[0].addTickable(noteTreble)
+      this.tickContexts[1].addTickable(noteBass)
+      // noteTreble.setPreFormatted(true)
+      // noteBass.setPreFormatted(true)
+
+
+      noteTreble.preFormat()
+      noteBass.preFormat()
+      // this.tickContextTreble.preFormat().setX(30);
+      this.tickContexts[0].setX(this.xTreble);
+      this.tickContexts[1].setX(this.xBass);
+      
+
+      // this.staveTreble.setBegBarType(Vex.Flow.Barline.type.BEG); 
+
+      // const group = context.openGroup();
+      // this.visibleNoteGroups.push(group);
+      noteTreble.draw();
+      noteBass.draw();
+      // context.closeGroup();
+
+      // let barLine = new Vex.Flow.BarNote("single")
+      // barLine.setContext(context)
+      // barLine.setStave(this.staveTreble)
+      // this.tickContextTreble.addTickable(barLine)
+      // this.tickContextTreble.setX(this.xTreble + 50);
+      // barLine.draw();
+      let thickness = 1;
+      let topY = this.staves[0].getYForLine(0);
+      let botY = this.staves[1].getYForLine(this.staves[1].getNumLines() - 1) + thickness;
+      // let width = this.width;
+      let x_shift = 60;
+      // let topX = this.top_stave.getX();
+      this.context.fillRect(this.xTreble+50 + x_shift, topY, 1, botY - topY);
+
+
+      this.context.beginPath() // start recording our pen's moves
+            .moveTo(this.xTreble+50, 10) // pickup the pen and set it down at X=0, Y=0. NOTE: Y=0 is the top of the screen.
+            .lineTo(this.xTreble+50+50, 10) // now add a line to the right from (0, 0) to (50, 0) to our path
+            .lineTo(this.xTreble+50+50-25, 30) // add a line to the left and down from (50, 0) to (25, 50)
+            .closePath() // now add a line back to wherever the path started, in this case (0, 0), closing the triangle.
+            .fill({ fill: 'green' }); // now fill our triangle in yellow.
+
+      this.xTreble += 100 
+      this.xBass += 100
     },
   },
 };

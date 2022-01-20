@@ -153,6 +153,10 @@ export default {
     // neuralNet
   },
 
+  created() {
+    this.$root.$refs.main = this;
+  },
+  
   mounted() {
       // AIKeyboardElement = this.$refs.aiKeyboard;
     this.$store.commit("setTokensDict", TokensDict.default);
@@ -376,6 +380,8 @@ export default {
 
         // Call it for the first time.
         sendOutTicks();
+
+
       }
     },
 
@@ -415,6 +421,7 @@ export default {
     // C: using async, improves the neural net's inference speed slightly. Don't know why.
     // update: removed async in order to use setTimeout(runTheWorker, 30)
     runTheWorker() {
+      this.$root.$refs.scoreUI.draw();
       var humanInp=-1;
       var artic=-1;
       var cpcInd;
