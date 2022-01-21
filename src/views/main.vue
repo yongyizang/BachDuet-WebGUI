@@ -8,6 +8,7 @@
       <!-- <span>scoreUI Time: {{ $store.state.scoreUIRefreshTime }}</span> -->
     </div>
      <scoreUI /> 
+     <MIDI />
     <gameUI />
     <!-- <neuralNet /> -->
     <keyboardUI
@@ -69,6 +70,7 @@ import {Midi} from "@tonaljs/tonal";
 import keyboardUI from "@/components/keyboardUI.vue";
 import gameUI from "@/components/gameUI.vue";
 import scoreUI from "@/components/scoreUI2.vue";
+import MIDI from "@/components/MIDI.vue";
 // import neuralNet from "@/components/neuralNet.vue";
 
 import Instruments from "@/library/instruments";
@@ -150,6 +152,7 @@ export default {
     keyboardUI,
     scoreUI,
     gameUI,
+    MIDI,
     // neuralNet
   },
 

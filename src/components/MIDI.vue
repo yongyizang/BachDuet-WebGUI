@@ -1,62 +1,77 @@
 <template>
-  <div class="MIDIInput" :style="style">
-    :data-device-id="deviceId"
+  <div class="MIDIInput">
+    <select v-model="selectedMIDIDevice" @change="onMIDIDeviceSelectedChange">
+      <option v-for="item in activeDevices" :value="item.index">{{item.name}}</option>
+    </select>
   </div>
 </template>
 
 <script>
-import {primary_message, warn_message} from "../library/Message";
-export let midiAccess;
-export default{
-  created(){
-    if (navigator.requestMIDIAccess) {
-      navigator.requestMIDIAccess().then(this.onMIDISuccess, this.onMIDIFailure);
-    } else {
-      alert("No Midi Support for the browser"); // eslint-disable-line
+import { WebMidi } from "webmidi";
+var midiAccess;
+
+export default {
+  created() {
+
+  },
+
+  mounted() {
+    // Enable WebMIDI, then call onEnabled method.
+    WebMidi.enable()
+      .then(this.onEnabled)
+      .catch((err) => alert(err)); 
+  },
+
+  methods: {
+    onEnabled() {
+      var vm = this;
+      if (WebMidi.inputs.length < 1) {
+        console.log("No device detected.");
+      } else {
+        WebMidi.inputs.forEach((device) => {
+          vm.activeDevices.push({"index": device.id, "name": device.name});
+        });
+        this.selectedMIDIDevice = this.activeDevices[0].index;
+        this.messageListener();
+      }
+    },
+
+    onMIDIDeviceSelectedChange() {
+      console.log("MIDI Device Changed to " + this.selectedMIDIDevice)
+    },
+
+    messageListener(){
+      var vm = this;
+      const inputDevice = WebMidi.getInputById(this.selectedMIDIDevice);
+      inputDevice.addListener("noteon", message => {
+        vm.$root.$refs.keyboardUI.toggleAttack(message.note.identifier);
+        vm.$root.$refs.gameUI.keyDown(message.note.identifier, true);
+      });
+      inputDevice.addListener("noteoff", message => {
+        vm.$root.$refs.keyboardUI.toggleRelease(message.note.identifier);
+        vm.$root.$refs.gameUI.keyUp(message.note.identifier, true);
+      });
     }
   },
-  methods: {
-    onMIDISuccess(midi) {
 
-      midiAccess = midi
-      this.$emit('midi-success', midiAccess)
-      primary_message('MIDI READY')
-      midiAccess.onstatechange = this.onStateChange;
-
-      // handle devices
-      this.setDevices(midiAccess)
-    },
-    onMIDIFailure(msg) {
-      this.$emit('midi-fail', msg)
-      warn_message("Failed to get MIDI access - " + msg);
-    },
-    onStateChange(event) {
-      this.$emit.call(this, 'midi-change', event)
-
-      // handle devices
-      this.setDevices(midiAccess)
-    },
-    setDevices(midiAccess) {
-      const _this = this
-      this.activeDevices = []
-      for (let entry of midiAccess.inputs) {
-        this.activeDevices.push(entry)
-        midiAccess.inputs.forEach(entry => entry.onmidimessage = event => _this.$emit('midi-input', event));
-      }
-      for (let entry of midiAccess.outputs) {
-        this.activeDevices.push(entry)
-      }
-    },
-  },
   data() {
     return {
-      activeDevices: []
-    }
-  }
-}
+      activeDevices: [],
+      selectedMIDIDevice: '',
+    };
+  },
+};
 </script>
 
-
 <style scoped>
+
+.MIDIInput {
+  z-index:999;
+  position:absolute;
+  top:20;
+  left:20;
+  width:100px;
+  height:50px;
+}
 
 </style>

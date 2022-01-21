@@ -105,6 +105,7 @@ export default {
   },
 
   created() {
+    this.$root.$refs.keyboardUI = this;
 
     if (typeof this.noteStart === "string") {
       this.offsets.noteStart = WHITE_KEYS.indexOf(this.noteStart)
