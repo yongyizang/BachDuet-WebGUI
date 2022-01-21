@@ -31,6 +31,15 @@ export default {
       viewX: 30,
       xTreble: 20,
       xBass: 20,
+      // distance between two 16ths in the score
+      tickStepPixels : 30,
+      // how often (in milliseconds) we scroll the viewBox
+      // smaller --> smoother scrolling
+      scrollStepTime : 10,
+      // the position of the latest note will be at the 3/4s of the screen's width
+      latestNotePosition : 0.75,
+      // Scrolling starts once the x cursor has reached the desired latestNotePosition
+      scrollEnabled : false
     };
   },
 
@@ -88,32 +97,13 @@ export default {
       setInterval(() => {
         // I created a ref to main in order to access clockStatus. Is this a good way ? Or maybe store clockStatus in vuex ?
         // Yongyi: In the future we should move every variable we tried to call here to Vuex. But let's not worry about them now!
-        if (this.$root.$refs.main.clockStatus){
+        if (this.$root.$refs.main.clockStatus && this.scrollEnabled){
           this.context.setViewBox(this.viewX,0,this.screenWidth,1000)
           // We need to think about this spend more carefully.
-          this.viewX += (45 / this.$root.$refs.main.bpm); 
+          
+          this.viewX += (this.scrollStepTime * this.tickStepPixels) / (1000 * 60 / this.$root.$refs.main.bpm / 4);// 2.5;//(45 / this.$root.$refs.main.bpm); 30/250
         }
-      }, 10);
-
-      // // Note Randomized input.
-      // this.durations = ['8', '4', '2', '1'];
-      // this.notes = [
-      //     ['c', '#', '5'],
-      //     ['d', 'b', '5'],
-      //     ['e', '', '5'],
-      //     ['f', 'b', '5'],
-      //     ['g', 'bb', '5'],
-      //     ['a', 'b', '5'],
-      //     ['f', 'b', '5'],
-      //     ].map(([letter, acc, octave]) => {
-      //     const note = new this.VF.StaveNote({
-      //         clef: 'treble',
-      //         keys: [`${letter}${acc}/${octave}`],
-      //         duration: this.durations[Math.floor(Math.random()*this.durations.length)],
-      //     });
-      //     if(acc) note.addAccidental(0, new this.VF.Accidental(acc));
-      //     return note;  
-      // });
+      }, this.scrollStepTime);
     },
 
     notesFromThisTick() {
@@ -171,7 +161,7 @@ export default {
       // context.closeGroup();
 
       // Yongyi: Fixed thickness. It should be within fillRect.
-      if (this.$store.getters.getLocalTick % 16 === 0){ // If it's time to draw a barline
+      if (this.$store.getters.getLocalTick % 16 === 15){ // If it's time to draw a barline
         let thickness = 1;
         let topY = this.staves[0].getYForLine(0);
         let botY = this.staves[1].getYForLine(this.staves[1].getNumLines() - 1);
@@ -187,8 +177,15 @@ export default {
       //       .closePath() // now add a line back to wherever the path started, in this case (0, 0), closing the triangle.
       //       .fill({ fill: 'green' }); // now fill our triangle in yellow.
 
-      this.xTreble += 30
-      this.xBass += 30
+      this.xTreble += this.tickStepPixels
+      this.xBass += this.tickStepPixels
+
+      // find the position of the next note in relation with the screenWidth
+      var pos = (this.xTreble - this.viewX) / this.screenWidth
+      console.log(pos)
+      if (pos > this.latestNotePosition){
+        this.scrollEnabled = true;
+      }
     },
   },
 };
