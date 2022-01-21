@@ -45,11 +45,9 @@ export default {
       const inputDevice = WebMidi.getInputById(this.selectedMIDIDevice);
       inputDevice.addListener("noteon", message => {
         vm.$root.$refs.keyboardUI.toggleAttack(message.note.identifier);
-        vm.$root.$refs.gameUI.keyDown(message.note.identifier, true);
       });
       inputDevice.addListener("noteoff", message => {
         vm.$root.$refs.keyboardUI.toggleRelease(message.note.identifier);
-        vm.$root.$refs.gameUI.keyUp(message.note.identifier, true);
       });
     }
   },

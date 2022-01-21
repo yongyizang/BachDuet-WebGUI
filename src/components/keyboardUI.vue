@@ -20,7 +20,7 @@
         @mousedown="toggleAttack(key.name)"
         @mouseup="toggleRelease(key.name)"
         :class="[...key.class, {active: noteActive(key.name)}]"
-        :ref="key.name"
+        :ref="'userKeyboard' + key.name"
       >
         <span>{{ key.name }}</span>
       </li>
