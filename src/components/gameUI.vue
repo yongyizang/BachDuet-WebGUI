@@ -157,7 +157,6 @@ export default {
           this.currentNotes[selector] = [];
         }
         this.currentNotes[selector].push({
-          selector: selector,
           plane: plane,
           position: this.camera.position.y,
         });
