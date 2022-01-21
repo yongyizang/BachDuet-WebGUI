@@ -152,11 +152,12 @@ export default {
         this.scene.add(plane);
 
         // Register this noteblock to the currentNotes data.
-        const selector = noteInput + AI ? "AI" : "Human";
+        const selector = AI ? "AI" + noteInput : "Human" + noteInput;
         if (!this.currentNotes.hasOwnProperty(selector)) {
           this.currentNotes[selector] = [];
         }
         this.currentNotes[selector].push({
+          selector: selector,
           plane: plane,
           position: this.camera.position.y,
         });
@@ -166,10 +167,11 @@ export default {
     keyUp(noteInput, AI) {
       // Retrieve the noteblock from the currentNotes data.
       console.log("in gameUI UP is ", noteInput, " human ", AI);
-      const selector = noteInput + AI ? "AI" : "Human";
+      const selector = AI ? "AI" + noteInput : "Human" + noteInput;
       // If there is the noteblock we are looking for:
       if (this.currentNotes[selector] && this.currentNotes[selector].length) {
         const note = this.currentNotes[selector].shift();
+        console.log(note);
         // Change its scale and position.
         note.plane.scale.y = Math.max(
           this.camera.position.y - note.position,

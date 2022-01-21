@@ -1,13 +1,14 @@
 <template>
-  <div id="pianoScores"></div>
+  <div id="pianoScores">
+    <div id="grandStaff"></div>
+    <div id="noteBox"></div>
+  </div>
 </template>
 
 <script>
 // import * as vextab from "@/library/vextab-div";
 import { Note } from "@tonaljs/tonal";
 import * as Vex from 'vexflow'
-
-const CLEF_SEPARATE_AT = "B4"; // Here, we define the separate point between treble clef and bass clef for both staff.
 
 export default {
   name: "scoreUI",
@@ -16,7 +17,9 @@ export default {
   data() {
     return {
       screenWidth: document.body.clientWidth,
-      VF: null,
+      VF: Vex.Flow,
+      grandStaffDiv: null,
+      grandStaffRenderer: null,
       renderer: null,
       targetDiv: null,
       visibleNoteGroups: null,
@@ -25,7 +28,9 @@ export default {
       staves: [],
       notes: null,
       durations: null,
-      viewX: 0
+      viewX: 30,
+      xTreble: 20,
+      xBass: 20,
     };
   },
 
@@ -50,85 +55,117 @@ export default {
     },
 
     init() {
-      this.VF = Vex.Flow;
-      this.targetDiv = document.getElementById( "pianoScores");
+      // Render the grand staff.
+      this.grandStaffDiv = document.getElementById("grandStaff");
+      this.grandStaffRenderer = new this.VF.Renderer(this.grandStaffDiv, this.VF.Renderer.Backends.SVG);
+      this.grandStaffRenderer.resize(100,300);
+      var grandStaffContext = this.grandStaffRenderer.getContext();
+      var trebleStave = new this.VF.Stave(20,50,100).addClef('treble');
+      var bassStave = new this.VF.Stave(20,190,100).addClef('bass');
+      trebleStave.setContext(grandStaffContext).draw();
+      bassStave.setContext(grandStaffContext).draw();
+      var brace = new this.VF.StaveConnector(trebleStave, bassStave).setType(3);
+      var lineLeft = new this.VF.StaveConnector(trebleStave, bassStave).setType(1);
+      brace.setContext(grandStaffContext).draw();
+      lineLeft.setContext(grandStaffContext).draw();
+
+      // Set ground for the notes.
+      this.targetDiv = document.getElementById("noteBox");
       this.renderer = new this.VF.Renderer(this.targetDiv, this.VF.Renderer.Backends.SVG);
-      this.renderer.resize(1000,1000);
+      this.renderer.resize(this.screenWidth,1000);
       this.context = this.renderer.getContext();
 
       this.tickContexts.push(new this.VF.TickContext())
       this.tickContexts.push(new this.VF.TickContext())
       
+      this.staves.push(new this.VF.Stave(20, 50, 20000));
+      this.staves.push(new this.VF.Stave(20, 190, 20000));
 
-      this.staves.push(new this.VF.Stave(20, 50, 20000)
-                          .addClef('treble').setTempo({ name: 'Allegretto', duration: 'h', dots: 1, bpm: 66 }, -13));
-      this.staves.push(new this.VF.Stave(20, 190, 20000)
-                          .addClef('bass'));
-
-
-      this.durations = ['8', '4', '2', '1'];
-      this.notes = [
-          ['c', '#', '5'],
-          ['d', 'b', '5'],
-          ['e', '', '5'],
-          ['f', 'b', '5'],
-          ['g', 'bb', '5'],
-          ['a', 'b', '5'],
-          ['f', 'b', '5'],
-
-          ].map(([letter, acc, octave]) => {
-          const note = new this.VF.StaveNote({
-              clef: 'treble',
-              keys: [`${letter}${acc}/${octave}`],
-              duration: this.durations[Math.floor(Math.random()*this.durations.length)],
-          })
-          // .setStave(this.staveTreble)
-          // .setContext(this.context)
-          ;
-          if(acc) note.addAccidental(0, new this.VF.Accidental(acc));
-          // this.tickContextTreble.addTickable(note)
-      return note;  
-      });
-      
-      this.xTreble = 20
-      this.xBass = 20
-
-      var brace = new this.VF.StaveConnector(this.staves[0], this.staves[1]).setType(3);
-      var lineLeft = new this.VF.StaveConnector(this.staves[0], this.staves[1]).setType(1);
-      brace.setContext(this.context).draw();
-      lineLeft.setContext(this.context).draw();
-
+      this.context.setViewBox(this.viewX,0,this.screenWidth,1000)
       this.staves[0].setContext(this.context).draw();
       this.staves[1].setContext(this.context).draw();
 
-      this.viewX = 0
       setInterval(() => {
         // I created a ref to main in order to access clockStatus. Is this a good way ? Or maybe store clockStatus in vuex ?
+        // Yongyi: In the future we should move every variable we tried to call here to Vuex. But let's not worry about them now!
         if (this.$root.$refs.main.clockStatus){
-          this.context.setViewBox(this.viewX,0,1000,1000)
-          this.viewX += 2;   
+          this.context.setViewBox(this.viewX,0,this.screenWidth,1000)
+          this.viewX += 1;   
         }
-          
-      }, 10 );
+      }, 10);
+
+      // // Note Randomized input.
+      // this.durations = ['8', '4', '2', '1'];
+      // this.notes = [
+      //     ['c', '#', '5'],
+      //     ['d', 'b', '5'],
+      //     ['e', '', '5'],
+      //     ['f', 'b', '5'],
+      //     ['g', 'bb', '5'],
+      //     ['a', 'b', '5'],
+      //     ['f', 'b', '5'],
+      //     ].map(([letter, acc, octave]) => {
+      //     const note = new this.VF.StaveNote({
+      //         clef: 'treble',
+      //         keys: [`${letter}${acc}/${octave}`],
+      //         duration: this.durations[Math.floor(Math.random()*this.durations.length)],
+      //     });
+      //     if(acc) note.addAccidental(0, new this.VF.Accidental(acc));
+      //     return note;  
+      // });
+    },
+
+    notesFromThisTick() {
+      const vm = this;
+      var activeNotes = vm.$store.getters.getActiveNotes;
+      if (activeNotes == []){ // Then output rest
+        const note = new vm.VF.StaveNote({
+          clef: "treble",
+          keys: ["b/4"],
+          duration: "8r"
+        })
+        return note;
+      } else {
+        var formattedNotes = [];
+      activeNotes.forEach(element => {
+        // We only have sharps.
+        if (element.charAt(1) == "#"){
+          formattedNotes.push(element.charAt(0) + element.charAt(1) + '/' + element.substring(2,element.length));
+        } else {
+          formattedNotes.push(element.charAt(0) + '/' + element.substring(1,element.length));
+        }
+      });
+      console.log(formattedNotes);
+      const note = new vm.VF.StaveNote({
+        clef: "treble",
+        keys: activeNotes,
+        duration: "8"
+      })
+      return note;
+      }
     },
 
     draw() {
-      
-      const noteTreble = this.notes[Math.floor(Math.random() * this.notes.length)];
-      const noteBass = this.notes[Math.floor(Math.random() * this.notes.length)];
-      console.log(noteTreble)
-      noteTreble.setStave(this.staves[0]);
-      noteBass.setStave(this.staves[1]);
-      noteTreble.setContext(this.context);
-      noteBass.setContext(this.context);
-      this.tickContexts[0].addTickable(noteTreble)
-      this.tickContexts[1].addTickable(noteBass)
+      var thisTickNote = this.notesFromThisTick();
+      // Yongyi: We need a separater here to separate this to bass clef and treble clef.
+      // reference my logic in scoreUI.
+      thisTickNote.setStave(this.staves[0]);
+      thisTickNote.setContext(this.context);
+      this.tickContexts[0].addTickable(thisTickNote);
+      thisTickNote.preFormat();
+
+      // noteTreble.setStave(this.staves[0]);
+      // noteBass.setStave(this.staves[1]);
+      // noteTreble.setContext(this.context);
+      // noteBass.setContext(this.context);
+      // this.tickContexts[0].addTickable(noteTreble)
+      // this.tickContexts[1].addTickable(noteBass)
       // noteTreble.setPreFormatted(true)
       // noteBass.setPreFormatted(true)
 
 
-      noteTreble.preFormat()
-      noteBass.preFormat()
+      // noteTreble.preFormat()
+      // noteBass.preFormat()
       // this.tickContextTreble.preFormat().setX(30);
       this.tickContexts[0].setX(this.xTreble);
       this.tickContexts[1].setX(this.xBass);
@@ -138,8 +175,7 @@ export default {
 
       // const group = context.openGroup();
       // this.visibleNoteGroups.push(group);
-      noteTreble.draw();
-      noteBass.draw();
+      thisTickNote.draw();
       // context.closeGroup();
 
       // let barLine = new Vex.Flow.BarNote("single")
@@ -148,21 +184,22 @@ export default {
       // this.tickContextTreble.addTickable(barLine)
       // this.tickContextTreble.setX(this.xTreble + 50);
       // barLine.draw();
+      
+      // Yongyi: Fixed thickness. It should be within fillRect.
       let thickness = 1;
       let topY = this.staves[0].getYForLine(0);
-      let botY = this.staves[1].getYForLine(this.staves[1].getNumLines() - 1) + thickness;
-      // let width = this.width;
+      let botY = this.staves[1].getYForLine(this.staves[1].getNumLines() - 1);
       let x_shift = 60;
-      // let topX = this.top_stave.getX();
-      this.context.fillRect(this.xTreble+50 + x_shift, topY, 1, botY - topY);
+      // Yongyi: what is this 50 here?
+      this.context.fillRect(this.xTreble + 50 + x_shift, topY, thickness, botY - topY);
 
 
-      this.context.beginPath() // start recording our pen's moves
-            .moveTo(this.xTreble+50, 10) // pickup the pen and set it down at X=0, Y=0. NOTE: Y=0 is the top of the screen.
-            .lineTo(this.xTreble+50+50, 10) // now add a line to the right from (0, 0) to (50, 0) to our path
-            .lineTo(this.xTreble+50+50-25, 30) // add a line to the left and down from (50, 0) to (25, 50)
-            .closePath() // now add a line back to wherever the path started, in this case (0, 0), closing the triangle.
-            .fill({ fill: 'green' }); // now fill our triangle in yellow.
+      // this.context.beginPath() // start recording our pen's moves
+      //       .moveTo(this.xTreble+50, 10) // pickup the pen and set it down at X=0, Y=0. NOTE: Y=0 is the top of the screen.
+      //       .lineTo(this.xTreble+50+50, 10) // now add a line to the right from (0, 0) to (50, 0) to our path
+      //       .lineTo(this.xTreble+50+50-25, 30) // add a line to the left and down from (50, 0) to (25, 50)
+      //       .closePath() // now add a line back to wherever the path started, in this case (0, 0), closing the triangle.
+      //       .fill({ fill: 'green' }); // now fill our triangle in yellow.
 
       this.xTreble += 100 
       this.xBass += 100
@@ -184,5 +221,18 @@ export default {
   top: 0;
   -webkit-box-shadow: 0px 8px 16px -6px #000000;
   box-shadow: 0px 8px 16px -6px #000000;
+}
+
+#grandStaff {
+  z-index: 997;
+  position:fixed;
+  top:0;
+  left:0;
+}
+#noteBox {
+  z-index: 995;
+  position:fixed;
+  top:0px;
+  left:80px;
 }
 </style>
