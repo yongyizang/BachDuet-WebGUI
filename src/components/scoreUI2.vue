@@ -90,7 +90,8 @@ export default {
         // Yongyi: In the future we should move every variable we tried to call here to Vuex. But let's not worry about them now!
         if (this.$root.$refs.main.clockStatus){
           this.context.setViewBox(this.viewX,0,this.screenWidth,1000)
-          this.viewX += 1;   
+          // We need to think about this spend more carefully.
+          this.viewX += (45 / this.$root.$refs.main.bpm); 
         }
       }, 10);
 
@@ -118,29 +119,20 @@ export default {
     notesFromThisTick() {
       const vm = this;
       var activeNotes = vm.$store.getters.getActiveNotes;
-      if (activeNotes == []){ // Then output rest
-        const note = new vm.VF.StaveNote({
-          clef: "treble",
-          keys: ["b/4"],
-          duration: "8r"
-        })
+      if (activeNotes.length < 1){ // Then output rest
+        const note = new vm.VF.StaveNote({clef: "treble", keys: ["b/4"], duration: "16r" })
         return note;
       } else {
-        var formattedNotes = [];
+      var formattedNotes = [];
       activeNotes.forEach(element => {
         // We only have sharps.
         if (element.charAt(1) == "#"){
-          formattedNotes.push(element.charAt(0) + element.charAt(1) + '/' + element.substring(2,element.length));
+          formattedNotes.push(element.charAt(0).toLowerCase() + element.charAt(1) + '/' + element.substring(2,element.length));
         } else {
-          formattedNotes.push(element.charAt(0) + '/' + element.substring(1,element.length));
+          formattedNotes.push(element.charAt(0).toLowerCase() + '/' + element.substring(1,element.length));
         }
       });
-      console.log(formattedNotes);
-      const note = new vm.VF.StaveNote({
-        clef: "treble",
-        keys: activeNotes,
-        duration: "8"
-      })
+      const note = new vm.VF.StaveNote({clef: "treble", keys: formattedNotes, duration: "16" })
       return note;
       }
     },
@@ -178,21 +170,15 @@ export default {
       thisTickNote.draw();
       // context.closeGroup();
 
-      // let barLine = new Vex.Flow.BarNote("single")
-      // barLine.setContext(context)
-      // barLine.setStave(this.staveTreble)
-      // this.tickContextTreble.addTickable(barLine)
-      // this.tickContextTreble.setX(this.xTreble + 50);
-      // barLine.draw();
-      
       // Yongyi: Fixed thickness. It should be within fillRect.
-      let thickness = 1;
-      let topY = this.staves[0].getYForLine(0);
-      let botY = this.staves[1].getYForLine(this.staves[1].getNumLines() - 1);
-      let x_shift = 60;
-      // Yongyi: what is this 50 here?
-      this.context.fillRect(this.xTreble + 50 + x_shift, topY, thickness, botY - topY);
-
+      if (this.$store.getters.getLocalTick % 16 === 0){ // If it's time to draw a barline
+        let thickness = 1;
+        let topY = this.staves[0].getYForLine(0);
+        let botY = this.staves[1].getYForLine(this.staves[1].getNumLines() - 1);
+        let x_shift = 6;
+        // Yongyi: what is this 50 here?
+        this.context.fillRect(this.xTreble + 50 + x_shift, topY, thickness, botY - topY);
+      }
 
       // this.context.beginPath() // start recording our pen's moves
       //       .moveTo(this.xTreble+50, 10) // pickup the pen and set it down at X=0, Y=0. NOTE: Y=0 is the top of the screen.
@@ -201,8 +187,8 @@ export default {
       //       .closePath() // now add a line back to wherever the path started, in this case (0, 0), closing the triangle.
       //       .fill({ fill: 'green' }); // now fill our triangle in yellow.
 
-      this.xTreble += 100 
-      this.xBass += 100
+      this.xTreble += 30
+      this.xBass += 30
     },
   },
 };
