@@ -3,19 +3,27 @@
       main.vue, the application's main UI file.
   -->
   <div class="home">
-    <div style="background-color:black; opacity: 0.5; display:fixed; top:0; right:0; z-index:999">
+    <div
+      style="
+        background-color: black;
+        opacity: 0.5;
+        display: fixed;
+        top: 0;
+        right: 0;
+        z-index: 999;
+      "
+    >
       <!-- <span>NeuralNet Inference: {{ $store.state.neuralNetRefreshTime }}</span><br /> -->
       <!-- <span>scoreUI Time: {{ $store.state.scoreUIRefreshTime }}</span> -->
     </div>
-     <scoreUI /> 
-     <MIDI />
+    <scoreUI />
+    <MIDI />
     <gameUI />
     <!-- <neuralNet /> -->
     <keyboardUI
       id="pianoKeyboard"
       class="pianoKeyboard"
       ref="usersKeyboardUIref"
-
       :key="keyboardUIKey"
       :octave-start="keyboardUIoctaveStart"
       :octave-end="keyboardUIoctaveEnd"
@@ -66,7 +74,7 @@
 <script>
 import * as Tone from "tone";
 import { Buffer, Sequence, Transport, Event, Draw, context } from "tone";
-import {Midi} from "@tonaljs/tonal";
+import { Midi } from "@tonaljs/tonal";
 import keyboardUI from "@/components/keyboardUI.vue";
 import gameUI from "@/components/gameUI.vue";
 import scoreUI from "@/components/scoreUI2.vue";
@@ -76,7 +84,7 @@ import MIDI from "@/components/MIDI.vue";
 import Instruments from "@/library/instruments";
 import * as TokensDict from "@/../public/globalTokenIndexDict.json";
 
-import AudioKeys from 'audiokeys';
+import AudioKeys from "audiokeys";
 
 // import globalDict from "globalTokenIndexDict.json"
 
@@ -159,9 +167,9 @@ export default {
   created() {
     this.$root.$refs.main = this;
   },
-  
+
   mounted() {
-      // AIKeyboardElement = this.$refs.aiKeyboard;
+    // AIKeyboardElement = this.$refs.aiKeyboard;
     this.$store.commit("setTokensDict", TokensDict.default);
 
     this.neuralWorker = new Worker("neuralWorker2.js"); //, { type: "module" })
@@ -179,30 +187,30 @@ export default {
       })();
     };
 
-    // let self = this; 
+    // let self = this;
     // window.addEventListener('keyup', function(event) {
     //   var whichKey = event.key.toLowerCase();
     // });
     // window.addEventListener('keydown', function(event) {
     //   var whichKey = event.key.toLowerCase();
-        
+
     // });
-    let self=this;
+    let self = this;
     var keyboard = new AudioKeys({
-                        polyphony: 100,
-                        rows: 2,
-                        priority: 'last',
-                        rootNote: 60
-                      });
-    keyboard.down( function(note) {
+      polyphony: 100,
+      rows: 2,
+      priority: "last",
+      rootNote: 60,
+    });
+    keyboard.down(function (note) {
       // console.log("in down")
       // console.log(note)
-      let name = Midi.midiToNoteName(note.note, { sharps: true })
+      let name = Midi.midiToNoteName(note.note, { sharps: true });
       self.$refs.usersKeyboardUIref.toggleAttack(name);
     });
 
-    keyboard.up( function(note) {
-      let name = Midi.midiToNoteName(note.note, { sharps: true })
+    keyboard.up(function (note) {
+      let name = Midi.midiToNoteName(note.note, { sharps: true });
       self.$refs.usersKeyboardUIref.toggleRelease(name);
     });
   },
@@ -260,18 +268,23 @@ export default {
     workerCallback(e) {
       var aiOutput = e.data;
       // TODO convert aiOutput['note'] to the midi_artic representation
-      var tokensDict = this.$store.getters.getTokensDict
-      var midiArticInd = aiOutput['midiArticInd'];
-      var midiArticToken = tokensDict.midiArtic.index2token[midiArticInd]
-      var midi = parseInt(midiArticToken.split("_")[0])
-      var cpc = midi % 12
-      if (midi == 0){
-         cpc = 12
+      var tokensDict = this.$store.getters.getTokensDict;
+      var midiArticInd = aiOutput["midiArticInd"];
+      var midiArticToken = tokensDict.midiArtic.index2token[midiArticInd];
+      var midi = parseInt(midiArticToken.split("_")[0]);
+      var cpc = midi % 12;
+      if (midi == 0) {
+        cpc = 12;
       }
-      var artic = midiArticToken.split("_")[1]
+      var artic = midiArticToken.split("_")[1];
       var payload = {
         currentTick: aiOutput["tick"],
-        prediction: { "midi": midi, "artic": artic, "cpc":cpc, "midiArticInd": midiArticInd},
+        prediction: {
+          midi: midi,
+          artic: artic,
+          cpc: cpc,
+          midiArticInd: midiArticInd,
+        },
       };
       // console.log("in callback tick is ", this.$store.getters.getLocalTick, "tick from AI is ", payload.currentTick, "\nand payload is \n" + payload.prediction.midi, payload.prediction.cpc)
       // save AI's prediction to store.state.aiPredictions
@@ -283,11 +296,11 @@ export default {
     metronomeTrigger() {
       // var vm = this;
       // console.log("IN METRONOMETRIGGER " + this.$store.getters.getLocalTick)
-        if (this.$store.getters.getLocalTick % this.intervalIntegar == 0) {
-          var note = this.$store.getters.getLocalTick % 16 === 0 ? "G0" : "C0";
-          // console.log(note);
-          metronomeSampler.triggerAttackRelease(note, 0.2, Tone.now());
-        }
+      if (this.$store.getters.getLocalTick % this.intervalIntegar == 0) {
+        var note = this.$store.getters.getLocalTick % 16 === 0 ? "G0" : "C0";
+        // console.log(note);
+        metronomeSampler.triggerAttackRelease(note, 0.2, Tone.now());
+      }
     },
     // when Metronome is toggled.
     toggleMetronome() {
@@ -337,11 +350,11 @@ export default {
             vm.$store.commit("incrementTick");
             // }
             // Below are behaviors.
-                      // console.log(
-                      //   "Tick #" +
-                      //     vm.$store.getters.getLocalTick +
-                      //     " sent out!\n Quantized Inputs include: "
-                      // );
+            // console.log(
+            //   "Tick #" +
+            //     vm.$store.getters.getLocalTick +
+            //     " sent out!\n Quantized Inputs include: "
+            // );
             vm.metronomeTrigger();
 
             // trigger the ai sampler to play the note the AI predicted
@@ -357,23 +370,20 @@ export default {
             // B) using a web worker with async
             // vm.runTheWorker();
             setTimeout(function () {
-                vm.runTheWorker()
-              }, 50)
+              vm.runTheWorker();
+            }, 50);
 
             // C) without using a web worker
             // C : any better ways to reference the neuralNet component ???
             // var neuralNetObj = vm.$children.find(child => { return child.$options.name === "neuralNet"; })
             // var predictedNote = neuralNetObj.inference(vm.$store.getters.getLocalTick);
 
-                      // console.log(vm.$store.getters.getNotesBuffer);
-                      // console.log(
-                      //   "Last note played: " + vm.$store.getters.getLastNotePlayed
-                      // );
+            // console.log(vm.$store.getters.getNotesBuffer);
+            // console.log(
+            //   "Last note played: " + vm.$store.getters.getLastNotePlayed
+            // );
 
             vm.$store.commit("clearNotesBuffer");
-
-           
-
           }
         }
 
@@ -385,8 +395,6 @@ export default {
 
         // Call it for the first time.
         sendOutTicks();
-
-
       }
     },
 
@@ -400,21 +408,20 @@ export default {
       var aiPrediction = this.$store.getters.getAiPredictions[this.$store.getters.getLocalTick];
       // console.log("in triger " + aiPrediction.midi + "_" + aiPrediction.artic)
       // to be continued
-      if (aiPrediction.artic==1){
-        if (aiPrediction.midi!=0){
-          if (!(this.lastNoteOnAi==="")){
-              AISampler.triggerRelease(this.lastNoteOnAi, Tone.now());
-              this.$root.$refs.gameUI.keyUp(this.lastNoteOnAi, false);
+      if (aiPrediction.artic == 1) {
+        if (aiPrediction.midi != 0) {
+          if (!(this.lastNoteOnAi === "")) {
+            AISampler.triggerRelease(this.lastNoteOnAi, Tone.now());
+            this.$root.$refs.gameUI.keyUp(this.lastNoteOnAi, false);
           }
-          let currentNote = Midi.midiToNoteName(aiPrediction.midi, { sharps: true });
-
+          let currentNote = Midi.midiToNoteName(aiPrediction.midi, {
+            sharps: true,
+          });
           AISampler.triggerAttack(currentNote, Tone.now());
           this.$root.$refs.gameUI.keyDown(currentNote, false);
-
           this.lastNoteOnAi = currentNote;
-        }
-        else {
-          if (!(this.lastNoteOnAi==="")){
+        } else {
+          if (!(this.lastNoteOnAi === "")) {
             AISampler.triggerRelease(this.lastNoteOnAi, Tone.now());
             this.$root.$refs.gameUI.keyUp(this.lastNoteOnAi, false);
             this.lastNoteOnAi = "";
@@ -427,13 +434,13 @@ export default {
     // update: removed async in order to use setTimeout(runTheWorker, 30)
     runTheWorker() {
       this.$root.$refs.scoreUI.draw();
-      var humanInp=-1;
-      var artic=-1;
+      var humanInp = -1;
+      var artic = -1;
       var cpcInd;
       // check if keyboard is currently active, namely if there is at least one key pressed
       // if not, then the users input is rest
 
-      // 1) an keyboard NOT active 
+      // 1) an keyboard NOT active
       //     a) if buffer adeios
       //           pausi
       //     b) if len(buffer)>0
@@ -447,47 +454,42 @@ export default {
 
       var activeNotes = this.$store.getters.getActiveNotes;
       var lastNote = this.$store.getters.getLastNotePlayed;
-                // console.log('notes buffer is ' + this.$store.getters.getNotesBuffer)
-      if (!this.$store.getters.keyboardIsActive){
-          if (this.$store.getters.getNotesBuffer.length==0){
-              humanInp = 0;
-              artic = 1;
-              cpcInd = 12;
-          }
-          else{
-              // sanity check  notesBuffer.pop() === lastNote
-              var lastNote = this.$store.getters.getLastNotePlayed
-              humanInp = Midi.toMidi(lastNote)
-              artic = 1
-              cpcInd = humanInp % 12
+      // console.log('notes buffer is ' + this.$store.getters.getNotesBuffer)
+      if (!this.$store.getters.keyboardIsActive) {
+        if (this.$store.getters.getNotesBuffer.length == 0) {
+          humanInp = 0;
+          artic = 1;
+          cpcInd = 12;
+        } else {
+          // sanity check  notesBuffer.pop() === lastNote
+          var lastNote = this.$store.getters.getLastNotePlayed;
+          humanInp = Midi.toMidi(lastNote);
+          artic = 1;
+          cpcInd = humanInp % 12;
+        }
+      } else {
+        // there is at least one key pressed. We only care for the last key pressed so
+        if (activeNotes.includes(lastNote)) {
+          // find artic
+          humanInp = Midi.toMidi(lastNote);
+          cpcInd = humanInp % 12;
 
+          // console.log('global ' + this.$store.getters.getGlobalTick);
+          // console.log('played on ' + this.$store.getters.getLastNotePlayedOnTick)
+          if (
+            this.$store.getters.getGlobalTick -
+              this.$store.getters.getLastNotePlayedOnTick >
+            1
+          ) {
+            artic = 0;
+          } else {
+            artic = 1;
           }
-      }
-      else{
-          // there is at least one key pressed. We only care for the last key pressed so
-          // var lastNote = this.$store.getters.getLastNotePlayed
-          // var activeNotes = this.$store.getters.getActiveNotes
-          // var lastNoteTickStart = this.$store.getters.getLastNotePlayedOnTick
-          // TODO tick centering feature (maybe not needed here)
-          // var currentTick = this.$store.getters.getLocalTick
-          if (activeNotes.includes(lastNote)){
-              // find artic
-              humanInp = Midi.toMidi(lastNote)
-              cpcInd = humanInp % 12
-
-                      // console.log('global ' + this.$store.getters.getGlobalTick);
-                      // console.log('played on ' + this.$store.getters.getLastNotePlayedOnTick)
-              if (this.$store.getters.getGlobalTick-this.$store.getters.getLastNotePlayedOnTick > 1){
-                  artic = 0
-              }
-              else {artic=1}
-          }
-          else {
-              humanInp = 0;
-              artic = 1
-              cpcInd = 12
-          }
-
+        } else {
+          humanInp = 0;
+          artic = 1;
+          cpcInd = 12;
+        }
       }
       // empty the noteBuffer
       // this.$store.commit('clearNotesBuffer')
@@ -495,28 +497,34 @@ export default {
 
       // TODO tick centering feature
       // increment the delayed tick here ? (think)
-      this.$store.commit('incrementTickDelayed');
+      this.$store.commit("incrementTickDelayed");
       // go from midi/cpc to AI_tokens
-      var midiArtic = humanInp.toString() + '_' + artic.toString()
-      var tokensDict = this.$store.getters.getTokensDict
-      var midiArticInd = tokensDict.midiArtic.token2index[midiArtic]
-      var rhythmToken = this.$store.getters.getRhythmToken
-      var rhythmTokenInd = tokensDict.rhythm.token2index[rhythmToken]
+      var midiArtic = humanInp.toString() + "_" + artic.toString();
+      var tokensDict = this.$store.getters.getTokensDict;
+      var midiArticInd = tokensDict.midiArtic.token2index[midiArtic];
+      var rhythmToken = this.$store.getters.getRhythmToken;
+      var rhythmTokenInd = tokensDict.rhythm.token2index[rhythmToken];
 
-      console.log("tick ", this.$store.getters.getLocalTick, midiArtic + ' ' + cpcInd + ' ' + rhythmToken)
+      console.log(
+        "tick ",
+        this.$store.getters.getLocalTick,
+        midiArtic + " " + cpcInd + " " + rhythmToken
+      );
       // console.log(midiArticInd + ' ' + cpcInd + ' ' + rhythmTokenInd)
       // this.tempHistory.push({"tick":this.$store.getters.getLocalTick, "played" : midiArtic})
       // console.log(midiArtic + " ")
 
       var aiInp = {
         // TODO tick centering feature
-        "tick": this.$store.getters.getLocalTick, //input tick time (the AI will predict a note for time tick+1)
-        "humanInpMidi" : midiArticInd, //users input at time tick
-        "humanInpCpc" : cpcInd,
-        "rhythmInd" : rhythmTokenInd,
-        "aiInp" : this.$store.getters.getAiPredictionFor( this.$store.getters.getLocalTick), 
-                    // for the AI to generate the note for time tick + 1, besides the users input
-                    // it also takes as an input the note it played/generated for at time tick
+        tick: this.$store.getters.getLocalTick, //input tick time (the AI will predict a note for time tick+1)
+        humanInpMidi: midiArticInd, //users input at time tick
+        humanInpCpc: cpcInd,
+        rhythmInd: rhythmTokenInd,
+        aiInp: this.$store.getters.getAiPredictionFor(
+          this.$store.getters.getLocalTick
+        ),
+        // for the AI to generate the note for time tick + 1, besides the users input
+        // it also takes as an input the note it played/generated for at time tick
       };
       // console.log("to run the worker with ", aiInp, " tick is ", this.$store.getters.getLocalTick)
       this.neuralWorker.postMessage(aiInp); //{"currentTickNumber": vm.$store.getters.getLocalTick});

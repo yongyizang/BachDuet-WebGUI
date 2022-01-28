@@ -26,16 +26,13 @@ const getters = {
           }
         }
         return quantizedInput;
-    }
+    },
 }
 
 const actions = {
 }
 
 const mutations = {
-    noteOn (state, note) {
-        state.bufferState[note] = true;
-    },
     clearBuffer (state) {
         for (const note of notes) {
             state.bufferState[note.name] = false;

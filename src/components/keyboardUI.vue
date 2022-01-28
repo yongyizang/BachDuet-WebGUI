@@ -20,7 +20,7 @@
         @mousedown="toggleAttack(key.name)"
         @mouseup="toggleRelease(key.name)"
         :class="[...key.class, {active: noteActive(key.name)}]"
-        :ref="'userKeyboard' + key.name"
+        :ref="key.name"
       >
         <span>{{ key.name }}</span>
       </li>
@@ -147,8 +147,7 @@ export default {
   methods: {
     noteActive(note) {
       // If the note is active, the state of that note is true.
-      console.log("inside noteActive")
-      return this.$store.getters.getPianoState[note.name]=== true;
+      return this.$store.getters.getPianoState[note] === true;
     },
 
     toggleAttack(currentNote) {
