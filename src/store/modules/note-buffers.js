@@ -21,11 +21,11 @@ const noteMapforPiano = notes.reduce((map, note) => {
 }, {})
 
 const noteMapforAI = measureTicks.reduce((map, tick) => {
-    map[tick] = {"midi" : 0, "artic" : 1, "cpc" : 12, "midiArticInd" : 96, "note" : "R"}
+    map[tick] = {"midi" : 0, "artic" : 1, "cpc" : 12, "midiArticInd" : 96, "name" : "R"}
     return map
 }, {})
 const noteMapforHuman = measureTicks.reduce((map, tick) => {
-    map[tick] = {"midi" : 0, "artic" : 1, "cpc" : 12, "midiArticInd" : 96, "note" : "R"}
+    map[tick] = {"midi" : 0, "artic" : 1, "cpc" : 12, "midiArticInd" : 96, "name" : "R"}
     return map
 }, {})
 // const note2MidiMap = notes.reduce((map, note) => {
@@ -131,7 +131,7 @@ const actions = {
                                             "cpc" : cpc, 
                                             "midiArticInd" : midiArticInd
                                             // TODO check if I want those also
-                                            // "note" : "R"
+                                            // "name" : "R"
                                         }
         // now update the lastAINote
         if (midi == 0) {
@@ -156,6 +156,8 @@ const actions = {
             }
             else {
                 // it should always be
+                // if not, it's because the AI generates notes with artic=0
+                // without previously generating the same note with artic=1
                 console.assert(midi === state.lastAINote.midi)
                 state.lastAINote.dur += 1
             }
@@ -184,6 +186,7 @@ const actions = {
                 state.lastHumanNote.name = args.name;
                 state.lastHumanNote.dur = 1;
                 state.lastHumanNote.startTick = getters.getGlobalTickDelayed();
+                console.log("mesa")
             }
         }
         else {
@@ -200,6 +203,10 @@ const actions = {
                 state.lastHumanNote.dur += 1
             }
         }
+        console.log(getters.getGlobalTickDelayed(), " ",
+            state.lastHumanNote.midi, " ",
+        state.lastHumanNote.dur, " ",
+        state.lastHumanNote.startTick, " ", )
 
     },
 

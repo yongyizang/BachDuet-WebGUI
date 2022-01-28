@@ -9,7 +9,7 @@
 // import * as vextab from "@/library/vextab-div";
 import { Note, Midi } from "@tonaljs/tonal";
 import * as Vex from "vexflow";
-const CLEF_SEPARATE_AT = "B4"; // Here, we define the separate point between treble clef and bass clef for both staff.
+const CLEF_SEPARATE_AT = "B3"; // Here, we define the separate point between treble clef and bass clef for both staff.
 
 function NoteFormatter(note) {
   // Expecting input: "C#1" or "C3"
@@ -24,6 +24,96 @@ function NoteFormatter(note) {
     return note.charAt(0).toLowerCase() + "/" + note.substring(1, note.length);
   }
 }
+function DurationFormatter(duration){
+      // 1 --> 16
+      // 2 --> 8
+      // 3 --> 8.
+      // 4 --> 4 or q
+      // 5 --> 4 + need for extra tied sixteenth
+      // 6 --> 4.
+      // 7 --> 4. + need for extra tied sixteenth
+      // 8 --> 2 or h
+      // 9 --> 8 + need for extra tied sixteenth
+      // 10 --> 8 + need for extra tied eight
+      // 11 --> 8 + need for extra tied eigth dotted
+      // 12 --> 8.
+      // 13 --> 8. + need for extra tied sixteenth
+      // 14 --> 8. + need for extra tied eigth
+      // 15 --> 8. + need for extra tied eigth dotted
+      // 16 --> 1 or w
+      var durationTokens;
+      var newDurations;
+      switch (duration) {
+        case 1:
+          durationTokens = ["16"]
+          newDurations = [1]
+          break;
+        case 2:
+          durationTokens = ["8"]
+          newDurations = [2]
+          break;
+        case 3:
+          durationTokens = ["8d"]
+          newDurations = [3]
+          break;
+        case 4:
+          durationTokens = ["4"]
+          newDurations = [4]
+          break;
+        case 5:
+          durationTokens = ["4","16"]
+          newDurations = [4, 1]
+          break;
+        case 6:
+          durationTokens = ["4d"]
+          newDurations = [6]
+          break;
+        case 7:
+          durationTokens = ["4d","16"]
+          newDurations = [6,1]
+          break;
+        case 8:
+          durationTokens = ["2"]
+          newDurations = [8]
+          break;
+        case 9:
+          durationTokens = ["2","16"]
+          newDurations = [8,1]
+          break;
+        case 10:
+          durationTokens = ["2","8"]
+          newDurations = [8,2]
+          break;
+        case 11:
+          durationTokens = ["2","8d"]
+          newDurations = [8,3]
+          break;
+        case 12:
+          durationTokens = ["2d"]
+          newDurations = [12]
+          break;
+        case 13:
+          durationTokens = ["2d","16"]
+          newDurations = [12,1]
+          break;
+        case 14:
+          durationTokens = ["2d","8"]
+          newDurations = [12,2]
+          break;
+        case 15:
+          durationTokens = ["2d","8d"]
+          newDurations = [12,3]
+          break;
+        case 16:
+          durationTokens = ["1"]
+          newDurations = [16]
+          break;
+        
+        default:
+          console.log("Invalid duration");
+        }
+      return [durationTokens, newDurations];
+    }
 
 export default {
   name: "scoreUI",
@@ -33,24 +123,26 @@ export default {
     return {
       // Customizable Properties for score rendering
       lineWidth: 1.5,
-      lineColor: "#FFFFFF",
-      userNoteColor: "#FFFFFF",
-      AINoteColor: "#FFFF00",
+      lineColor: "#000000",
+      userNoteColor: "#000000",
+      AINoteColor: "#FFFFFF",
       screenWidth: document.body.clientWidth,
       VF: Vex.Flow,
       grandStaffDiv: null,
       grandStaffRenderer: null,
       renderer: null,
       targetDiv: null,
-      visibleNoteGroups: null,
+      lastSvgGroup: null,
+      lastSvgGroupXOffset : null,
       tickContexts: [],
       context: null,
       staves: [],
       notes: null,
       durations: null,
+      lastXOffsetOnBar : null, // TODO delete that after I'm done
       viewX: 30,
-      xTreble: 20,
-      xBass: 20,
+      xTreble: 30,
+      xBass: 30,
       // distance between two 16ths in the score
       tickStepPixels: 30,
       // how often (in milliseconds) we scroll the viewBox
@@ -106,7 +198,8 @@ export default {
       });
       trebleStave.setContext(grandStaffContext).draw();
       bassStave.setContext(grandStaffContext).draw();
-      console.log(trebleStave.getStyle());
+      // console.log(trebleStave.getStyle());
+
       var brace = new this.VF.StaveConnector(trebleStave, bassStave).setType(3);
       var lineLeft = new this.VF.StaveConnector(trebleStave, bassStave).setType(
         1
@@ -148,12 +241,10 @@ export default {
         .draw();
 
       setInterval(() => {
-        // I created a ref to main in order to access clockStatus. Is this a good way ? Or maybe store clockStatus in vuex ?
+        // TODO I created a ref to main in order to access clockStatus. Is this a good way ? Or maybe store clockStatus in vuex ?
         // Yongyi: In the future we should move every variable we tried to call here to Vuex. But let's not worry about them now!
         if (this.$root.$refs.main.clockStatus && this.scrollEnabled) {
           this.context.setViewBox(this.viewX, 0, this.screenWidth, 1000);
-          // We need to think about this spend more carefully.
-
           this.viewX +=
             (this.scrollStepTime * this.tickStepPixels) /
             ((1000 * 60) / this.$root.$refs.main.bpm / 4);
@@ -269,34 +360,8 @@ export default {
       }
     },
 
-    notesFromThisTickAI(){
-      // ! almost the same code exists in main.vue inside triggerAiSampler()
-      // TODO don't repeat code
-      var aiPrediction = this.$store.getters.getAiPredictionFor( this.$store.getters.getLocalTick);
-      if (aiPrediction.artic==1){
-        if (aiPrediction.midi!=0){
-          if (!(this.lastNoteOnAi==="")){
-              AISampler.triggerRelease(this.lastNoteOnAi, Tone.now());
-              this.$root.$refs.gameUI.keyUp(this.lastNoteOnAi, false);
-          }
-          let currentNote = Midi.midiToNoteName(aiPrediction.midi, { sharps: true });
-
-          AISampler.triggerAttack(currentNote, Tone.now());
-          this.$root.$refs.gameUI.keyDown(currentNote, false);
-
-          this.lastNoteOnAi = currentNote;
-        }
-        else {
-          if (!(this.lastNoteOnAi==="")){
-            AISampler.triggerRelease(this.lastNoteOnAi, Tone.now());
-            this.$root.$refs.gameUI.keyUp(this.lastNoteOnAi, false);
-            this.lastNoteOnAi = "";
-          }
-        }
-      }
-    },
-
     draw() {
+      console.log(this.xTreble)
       // Yongyi: Extremely Untidy, yet completely necessary
       var thisTickUserNotes = this.userNotesFromThisTick();
       var thisTickAINotes = this.AINotesFromThisTick();
@@ -322,20 +387,27 @@ export default {
       this.tickContexts[0].setX(this.xTreble);
       this.tickContexts[1].setX(this.xBass);
 
+      
       thisTickUserNotes[0].draw();
       thisTickUserNotes[1].draw();
       thisTickAINotes[0].draw();
       thisTickAINotes[1].draw();
 
-      if (this.$store.getters.getLocalTick % 16 === 15) {
+      // console.log("drawing number in ",this.$store.getters.getLocalTick)
+      // we ll use this method to draw the bar number
+      this.context.fillText("0" + this.$store.getters.getLocalTick, this.xTreble, this.staves[0].getYForLine(0) )
+
+      if (this.$store.getters.getLocalTickDelayed % 16 === 0) {
+        
+        console.log("drawing line in ",this.$store.getters.getLocalTickDelayed)
         // If it's time to draw a barline
         let thickness = 1;
         let topY = this.staves[0].getYForLine(0);
         let botY = this.staves[1].getYForLine(this.staves[1].getNumLines() - 1);
-        let x_shift = 6;
+        let x_shift = 60;
         // Yongyi: what is this 50 here?
         this.context.fillRect(
-          this.xTreble + 50 + x_shift,
+          this.xTreble,// + 0 + x_shift,
           topY,
           thickness,
           botY - topY
@@ -351,6 +423,138 @@ export default {
         this.scrollEnabled = true;
       }
     },
+
+
+    getHumanQuantizedNote(){
+      const vm = this;
+      var quantNoteDict = this.$store.getters.getLastHumanNoteQuantized;
+      // var noteName = Note.fromMidiSharps(quantNoteDict.midi)
+      var formName;
+      var extraR = "";
+      if (quantNoteDict.midi === 0){
+        formName = "b/4"
+        extraR = "r"
+      }
+      else{
+        formName = NoteFormatter(quantNoteDict.name)
+      }
+      var durationTokens;
+      var durations;
+      [durationTokens, durations] = DurationFormatter(quantNoteDict.dur)
+      console.log(formName, " ", durationTokens)
+      var notes = []
+      for (let i=0; i<durationTokens.length;i++){
+        let newNote = new vm.VF.StaveNote({
+                        clef: "treble",
+                        keys:
+                          [formName],
+                          duration: durationTokens[i]+extraR,
+                      })
+                      .setStyle({
+                        fillStyle: this.userNoteColor,
+                        strokeStyle: this.userNoteColor,
+                      });
+        if (durationTokens[i].includes("d")){
+          newNote.addDotToAll()
+        }
+        notes.push(newNote);
+
+      }
+
+      // if (quantNoteDict.dur === 1){
+      //   // it's a new note --> draw it as a 16th
+      // }
+      // else if (quantNoteDict.dur === 0){
+      //   // it shouldn't enter here. if it does, it's a BUG
+      //   throw 'duration of note to draw is 0';
+      // }
+      // else{
+      //   // it's an old note --> retrieve the svg item, and replace it
+      //   // with the new duration
+      
+      // }
+      return {"notes":notes, "durations":durations};
+
+
+    },
+    getAIQuantizedNote(){
+
+    },
+    draw2() {
+      var notesToDraw;
+      var durations;
+      var processed= this.getHumanQuantizedNote();
+      notesToDraw = processed.notes;
+      durations = processed.durations;
+      this.tickContexts[0].setX(this.xTreble);
+
+      if (durations.length === 1 && durations[0] === 1){
+        // this.xTreble += this.tickStepPixels;
+      }
+      else {
+        if (this.lastSvgGroup){
+          this.lastSvgGroup.remove()
+          this.xTreble = this.lastSvgGroupXOffset;
+          this.tickContexts[0].setX(this.xTreble);
+        }
+      }
+      const group = this.context.openGroup();
+      this.lastSvgGroup = group;
+      this.lastSvgGroupXOffset = this.xTreble;
+      var localXOffset = 0;
+      console.log("we have ", notesToDraw.length)
+      for (let i=0; i<notesToDraw.length; i++){
+        let currentNote = notesToDraw[i];
+        console.log(i, " ", currentNote);
+        currentNote.setStave(this.staves[0]);
+        currentNote.setContext(this.context);
+        this.tickContexts[0].addTickable(currentNote);
+        currentNote.preFormat();
+        
+        currentNote.draw()
+        // localXOffset = this.tickStepPixels * durations[i];
+        this.xTreble += this.tickStepPixels * durations[i]
+        this.tickContexts[0].setX(this.xTreble);
+      }
+      this.context.closeGroup();
+
+      // we ll use this method to draw the bar number
+      this.context.fillText("0" + this.$store.getters.getLocalTick, this.xTreble, this.staves[0].getYForLine(0) )
+
+      // here we draw the bar line
+      if (this.$store.getters.getLocalTickDelayed % 16 === 0) {
+        // console.log("drawing line in ",this.$store.getters.getLocalTickDelayed)
+        // If it's time to draw a barline
+
+        let thickness = 1;
+        let topY = this.staves[0].getYForLine(0);
+        let botY = this.staves[1].getYForLine(this.staves[1].getNumLines() - 1);
+        // let x_shift = 60;
+        // Yongyi: what is this 50 here?
+        this.context.fillRect(
+          this.xTreble,// + 0 + x_shift,
+          topY,
+          thickness,
+          botY - topY
+        );
+        // TODO delete that / only for debugging
+        if (this.lastXOffsetOnBar){
+          console.log("we moved ", this.xTreble - this.lastXOffsetOnBar)
+        }
+        this.lastXOffsetOnBar = this.xTreble;
+      }
+
+      // this.xTreble += this.tickStepPixels;
+      // this.xBass += this.tickStepPixels;
+
+      // // find the position of the next note in relation with the screenWidth
+      var pos = (this.xTreble - this.viewX) / this.screenWidth;
+      if (pos > this.latestNotePosition) {
+        this.scrollEnabled = true;
+      }
+    },
+
+
   },
 };
 </script>

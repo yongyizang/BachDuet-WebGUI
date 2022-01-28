@@ -430,7 +430,7 @@ export default {
       }
     },
 
-    getHumanQuantizedNote(){
+    estimateHumanQuantizedNote(){
       // Here we are quantize and store the user's input
 
       var midi;
@@ -504,11 +504,12 @@ export default {
     // update: removed async in order to use setTimeout(runTheWorker, 30)
     runTheWorker() {
 
-      this.$root.$refs.scoreUI.draw();
+      
 
-      this.getHumanQuantizedNote();
+      this.estimateHumanQuantizedNote();
 
       this.$store.commit('incrementTickDelayed');
+      this.$root.$refs.scoreUI.draw2();
       console.assert(this.$store.getters.getLocalTick === this.$store.getters.getLocalTickDelayed)
 
       var rhythmToken = this.$store.getters.getRhythmToken;
