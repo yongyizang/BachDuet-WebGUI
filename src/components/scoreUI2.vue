@@ -80,7 +80,6 @@ export default {
   methods: {
     resize() {
       this.screenWidth = document.body.clientWidth;
-      // this.draw();
     },
 
     init() {
@@ -267,6 +266,33 @@ export default {
         return [EmptyNote, AINote];
       } else {
         return [AINote, EmptyNote];
+      }
+    },
+
+    notesFromThisTickAI(){
+      // ! almost the same code exists in main.vue inside triggerAiSampler()
+      // TODO don't repeat code
+      var aiPrediction = this.$store.getters.getAiPredictionFor( this.$store.getters.getLocalTick);
+      if (aiPrediction.artic==1){
+        if (aiPrediction.midi!=0){
+          if (!(this.lastNoteOnAi==="")){
+              AISampler.triggerRelease(this.lastNoteOnAi, Tone.now());
+              this.$root.$refs.gameUI.keyUp(this.lastNoteOnAi, false);
+          }
+          let currentNote = Midi.midiToNoteName(aiPrediction.midi, { sharps: true });
+
+          AISampler.triggerAttack(currentNote, Tone.now());
+          this.$root.$refs.gameUI.keyDown(currentNote, false);
+
+          this.lastNoteOnAi = currentNote;
+        }
+        else {
+          if (!(this.lastNoteOnAi==="")){
+            AISampler.triggerRelease(this.lastNoteOnAi, Tone.now());
+            this.$root.$refs.gameUI.keyUp(this.lastNoteOnAi, false);
+            this.lastNoteOnAi = "";
+          }
+        }
       }
     },
 

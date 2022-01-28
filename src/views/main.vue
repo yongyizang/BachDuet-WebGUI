@@ -266,29 +266,29 @@ export default {
   methods: {
     // neuralWorker's callback. Called every tick, and processes the AI's output
     workerCallback(e) {
-      var aiOutput = e.data;
-      // TODO convert aiOutput['note'] to the midi_artic representation
-      var tokensDict = this.$store.getters.getTokensDict;
-      var midiArticInd = aiOutput["midiArticInd"];
-      var midiArticToken = tokensDict.midiArtic.index2token[midiArticInd];
-      var midi = parseInt(midiArticToken.split("_")[0]);
-      var cpc = midi % 12;
-      if (midi == 0) {
-        cpc = 12;
-      }
-      var artic = midiArticToken.split("_")[1];
-      var payload = {
-        currentTick: aiOutput["tick"],
-        prediction: {
-          midi: midi,
-          artic: artic,
-          cpc: cpc,
-          midiArticInd: midiArticInd,
-        },
-      };
-      // console.log("in callback tick is ", this.$store.getters.getLocalTick, "tick from AI is ", payload.currentTick, "\nand payload is \n" + payload.prediction.midi, payload.prediction.cpc)
-      // save AI's prediction to store.state.aiPredictions
-      this.$store.dispatch("newAiPrediction", payload);
+      var aiPrediction = e.data;
+      // // TODO convert aiOutput['note'] to the midi_artic representation
+      // var tokensDict = this.$store.getters.getTokensDict;
+      // var midiArticInd = aiOutput["midiArticInd"];
+      // var midiArticToken = tokensDict.midiArtic.index2token[midiArticInd];
+      // var midi = parseInt(midiArticToken.split("_")[0]);
+      // var cpc = midi % 12;
+      // if (midi == 0) {
+      //   cpc = 12;
+      // }
+      // var artic = midiArticToken.split("_")[1];
+      // var payload = {
+      //   currentTick: aiOutput["tick"],
+      //   prediction: {
+      //     midi: midi,
+      //     artic: artic,
+      //     cpc: cpc,
+      //     midiArticInd: midiArticInd,
+      //   },
+      // };
+      // // save AI's prediction to store.state.aiPredictions
+      // this.$store.dispatch("newAiPrediction", payload);
+      this.$store.dispatch("newAiPrediction", aiPrediction);
     },
     // moved the metronomeTrigger function inside methods
     // it doesn't take any input argument
@@ -405,7 +405,7 @@ export default {
       // is 1 (hit), then we trigger the AI sampler to play the note.
       // if there is already a note active, we have to triggerRelease first
       // if the predicted note is a rest ... blablabla.
-      var aiPrediction = this.$store.getters.getAiPredictions[this.$store.getters.getLocalTick];
+      var aiPrediction = this.$store.getters.getAiPredictionFor(this.$store.getters.getLocalTick);
       // console.log("in triger " + aiPrediction.midi + "_" + aiPrediction.artic)
       // to be continued
       if (aiPrediction.artic == 1) {
@@ -430,101 +430,98 @@ export default {
       }
     },
 
-    // C: using async, improves the neural net's inference speed slightly. Don't know why.
-    // update: removed async in order to use setTimeout(runTheWorker, 30)
-    runTheWorker() {
-      this.$root.$refs.scoreUI.draw();
-      var humanInp = -1;
-      var artic = -1;
-      var cpcInd;
-      // check if keyboard is currently active, namely if there is at least one key pressed
-      // if not, then the users input is rest
+    getHumanQuantizedNote(){
+      // Here we are quantize and store the user's input
 
-      // 1) an keyboard NOT active
-      //     a) if buffer adeios
-      //           pausi
-      //     b) if len(buffer)>0
-      //           pop the note or use the lastNote.
-      //           (and its duration is 16th, and a hit)
-      // 2) an keyboard active
-      //     var aa = lastNote
-      //     var bb = activeNotes
-      //     // maybe some more thought here
-      //     a) if lastNote in activeNotes
+      var midi;
+      var artic;
+      var cpc;
+      var name;
+      // var startTick;
+      // var dur;
 
       var activeNotes = this.$store.getters.getActiveNotes;
       var lastNote = this.$store.getters.getLastNotePlayed;
-      // console.log('notes buffer is ' + this.$store.getters.getNotesBuffer)
-      if (!this.$store.getters.keyboardIsActive) {
-        if (this.$store.getters.getNotesBuffer.length == 0) {
-          humanInp = 0;
-          artic = 1;
-          cpcInd = 12;
-        } else {
-          // sanity check  notesBuffer.pop() === lastNote
-          var lastNote = this.$store.getters.getLastNotePlayed;
-          humanInp = Midi.toMidi(lastNote);
-          artic = 1;
-          cpcInd = humanInp % 12;
-        }
-      } else {
-        // there is at least one key pressed. We only care for the last key pressed so
-        if (activeNotes.includes(lastNote)) {
-          // find artic
-          humanInp = Midi.toMidi(lastNote);
-          cpcInd = humanInp % 12;
-
-          // console.log('global ' + this.$store.getters.getGlobalTick);
-          // console.log('played on ' + this.$store.getters.getLastNotePlayedOnTick)
-          if (
-            this.$store.getters.getGlobalTick -
-              this.$store.getters.getLastNotePlayedOnTick >
-            1
-          ) {
-            artic = 0;
-          } else {
-            artic = 1;
+      // check if keyboard is currently active, namely if there is at least one key pressed
+      // If keyboard NOT active 
+      if (!this.$store.getters.keyboardIsActive){
+          // if the buffer is empty
+          if (this.$store.getters.getNotesBuffer.length == 0){
+              // then we have a REST
+              midi = 0;
+              artic = 1;
+              cpc = 12;
+              name = "R"
           }
-        } else {
-          humanInp = 0;
-          artic = 1;
-          cpcInd = 12;
-        }
+          // if the buffer is not empty
+          else{
+              // sanity check  notesBuffer.pop() === lastNote
+              midi = Midi.toMidi(lastNote)
+              artic = 1
+              cpc = midi % 12
+              name = lastNote;
+
+          }
       }
-      // empty the noteBuffer
-      // this.$store.commit('clearNotesBuffer')
-      //              console.log("buffer cleared for tick " + this.$store.getters.getLocalTick)
+      else{
+          // there is at least one key pressed. We only care for the last key pressed so
+          // var lastNote = this.$store.getters.getLastNotePlayed
+          // var activeNotes = this.$store.getters.getActiveNotes
+          // var lastNoteTickStart = this.$store.getters.getLastNotePlayedOnTick
+          // var currentTick = this.$store.getters.getLocalTick
+          if (activeNotes.includes(lastNote)){
+              // find artic
+              midi = Midi.toMidi(lastNote)
+              cpc = midi % 12
+              name = lastNote
+              if (this.$store.getters.getGlobalTick-this.$store.getters.getLastNotePlayedOnTick > 1){
+                // if the note is active for more than 1 tick
+                // then the articulation is set to 0
+                artic = 0
+              }
+              else {
+                artic = 1
+                }
+          }
+          else {
+            // TODO : does it ever enter here ???
+            midi = 0;
+            artic = 1
+            cpc = 12
+            name = "R"
+          }
+      }
 
-      // TODO tick centering feature
-      // increment the delayed tick here ? (think)
-      this.$store.commit("incrementTickDelayed");
-      // go from midi/cpc to AI_tokens
-      var midiArtic = humanInp.toString() + "_" + artic.toString();
-      var tokensDict = this.$store.getters.getTokensDict;
-      var midiArticInd = tokensDict.midiArtic.token2index[midiArtic];
+      
+      // convert midi/cpc/artic to indexes that the AI understands
+      this.$store.dispatch("newHumanInputQuantized",  
+                            {"midi" : midi, 
+                             "artic" : artic,
+                             "cpc" : cpc, 
+                             "name" : name});
+    },
+    // C: using async, improves the neural net's inference speed slightly. Don't know why.
+    // update: removed async in order to use setTimeout(runTheWorker, 30)
+    runTheWorker() {
+
+      this.$root.$refs.scoreUI.draw();
+
+      this.getHumanQuantizedNote();
+
+      this.$store.commit('incrementTickDelayed');
+      console.assert(this.$store.getters.getLocalTick === this.$store.getters.getLocalTickDelayed)
+
       var rhythmToken = this.$store.getters.getRhythmToken;
-      var rhythmTokenInd = tokensDict.rhythm.token2index[rhythmToken];
-
-      console.log(
-        "tick ",
-        this.$store.getters.getLocalTick,
-        midiArtic + " " + cpcInd + " " + rhythmToken
-      );
-      // console.log(midiArticInd + ' ' + cpcInd + ' ' + rhythmTokenInd)
-      // this.tempHistory.push({"tick":this.$store.getters.getLocalTick, "played" : midiArtic})
-      // console.log(midiArtic + " ")
-
+      var rhythmTokenInd = this.$store.getters.getTokensDict.rhythm.token2index[rhythmToken];
       var aiInp = {
-        // TODO tick centering feature
         tick: this.$store.getters.getLocalTick, //input tick time (the AI will predict a note for time tick+1)
-        humanInpMidi: midiArticInd, //users input at time tick
-        humanInpCpc: cpcInd,
+        humanInp : this.$store.getters.getHumanInputFor(this.$store.getters.getLocalTick),
+        // humanInpMidi: midiArticInd, //users input at time tick
+        // humanInpCpc: cpcInd,
         rhythmInd: rhythmTokenInd,
-        aiInp: this.$store.getters.getAiPredictionFor(
-          this.$store.getters.getLocalTick
-        ),
         // for the AI to generate the note for time tick + 1, besides the users input
         // it also takes as an input the note it played/generated for at time tick
+        aiInp: this.$store.getters.getAiPredictionFor(this.$store.getters.getLocalTick),
       };
       // console.log("to run the worker with ", aiInp, " tick is ", this.$store.getters.getLocalTick)
       this.neuralWorker.postMessage(aiInp); //{"currentTickNumber": vm.$store.getters.getLocalTick});

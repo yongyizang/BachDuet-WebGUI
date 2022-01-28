@@ -31,7 +31,14 @@ const getters = {
     getLocalTickDelayed (state){
         return state.localTickDelayed;
     },
-    getGlobalTickDelayed (state){
+    // TODO : here there are two ways to write a getter.
+    // For the first way, we use the function as var tick = getGlobalTickDelayed;
+    // For the second we have to use it like : var tick = getGlobalTickDelayed();
+    // I prefer the second way. What do you think ? 
+    // getGlobalTickDelayed (state){
+    //     return state.globalTickDelayed;
+    // },
+    getGlobalTickDelayed: (state) => () => {
         return state.globalTickDelayed;
     },
     getBarTick (state){
@@ -44,8 +51,8 @@ const getters = {
         return (state.localTick + 1) % 16;
     },
     getRhythmToken (state){
-        return bar[state.localTick].toString() + '_' + beat[state.localTick].toString() + '_' + accent[state.localTick].toString() ;
-    },
+        return bar[state.localTick].toString() + '_' + beat[state.localTick].toString() + '_' + accent[state.localTick].toString();
+    }
 }
 
 const actions = {
@@ -60,7 +67,8 @@ const mutations = {
         state.localTick += 1;
         state.barTick += 1;
         state.localTick = state.localTick % 16;
-        state.barTick = state.globalTick / 16; //C: we want integer division here
+        // ? Christos : we want integer division here ?
+        state.barTick = state.globalTick / 16; 
     },
     incrementTickDelayed (state) {
         state.localTickDelayed += 1;

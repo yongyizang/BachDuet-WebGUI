@@ -170,7 +170,7 @@ export default {
       // If there is the noteblock we are looking for:
       if (this.currentNotes[selector] && this.currentNotes[selector].length) {
         const note = this.currentNotes[selector].shift();
-        console.log(note);
+        // console.log(note);
         // Change its scale and position.
         note.plane.scale.y = Math.max(
           this.camera.position.y - note.position,

@@ -42,15 +42,15 @@ self.temperature = 1e-08;
 self.counter = 0;
 
 onmessage = function(e) {
-    // if (warmUp == 0){
     var data = e.data
     // console.log("just entered", " counter is ", self.counter, " tick is ", data['tick'])
-    var t1 = performance.now();
+    // var t1 = performance.now();
     // console.log("counter is ", self.counter, " tick is ", data['tick'], "\n", data['aiInp'],  "\n", data['humanInpMidi']);
 
     // console.assert(self.lastAiPrediction['aiInpMidi']==data['aiInp'].midiArticInd)
-    var midiInp = tf.tensor2d([[data['aiInp'].midiArticInd, data['humanInpMidi']]]);
-    var cpcInp = tf.tensor2d([[data['aiInp'].cpc, data['humanInpCpc']]]); // data['aiInp']['cpc']
+
+    var midiInp = tf.tensor2d([[data['aiInp'].midiArticInd, data['humanInp'].midiArticInd]]);//data['humanInpMidi']]]);
+    var cpcInp = tf.tensor2d([[data['aiInp'].cpc, data['humanInp'].cpc]]); //data['humanInpCpc']]]); 
     var rhyInp = tf.tensor2d([[data['rhythmInd']]]);
 
     // console.log( " COUNTER is ", self.counter, "midiInp" + midiInp.arraySync() + "cpcInp" + cpcInp.arraySync() + "rhyInp" + rhyInp.arraySync())
@@ -65,7 +65,6 @@ onmessage = function(e) {
 
     var out = self.modelLstm.predict([totalInp, self.states1A, self.states1B, self.states2A, self.states2B]);
 
-
     self.states1A = out[1];
     self.states1B = out[2];
     self.states2A = out[3];
@@ -77,7 +76,7 @@ onmessage = function(e) {
     var predictedNote = tf.multinomial(logits_temp, 2);
 
     // console.log('counter is ', self.counter, ' pred is ', predictedNote.dataSync()[0], ' mean logit ', logits.mean().dataSync()[0]);
-    var t2 = performance.now();
+    // var t2 = performance.now();
     // console.log("neuralNet: " + (t2`-t1) + " tick " + tick);
     var output = {
         'tick' : data['tick'],

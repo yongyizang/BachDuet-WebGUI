@@ -1,8 +1,12 @@
 import Vue from "vue";
 import { createRange } from "../../library/music"
 
+// TODO the names of most of the buffers/arrays/maps are not representative of 
+// their actual functionality
+
 // Create a range of notes from A0 to C8.
-const notes = createRange("A0", "C8") // TODO we can use Range.chromatic(["C2", "C3"], { sharps: true }); from the tonaljs package
+// TODO we can use Range.chromatic(["C2", "C3"], { sharps: true }); from the tonaljs package
+const notes = createRange("A0", "C8") 
 // const midiNumbers = [...Array(88).keys()].map(i => i + 21);
 const measureTicks = [...Array(16).keys()];
 // Put all the notes into the notemap, then set all default values to false.
@@ -17,7 +21,11 @@ const noteMapforPiano = notes.reduce((map, note) => {
 }, {})
 
 const noteMapforAI = measureTicks.reduce((map, tick) => {
-    map[tick] = {"midi" : 0, "artic" : 1, "cpc" : 12, "midiArticInd" : 96}
+    map[tick] = {"midi" : 0, "artic" : 1, "cpc" : 12, "midiArticInd" : 96, "note" : "R"}
+    return map
+}, {})
+const noteMapforHuman = measureTicks.reduce((map, tick) => {
+    map[tick] = {"midi" : 0, "artic" : 1, "cpc" : 12, "midiArticInd" : 96, "note" : "R"}
     return map
 }, {})
 // const note2MidiMap = notes.reduce((map, note) => {
@@ -28,16 +36,28 @@ const noteMapforAI = measureTicks.reduce((map, tick) => {
 // note as observables
 const pianoStateMap = new Vue.observable(noteMapforPiano)
 const aiPredictionsMap = new Vue.observable(noteMapforAI)
+const humanQuantizedInputMap = new Vue.observable(noteMapforHuman)
 // const lastNotePlayedObs = new Vue.observable("")
 // const lastNotePlayedOnTickObs = new Vue.observable(-1)
 
 const state = {
     // Define all basic states.
     pianoState: pianoStateMap,
+    // The last note (continuous) the human pressed on the keyboard
     lastNotePlayed: "",
     lastNotePlayedOnTick: -1,
+    // The last quantized note the human played
+    lastHumanNote : {"midi" : -1, "cpc" : -1, "name" : "", "dur" : 0, "startTick" : -1},
+    // The last note the AI played (quantized by default)
+    lastAINote :  {"midi" : -1, "cpc" : -1, "name" : "", "dur" : 0, "startTick" : -1},
+    // A buffer where we push the (continuous) notes the human plays.
     notesBuffer: [],
     aiPredictions: aiPredictionsMap,
+    humanQuantizedInput: humanQuantizedInputMap,
+    // The dictionary that converts note tokens to the indexes that the AI understands
+    // For example, the rest token "0_1" is 96
+    // other tokens are "60_1" (a C4 onset)
+    // or "60_0" (a C4 hold)
     tokensDict: {}
 }
 
@@ -59,6 +79,9 @@ const getters = {
     getAiPredictionFor: (state) => (currentTick) => {
         return state.aiPredictions[currentTick]
     },
+    getHumanInputFor: (state) => (currentTick) => {
+        return state.humanQuantizedInput[currentTick]
+    },
     // trivial getters that just get stuff
     getPianoState (state){
         return state.pianoState;
@@ -77,15 +100,107 @@ const getters = {
     },
     getTokensDict (state){
         return state.tokensDict;
+    },
+    getLastHumanNoteQuantized (state){
+        return state.lastHumanNote;
     }
 }
+
 const actions = {
-    newAiPrediction ({ commit, state, getters }, args) {
-        // pred is a dict with keys "currentTick", and "prediction"
-        var nextTick = getters.getNextLocalTick(args.currentTick);
-        state.aiPredictions[nextTick] = args.prediction;
-        // console.log("Stored ", args.prediction.midi + '_' + args.prediction.artic);
-        // console.log("    to be played at ", nextTick)
+    newAiPrediction ({ commit, state, getters }, aiPrediction) {
+        // aiPrediction is a dict with keys "midiArticInd" and "tick"
+
+        // first convert the midiArticInd to the token midiArtic 
+        // using the tokensDict
+        var midiArticInd = aiPrediction.midiArticInd
+        // the tick that the AI run to make this prediction
+        // Note that this prediction is to be played at the next tick
+        var tick = aiPrediction.tick
+        var midiArtic = getters.getTokensDict.midiArtic.index2token[midiArticInd];
+        // split the midiArtic token to get the midi number and the articulation
+        var midi = parseInt(midiArtic.split("_")[0]);
+        var artic = parseInt(midiArtic.split("_")[1]);
+        var cpc = midi % 12;
+        if (midi == 0) {
+          cpc = 12;
+        }
+        var nextTick = getters.getNextLocalTick(tick);
+        // store the predicted note in the aiPredictions 
+        state.aiPredictions[nextTick] =  {  "midi" : midi, 
+                                            "artic" : artic, 
+                                            "cpc" : cpc, 
+                                            "midiArticInd" : midiArticInd
+                                            // TODO check if I want those also
+                                            // "note" : "R"
+                                        }
+        // now update the lastAINote
+        if (midi == 0) {
+            if (state.lastAINote.midi == 0){
+                state.lastAINote.dur += 1
+            }
+            else {
+                state.lastAINote.midi = midi;
+                state.lastAINote.cpc = cpc;
+                // state.lastAINote.name = name;
+                state.lastAINote.dur = 1;
+                state.lastAINote.startTick = getters.getGlobalTick;
+            }
+        }
+        else {
+            if (artic == 1){
+                state.lastAINote.midi = midi;
+                state.lastAINote.cpc = cpc;
+                // state.lastAINote.name = name;
+                state.lastAINote.dur = 1;
+                state.lastAINote.startTick = getters.getGlobalTick;
+            }
+            else {
+                // it should always be
+                console.assert(midi === state.lastAINote.midi)
+                state.lastAINote.dur += 1
+            }
+        }
+
+    },
+    newHumanInputQuantized ({ commit, state, getters }, args) {
+        
+        // console.log(args)
+        var midiArtic = args.midi.toString() + '_' + args.artic.toString()
+        var midiArticInd = getters.getTokensDict.midiArtic.token2index[midiArtic]
+        state.humanQuantizedInput[getters.getLocalTick] = { "midi" : args.midi, 
+                                                            "artic" : args.artic, 
+                                                            "cpc" : args.cpc, 
+                                                            "midiArticInd" : midiArticInd
+                                                            // TODO check if I want those also
+                                                            // "note" : "R"
+                                                        }
+        if (args.midi === 0){
+            if (state.lastHumanNote.midi === 0){
+                state.lastHumanNote.dur += 1
+            }
+            else {
+                state.lastHumanNote.midi = args.midi;
+                state.lastHumanNote.cpc = args.cpc;
+                state.lastHumanNote.name = args.name;
+                state.lastHumanNote.dur = 1;
+                state.lastHumanNote.startTick = getters.getGlobalTickDelayed();
+            }
+        }
+        else {
+            if (args.artic == 1){
+                state.lastHumanNote.midi = args.midi;
+                state.lastHumanNote.cpc = args.cpc;
+                state.lastHumanNote.name = args.name;
+                state.lastHumanNote.dur = 1;
+                state.lastHumanNote.startTick = getters.getGlobalTickDelayed();
+            }
+            else {
+                // it should always be
+                console.assert(args.midi === state.lastHumanNote.midi)
+                state.lastHumanNote.dur += 1
+            }
+        }
+
     },
 
     /*
@@ -93,52 +208,29 @@ const actions = {
         When a note is "on", turn on pianoState and bufferState for that note, then set the last note played to that note.
         When a note is "off", turn off pianoState
     */
-   noteOn ({ commit, state, getters }, note) {
+    noteOn ({ commit, state, getters }, note) {
+        // note is a string. ie "C5"
+        // console.log(getters.getGlobalTickDelayed())
         state.pianoState[note] = true;
-        // state.bufferState[note] = true;
         state.notesBuffer.push(note);
         state.lastNotePlayed = note;
-        // TODO: for the tick centering feature. use getLockTickDelayed
+        // ! does it need parenthesis ? 
         // state.lastNotePlayedOnTick = getters.getGlobalTick;	
-        state.lastNotePlayedOnTick = getters.getGlobalTickDelayed;
-                        // console.log('in vuex ' +state.lastNotePlayedOnTick);
-                        // console.log("buffer is " + state.notesBuffer)
-        // console.log('NoteOn ', state.lastNotePlayed, '\n',
-        //             '   on global tick ', state.lastNotePlayedOnTick ,  '\n',
-        //             '   on local tick ', getters.getLocalTick, '\n',
-        //             'NotesBuffer ' , state.notesBuffer
-        //         );
+        state.lastNotePlayedOnTick = getters.getGlobalTickDelayed();
+        
     },
     noteOff ({ commit, state, getters }, note) {
         state.pianoState[note] = false;
-            // console.log('NoteOff ', note, '\n',
-            //             '   on global tick ', getters.getGlobalTick ,  '\n',
-            //             '   on local tick ', getters.getLocalTick, '\n',
-            //             // 'NotesBuffer ' , state.notesBuffer 
-            // );
     },
 }
 
 const mutations = {
-
-    // noteOnMut (state, note) {
-    //     state.pianoState[note] = true;
-    //     // state.bufferState[note] = true;
-    //     state.notesBuffer.push[note];
-    //     state.lastNotePlayed = note;
-    //     // TODO: for the tick centering feature. use getLockTickDelayed
-    //     state.lastNotePlayedOnTick = state.getGlobalTick;
-        
-    // },
-    
     clearNotesBuffer (state) {
         state.notesBuffer = []
-        // how about ?
-        // Object.assign(state.notesBuffer, [])
     }, 
     setTokensDict (state, tokensDictFromFile){
         state.tokensDict = tokensDictFromFile;
-    }
+    },
 }
 
 export default {

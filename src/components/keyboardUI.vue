@@ -152,7 +152,7 @@ export default {
 
     toggleAttack(currentNote) {
       // Trigger the sampler.
-      console.log("The CURRENT note IS ", currentNote)
+      // console.log("The CURRENT note IS ", currentNote)
       // set the second parameter here to False for human.
       this.$root.$refs.gameUI.keyDown(currentNote, true);
       this.$store.dispatch('noteOn', currentNote);
@@ -161,7 +161,7 @@ export default {
 
     toggleRelease(currentNote) {
       // Release the sampler that's been triggered.
-      console.log("The RELEASED note IS ", currentNote)
+      // console.log("The RELEASED note IS ", currentNote)
       this.$root.$refs.gameUI.keyUp(currentNote, true);
       this.$store.dispatch('noteOff', currentNote);
       pianoSampler.triggerRelease(currentNote, Tone.now());
