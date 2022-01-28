@@ -24,96 +24,96 @@ function NoteFormatter(note) {
     return note.charAt(0).toLowerCase() + "/" + note.substring(1, note.length);
   }
 }
-function DurationFormatter(duration){
-      // 1 --> 16
-      // 2 --> 8
-      // 3 --> 8.
-      // 4 --> 4 or q
-      // 5 --> 4 + need for extra tied sixteenth
-      // 6 --> 4.
-      // 7 --> 4. + need for extra tied sixteenth
-      // 8 --> 2 or h
-      // 9 --> 8 + need for extra tied sixteenth
-      // 10 --> 8 + need for extra tied eight
-      // 11 --> 8 + need for extra tied eigth dotted
-      // 12 --> 8.
-      // 13 --> 8. + need for extra tied sixteenth
-      // 14 --> 8. + need for extra tied eigth
-      // 15 --> 8. + need for extra tied eigth dotted
-      // 16 --> 1 or w
-      var durationTokens;
-      var newDurations;
-      switch (duration) {
-        case 1:
-          durationTokens = ["16"]
-          newDurations = [1]
-          break;
-        case 2:
-          durationTokens = ["8"]
-          newDurations = [2]
-          break;
-        case 3:
-          durationTokens = ["8d"]
-          newDurations = [3]
-          break;
-        case 4:
-          durationTokens = ["4"]
-          newDurations = [4]
-          break;
-        case 5:
-          durationTokens = ["4","16"]
-          newDurations = [4, 1]
-          break;
-        case 6:
-          durationTokens = ["4d"]
-          newDurations = [6]
-          break;
-        case 7:
-          durationTokens = ["4d","16"]
-          newDurations = [6,1]
-          break;
-        case 8:
-          durationTokens = ["2"]
-          newDurations = [8]
-          break;
-        case 9:
-          durationTokens = ["2","16"]
-          newDurations = [8,1]
-          break;
-        case 10:
-          durationTokens = ["2","8"]
-          newDurations = [8,2]
-          break;
-        case 11:
-          durationTokens = ["2","8d"]
-          newDurations = [8,3]
-          break;
-        case 12:
-          durationTokens = ["2d"]
-          newDurations = [12]
-          break;
-        case 13:
-          durationTokens = ["2d","16"]
-          newDurations = [12,1]
-          break;
-        case 14:
-          durationTokens = ["2d","8"]
-          newDurations = [12,2]
-          break;
-        case 15:
-          durationTokens = ["2d","8d"]
-          newDurations = [12,3]
-          break;
-        case 16:
-          durationTokens = ["1"]
-          newDurations = [16]
-          break;
-        
-        default:
-          console.log("Invalid duration");
-        }
-      return [durationTokens, newDurations];
-    }
+function DurationFormatter(duration) {
+  // 1 --> 16
+  // 2 --> 8
+  // 3 --> 8.
+  // 4 --> 4 or q
+  // 5 --> 4 + need for extra tied sixteenth
+  // 6 --> 4.
+  // 7 --> 4. + need for extra tied sixteenth
+  // 8 --> 2 or h
+  // 9 --> 8 + need for extra tied sixteenth
+  // 10 --> 8 + need for extra tied eight
+  // 11 --> 8 + need for extra tied eigth dotted
+  // 12 --> 8.
+  // 13 --> 8. + need for extra tied sixteenth
+  // 14 --> 8. + need for extra tied eigth
+  // 15 --> 8. + need for extra tied eigth dotted
+  // 16 --> 1 or w
+  var durationTokens;
+  var newDurations;
+  switch (duration) {
+    case 1:
+      durationTokens = ["16"];
+      newDurations = [1];
+      break;
+    case 2:
+      durationTokens = ["8"];
+      newDurations = [2];
+      break;
+    case 3:
+      durationTokens = ["8d"];
+      newDurations = [3];
+      break;
+    case 4:
+      durationTokens = ["4"];
+      newDurations = [4];
+      break;
+    case 5:
+      durationTokens = ["4", "16"];
+      newDurations = [4, 1];
+      break;
+    case 6:
+      durationTokens = ["4d"];
+      newDurations = [6];
+      break;
+    case 7:
+      durationTokens = ["4d", "16"];
+      newDurations = [6, 1];
+      break;
+    case 8:
+      durationTokens = ["2"];
+      newDurations = [8];
+      break;
+    case 9:
+      durationTokens = ["2", "16"];
+      newDurations = [8, 1];
+      break;
+    case 10:
+      durationTokens = ["2", "8"];
+      newDurations = [8, 2];
+      break;
+    case 11:
+      durationTokens = ["2", "8d"];
+      newDurations = [8, 3];
+      break;
+    case 12:
+      durationTokens = ["2d"];
+      newDurations = [12];
+      break;
+    case 13:
+      durationTokens = ["2d", "16"];
+      newDurations = [12, 1];
+      break;
+    case 14:
+      durationTokens = ["2d", "8"];
+      newDurations = [12, 2];
+      break;
+    case 15:
+      durationTokens = ["2d", "8d"];
+      newDurations = [12, 3];
+      break;
+    case 16:
+      durationTokens = ["1"];
+      newDurations = [16];
+      break;
+
+    default:
+      console.log("Invalid duration");
+  }
+  return [durationTokens, newDurations];
+}
 
 export default {
   name: "scoreUI",
@@ -126,6 +126,8 @@ export default {
       lineColor: "#000000",
       userNoteColor: "#000000",
       AINoteColor: "#FFFFFF",
+      currentBarNumber: 0,
+
       screenWidth: document.body.clientWidth,
       VF: Vex.Flow,
       grandStaffDiv: null,
@@ -136,15 +138,15 @@ export default {
       lastSvgGroupBassBar: null,
       lastSvgGroupTreble: null,
       lastSvgGroupBass: null,
-      lastSvgGroupTrebleXOffset : null,
-      lastSvgGroupBassXOffset : null,
+      lastSvgGroupTrebleXOffset: null,
+      lastSvgGroupBassXOffset: null,
 
       tickContexts: [],
       context: null,
       staves: [],
       notes: null,
       durations: null,
-      lastXOffsetOnBar : null, // TODO delete that after I'm done
+      lastXOffsetOnBar: null, // TODO delete that after I'm done
       viewX: 30,
       xTreble: 30,
       xBass: 30,
@@ -203,7 +205,6 @@ export default {
       });
       trebleStave.setContext(grandStaffContext).draw();
       bassStave.setContext(grandStaffContext).draw();
-      // console.log(trebleStave.getStyle());
 
       var brace = new this.VF.StaveConnector(trebleStave, bassStave).setType(3);
       var lineLeft = new this.VF.StaveConnector(trebleStave, bassStave).setType(
@@ -341,8 +342,8 @@ export default {
 
       var AINote = new vm.VF.StaveNote({
         clef: "treble", //legacy! don't touch don't change to bass or UI would behave weirdly. FIX IT LATER
-        keys: (AINoteName === "C-1") ? ["b/4"] : [NoteFormatter(AINoteName)],
-        duration: (AINoteName === "C-1") ? "16r" : "16",
+        keys: AINoteName === "C-1" ? ["b/4"] : [NoteFormatter(AINoteName)],
+        duration: AINoteName === "C-1" ? "16r" : "16",
       }).setStyle({
         fillStyle: this.AINoteColor,
         strokeStyle: this.AINoteColor,
@@ -366,7 +367,7 @@ export default {
     },
 
     draw() {
-      console.log(this.xTreble)
+      console.log(this.xTreble);
       // Yongyi: Extremely Untidy, yet completely necessary
       var thisTickUserNotes = this.userNotesFromThisTick();
       var thisTickAINotes = this.AINotesFromThisTick();
@@ -392,7 +393,6 @@ export default {
       this.tickContexts[0].setX(this.xTreble);
       this.tickContexts[1].setX(this.xBass);
 
-      
       thisTickUserNotes[0].draw();
       thisTickUserNotes[1].draw();
       thisTickAINotes[0].draw();
@@ -400,11 +400,17 @@ export default {
 
       // console.log("drawing number in ",this.$store.getters.getLocalTick)
       // we ll use this method to draw the bar number
-      this.context.fillText("0" + this.$store.getters.getLocalTick, this.xTreble, this.staves[0].getYForLine(0) )
+      this.context.fillText(
+        "0" + this.$store.getters.getLocalTick,
+        this.xTreble,
+        this.staves[0].getYForLine(0)
+      );
 
       if (this.$store.getters.getLocalTickDelayed % 16 === 0) {
-        
-        console.log("drawing line in ",this.$store.getters.getLocalTickDelayed)
+        console.log(
+          "drawing line in ",
+          this.$store.getters.getLocalTickDelayed
+        );
         // If it's time to draw a barline
         let thickness = 1;
         let topY = this.staves[0].getYForLine(0);
@@ -412,7 +418,7 @@ export default {
         let x_shift = 60;
         // Yongyi: what is this 50 here?
         this.context.fillRect(
-          this.xTreble,// + 0 + x_shift,
+          this.xTreble, // + 0 + x_shift,
           topY,
           thickness,
           botY - topY
@@ -429,83 +435,82 @@ export default {
       }
     },
 
-    
-    formatQuantizedNote(quantNoteDict, clef = "treble"){
+    formatQuantizedNote(quantNoteDict, clef = "treble") {
       const vm = this;
+
       var formName;
       var extraR = "";
-      if (quantNoteDict.midi === 0){
-        formName = clef == "treble" ? "b/4" : "d/2"
-        extraR = "r"
+      
+      // Get formatted name
+      if (quantNoteDict.midi === 0) {
+        formName = (clef == "treble") ? "b/4" : "d/2";
+        extraR = "r";
+      } else {
+        formName = NoteFormatter(Note.fromMidiSharps(quantNoteDict.midi));
       }
-      else{
-        formName = NoteFormatter(Note.fromMidiSharps(quantNoteDict.midi))
-      }
+
+      // get formatted duration
       var durationTokens;
       var durations;
-      [durationTokens, durations] = DurationFormatter(quantNoteDict.dur)
-      console.log(formName, " ", durationTokens)
-      var notes = []
-      for (let i=0; i<durationTokens.length;i++){
+      [durationTokens, durations] = DurationFormatter(quantNoteDict.dur);
+      console.log(formName, " ", durationTokens);
+      var notes = [];
+      for (let i = 0; i < durationTokens.length; i++) {
         let newNote = new vm.VF.StaveNote({
-                        clef: clef,
-                        keys:
-                          [formName],
-                          duration: durationTokens[i]+extraR,
-                      })
-                      .setStyle({
-                        fillStyle: this.userNoteColor,
-                        strokeStyle: this.userNoteColor,
-                      });
-        if (durationTokens[i].includes("d")){
-          newNote.addDotToAll()
+          clef: clef,
+          keys: [formName],
+          duration: durationTokens[i] + extraR,
+        }).setStyle({
+          fillStyle: this.userNoteColor,
+          strokeStyle: this.userNoteColor,
+        });
+        if (durationTokens[i].includes("d")) {
+          newNote.addDotToAll();
         }
         notes.push(newNote);
-
       }
-      return {"notes":notes, "durations":durations};
+      return { notes: notes, durations: durations };
     },
 
     // TODO drawTop and drawBottom are almost the same. Find a way so we don't have to
     // repeat code
 
-    drawTop(quantNoteDict){
+    drawTop(quantNoteDict) {
       var notesToDraw;
       var durations;
-      var processed= this.formatQuantizedNote(quantNoteDict, "treble");
+      var processed = this.formatQuantizedNote(quantNoteDict, "treble");
       notesToDraw = processed.notes;
       durations = processed.durations;
       this.tickContexts[0].setX(this.xTreble);
 
-      if (durations.length === 1 && durations[0] === 1){
+      if (durations.length === 1 && durations[0] === 1) {
         // this.xTreble += this.tickStepPixels;
         this.lastSvgGroupTrebleBar = this.$store.getters.getBarTick;
-      }
-      else {
-        if (this.lastSvgGroupTreble){
-          this.lastSvgGroupTreble.remove()
+      } else {
+        if (this.lastSvgGroupTreble) {
+          this.lastSvgGroupTreble.remove();
           this.xTreble = this.lastSvgGroupTrebleXOffset;
           this.tickContexts[0].setX(this.xTreble);
         }
       }
       const group = this.context.openGroup();
-      
+
       this.lastSvgGroupTreble = group;
       this.lastSvgGroupTrebleXOffset = this.xTreble;
-      
-      for (let i=0; i<notesToDraw.length; i++){
-        
+
+      for (let i = 0; i < notesToDraw.length; i++) {
         let currentNote = notesToDraw[i];
         // console.log(i, " ", currentNote);
         currentNote.setStave(this.staves[0]);
         currentNote.setContext(this.context);
         this.tickContexts[0].addTickable(currentNote);
         currentNote.preFormat();
-        
-        currentNote.draw()
-        this.xTreble += this.tickStepPixels * durations[i]
+
+        currentNote.draw();
+        this.xTreble += this.tickStepPixels * durations[i];
         this.tickContexts[0].setX(this.xTreble);
       }
+
       // TODO : for some uknown reason it doesn't work
       // if (notesToDraw.length == 2){
       //     var curve = new this.VF.Curve({from : notesToDraw[0],
@@ -526,20 +531,19 @@ export default {
       this.context.closeGroup();
     },
 
-    drawBottom(quantNoteDict){
+    drawBottom(quantNoteDict) {
       var notesToDraw;
       var durations;
-      var processed= this.formatQuantizedNote(quantNoteDict, "bass");
+      var processed = this.formatQuantizedNote(quantNoteDict, "bass");
       notesToDraw = processed.notes;
       durations = processed.durations;
       this.tickContexts[1].setX(this.xBass);
 
-      if (durations.length === 1 && durations[0] === 1){
+      if (durations.length === 1 && durations[0] === 1) {
         // this.xTreble += this.tickStepPixels;
-      }
-      else {
-        if (this.lastSvgGroupBass){
-          this.lastSvgGroupBass.remove()
+      } else {
+        if (this.lastSvgGroupBass) {
+          this.lastSvgGroupBass.remove();
           this.xBass = this.lastSvgGroupBassXOffset;
           this.tickContexts[1].setX(this.xBass);
         }
@@ -547,16 +551,16 @@ export default {
       const group = this.context.openGroup();
       this.lastSvgGroupBass = group;
       this.lastSvgGroupBassXOffset = this.xBass;
-      for (let i=0; i<notesToDraw.length; i++){
+
+      for (let i = 0; i < notesToDraw.length; i++) {
         let currentNote = notesToDraw[i];
-        // console.log(i, " ", currentNote);
         currentNote.setStave(this.staves[1]);
         currentNote.setContext(this.context);
         this.tickContexts[1].addTickable(currentNote);
         currentNote.preFormat();
-        
-        currentNote.draw()
-        this.xBass += this.tickStepPixels * durations[i]
+
+        currentNote.draw();
+        this.xBass += this.tickStepPixels * durations[i];
         this.tickContexts[1].setX(this.xBass);
       }
       this.context.closeGroup();
@@ -568,43 +572,39 @@ export default {
       this.drawTop(humanQuantNoteDict);
       this.drawBottom(aiQuantNoteDict);
 
-      // we ll use this method to draw the bar number
-      this.context.fillText("0" + this.$store.getters.getLocalTick, this.xTreble, this.staves[0].getYForLine(0) )
-
-      // here we draw the bar line
+      // here we draw the barline and bar-number
       if (this.$store.getters.getLocalTickDelayed % 16 === 0) {
-        // console.log("drawing line in ",this.$store.getters.getLocalTickDelayed)
-        // If it's time to draw a barline
+        // Draw Barnumber
+        this.currentBarNumber += 1;
+        this.context.font="22px Georgia";
+        this.context.fillText(
+          this.currentBarNumber,
+          this.xTreble,
+          this.staves[0].getYForLine(0) - 10
+        );
 
+        // Draw Barline
         let thickness = 1;
         let topY = this.staves[0].getYForLine(0);
         let botY = this.staves[1].getYForLine(this.staves[1].getNumLines() - 1);
-        // let x_shift = 60;
-        // Yongyi: what is this 50 here?
         this.context.fillRect(
-          this.xTreble,// + 0 + x_shift,
+          this.xTreble,
           topY,
           thickness,
           botY - topY
         );
-        // TODO delete that / only for debugging
-        if (this.lastXOffsetOnBar){
-          console.log("we moved ", this.xTreble - this.lastXOffsetOnBar)
+        if (this.lastXOffsetOnBar) {
+          console.log("we moved ", this.xTreble - this.lastXOffsetOnBar);
         }
         this.lastXOffsetOnBar = this.xTreble;
       }
 
-      // this.xTreble += this.tickStepPixels;
-      // this.xBass += this.tickStepPixels;
-
-      // // find the position of the next note in relation with the screenWidth
+      // find the position of the next note in relation with the screenWidth
       var pos = (this.xTreble - this.viewX) / this.screenWidth;
       if (pos > this.latestNotePosition) {
         this.scrollEnabled = true;
       }
     },
-
-
   },
 };
 </script>
