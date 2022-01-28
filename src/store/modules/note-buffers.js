@@ -49,7 +49,7 @@ const state = {
     // The last quantized note the human played
     lastHumanNote : {"midi" : -1, "cpc" : -1, "name" : "", "dur" : 0, "startTick" : -1},
     // The last note the AI played (quantized by default)
-    lastAINote :  {"midi" : -1, "cpc" : -1, "name" : "", "dur" : 0, "startTick" : -1},
+    lastAINote :  {"midi" : 0, "cpc" : 12, "name" : "R", "dur" : 1, "startTick" : -1},
     // A buffer where we push the (continuous) notes the human plays.
     notesBuffer: [],
     aiPredictions: aiPredictionsMap,
@@ -103,6 +103,9 @@ const getters = {
     },
     getLastHumanNoteQuantized (state){
         return state.lastHumanNote;
+    },
+    getLastAINoteQuantized (state){
+        return state.lastAINote;
     }
 }
 

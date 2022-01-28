@@ -132,8 +132,13 @@ export default {
       grandStaffRenderer: null,
       renderer: null,
       targetDiv: null,
-      lastSvgGroup: null,
-      lastSvgGroupXOffset : null,
+      lastSvgGroupTrebleBar: null,
+      lastSvgGroupBassBar: null,
+      lastSvgGroupTreble: null,
+      lastSvgGroupBass: null,
+      lastSvgGroupTrebleXOffset : null,
+      lastSvgGroupBassXOffset : null,
+
       tickContexts: [],
       context: null,
       staves: [],
@@ -424,19 +429,17 @@ export default {
       }
     },
 
-
-    getHumanQuantizedNote(){
+    
+    formatQuantizedNote(quantNoteDict, clef = "treble"){
       const vm = this;
-      var quantNoteDict = this.$store.getters.getLastHumanNoteQuantized;
-      // var noteName = Note.fromMidiSharps(quantNoteDict.midi)
       var formName;
       var extraR = "";
       if (quantNoteDict.midi === 0){
-        formName = "b/4"
+        formName = clef == "treble" ? "b/4" : "d/2"
         extraR = "r"
       }
       else{
-        formName = NoteFormatter(quantNoteDict.name)
+        formName = NoteFormatter(Note.fromMidiSharps(quantNoteDict.midi))
       }
       var durationTokens;
       var durations;
@@ -445,7 +448,7 @@ export default {
       var notes = []
       for (let i=0; i<durationTokens.length;i++){
         let newNote = new vm.VF.StaveNote({
-                        clef: "treble",
+                        clef: clef,
                         keys:
                           [formName],
                           duration: durationTokens[i]+extraR,
@@ -460,63 +463,110 @@ export default {
         notes.push(newNote);
 
       }
-
-      // if (quantNoteDict.dur === 1){
-      //   // it's a new note --> draw it as a 16th
-      // }
-      // else if (quantNoteDict.dur === 0){
-      //   // it shouldn't enter here. if it does, it's a BUG
-      //   throw 'duration of note to draw is 0';
-      // }
-      // else{
-      //   // it's an old note --> retrieve the svg item, and replace it
-      //   // with the new duration
-      
-      // }
       return {"notes":notes, "durations":durations};
-
-
     },
-    getAIQuantizedNote(){
 
-    },
-    draw2() {
+    // TODO drawTop and drawBottom are almost the same. Find a way so we don't have to
+    // repeat code
+
+    drawTop(quantNoteDict){
       var notesToDraw;
       var durations;
-      var processed= this.getHumanQuantizedNote();
+      var processed= this.formatQuantizedNote(quantNoteDict, "treble");
       notesToDraw = processed.notes;
       durations = processed.durations;
       this.tickContexts[0].setX(this.xTreble);
 
       if (durations.length === 1 && durations[0] === 1){
         // this.xTreble += this.tickStepPixels;
+        this.lastSvgGroupTrebleBar = this.$store.getters.getBarTick;
       }
       else {
-        if (this.lastSvgGroup){
-          this.lastSvgGroup.remove()
-          this.xTreble = this.lastSvgGroupXOffset;
+        if (this.lastSvgGroupTreble){
+          this.lastSvgGroupTreble.remove()
+          this.xTreble = this.lastSvgGroupTrebleXOffset;
           this.tickContexts[0].setX(this.xTreble);
         }
       }
       const group = this.context.openGroup();
-      this.lastSvgGroup = group;
-      this.lastSvgGroupXOffset = this.xTreble;
-      var localXOffset = 0;
-      console.log("we have ", notesToDraw.length)
+      
+      this.lastSvgGroupTreble = group;
+      this.lastSvgGroupTrebleXOffset = this.xTreble;
+      
       for (let i=0; i<notesToDraw.length; i++){
+        
         let currentNote = notesToDraw[i];
-        console.log(i, " ", currentNote);
+        // console.log(i, " ", currentNote);
         currentNote.setStave(this.staves[0]);
         currentNote.setContext(this.context);
         this.tickContexts[0].addTickable(currentNote);
         currentNote.preFormat();
         
         currentNote.draw()
-        // localXOffset = this.tickStepPixels * durations[i];
         this.xTreble += this.tickStepPixels * durations[i]
         this.tickContexts[0].setX(this.xTreble);
       }
+      // TODO : for some uknown reason it doesn't work
+      // if (notesToDraw.length == 2){
+      //     var curve = new this.VF.Curve({from : notesToDraw[0],
+      //                                   to : notesToDraw[1],
+      //                                   options: {
+      //                                         cps: [
+      //                                           { x: 0, y: 20 },
+      //                                           { x: 0, y: 20 },
+      //                                         ],
+      //                                         invert: true,
+      //                                         position_end: 'nearTop',
+      //                                         y_shift: 20,
+      //                                       },
+      //                                   });
+      //     curve.setContext(this.context);
+      //     curve.draw()
+      // }
       this.context.closeGroup();
+    },
+
+    drawBottom(quantNoteDict){
+      var notesToDraw;
+      var durations;
+      var processed= this.formatQuantizedNote(quantNoteDict, "bass");
+      notesToDraw = processed.notes;
+      durations = processed.durations;
+      this.tickContexts[1].setX(this.xBass);
+
+      if (durations.length === 1 && durations[0] === 1){
+        // this.xTreble += this.tickStepPixels;
+      }
+      else {
+        if (this.lastSvgGroupBass){
+          this.lastSvgGroupBass.remove()
+          this.xBass = this.lastSvgGroupBassXOffset;
+          this.tickContexts[1].setX(this.xBass);
+        }
+      }
+      const group = this.context.openGroup();
+      this.lastSvgGroupBass = group;
+      this.lastSvgGroupBassXOffset = this.xBass;
+      for (let i=0; i<notesToDraw.length; i++){
+        let currentNote = notesToDraw[i];
+        // console.log(i, " ", currentNote);
+        currentNote.setStave(this.staves[1]);
+        currentNote.setContext(this.context);
+        this.tickContexts[1].addTickable(currentNote);
+        currentNote.preFormat();
+        
+        currentNote.draw()
+        this.xBass += this.tickStepPixels * durations[i]
+        this.tickContexts[1].setX(this.xBass);
+      }
+      this.context.closeGroup();
+    },
+
+    draw2() {
+      var humanQuantNoteDict = this.$store.getters.getLastHumanNoteQuantized;
+      var aiQuantNoteDict = this.$store.getters.getLastAINoteQuantized;
+      this.drawTop(humanQuantNoteDict);
+      this.drawBottom(aiQuantNoteDict);
 
       // we ll use this method to draw the bar number
       this.context.fillText("0" + this.$store.getters.getLocalTick, this.xTreble, this.staves[0].getYForLine(0) )
