@@ -679,8 +679,8 @@ export default {
 #mainLoadingScreen {
   position: absolute;
   z-index: 1;
-  height: 100vh;
-  width: 100%;
+  height: calc(100% - 26px);
+  width: calc(100% - 26px);
   border: 13px solid rgb(89, 50, 54);
 }
 
