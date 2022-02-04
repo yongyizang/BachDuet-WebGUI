@@ -1,6 +1,6 @@
 <template>
   <div ref="score" id="pianoScores">
-    <div id="scoreWrapper">
+    <div  v-touch:swipe.up="triggerCollapse" id="scoreWrapper">
       <div id="fadeBlockStart"></div>
     <div id="grandStaff"></div>
     <div id="noteBox"></div>
