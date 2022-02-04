@@ -350,6 +350,7 @@ export default {
     entryProgram() {
       const vm = this;
       vm.$refs.mainLoadingScreen.classList.add("fade-out");
+      vm.$refs.mainLoadingScreen.style.display = "none";
       vm.$refs.mainContent.style.display = "block";
     },
     // neuralWorker's callback. Called every tick, and processes the AI's output
