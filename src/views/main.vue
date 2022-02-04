@@ -358,9 +358,7 @@ export default {
       const vm = this;
       const workerStatus = vm.$refs.workerStatus;
       if (
-        e.data == "Neural Network is loaded!" ||
-        e.data.includes("Network is warming up. Current round") ||
-        e.data == "Neural Network is ready to play with you!"
+       typeof e.data === 'string' || e.data instanceof String
       ) {
         if (e.data == "Neural Network is ready to play with you!") {
           vm.$refs.entryBtn.classList.add("fade-in");
