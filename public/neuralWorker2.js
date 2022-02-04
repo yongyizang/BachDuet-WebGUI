@@ -3,11 +3,10 @@ importScripts("/tf.min.js")
 const CHECKPOINT_BASE_URL = "/checkpoints/"
  
 async function loadModels(){
-
     self.modelLstm = await tf.loadLayersModel('checkpoints/modelsFinal_Lstm/model.json');
     self.modelEmb =  await tf.loadLayersModel('checkpoints/modelsFinal_Emb/model_cleaned.json');
 
-    console.log("loaded models");
+    postMessage("Neural Network is loaded!");
     tf.setBackend('webgl');
     console.log(tf.getBackend());
 
@@ -21,7 +20,7 @@ async function loadModels(){
     self.states2B = tf.randomNormal([1,600]);
 
     for (let i = 0; i < warmupRounds; i++) {
-        console.log("warmup round", i)
+        postMessage("Network is warming up. Current round: " + (i+1) + "/" + warmupRounds);
         var exodos = self.modelEmb.predict([midiInp, cpcInp, rhyInp]);
         var embMidi = exodos[0];
         var embCpc = exodos[1];
@@ -32,10 +31,11 @@ async function loadModels(){
         var out = self.modelLstm.predict([totalInp, self.states1A, self.states1B, self.states2A, self.states2B]);
     }
 
-
+    postMessage("Neural Network is ready to play with you!");
 }
 
 loadModels()
+
 // self.lastAiPrediction = {'aiInpMidi':96, 'aiInpCpc':12};
 
 self.temperature = 0.2;
@@ -84,5 +84,4 @@ onmessage = function(e) {
     }
     self.counter = self.counter + 1
     postMessage(output);
-    
 }

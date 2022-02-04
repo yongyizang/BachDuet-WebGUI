@@ -3,6 +3,7 @@ import store from './store/index.js'
 import App from './App.vue'
 import './registerServiceWorker'
 import router from './router'
+import 'remixicon/fonts/remixicon.css'
 
 Vue.config.productionTip = false
 

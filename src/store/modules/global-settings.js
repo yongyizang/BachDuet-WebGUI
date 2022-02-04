@@ -6,11 +6,13 @@ import Vue from "vue";
 */
 
 const state = {
-
+  loadingState: false
 };
 
 const getters = {
-
+  getloadingState(state){
+    return state.loadingState;
+  }
 };
 
 const actions = {};

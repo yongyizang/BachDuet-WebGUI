@@ -2,71 +2,93 @@
   <!--
       main.vue, the application's main UI file.
   -->
-  <div class="home">
-    <div
-      style="
-        background-color: black;
-        opacity: 0.5;
-        display: fixed;
-        top: 0;
-        right: 0;
-        z-index: 999;
-      "
-    >
-      <!-- <span>NeuralNet Inference: {{ $store.state.neuralNetRefreshTime }}</span><br /> -->
-      <!-- <span>scoreUI Time: {{ $store.state.scoreUIRefreshTime }}</span> -->
-    </div>
-    <scoreUI />
-    <MIDI />
-    <gameUI />
-    <!-- <neuralNet /> -->
-    <keyboardUI
-      id="pianoKeyboard"
-      class="pianoKeyboard"
-      ref="usersKeyboardUIref"
-      :key="keyboardUIKey"
-      :octave-start="keyboardUIoctaveStart"
-      :octave-end="keyboardUIoctaveEnd"
-    />
-    <!-- <neuralNet/> -->
-
-    <!-- logic handled by this file for decoupling purposes. -->
-    <div class="octaveControls">
-      <button class="octs" v-if="clockInitialized" @click="toggleMetronome">
-        {{ metronomeStatus ? "Mute Metronome" : "Unmute Metronome" }}
-      </button>
-
-      <button
-        class="octs"
-        v-if="keyboardUIoctaveEnd !== 8"
-        @click="transposeOctUp"
-      >
-        OCT UP
-      </button>
-
-      <button
-        class="octs"
-        v-if="keyboardUIoctaveStart !== 0"
-        @click="transposeOctDown"
-      >
-        OCT DOWN
-      </button>
+  <div>
+    <div ref="mainLoadingScreen" id="mainLoadingScreen">
+      <div class="center">
+        <h1 class="loadingTitle">
+          <p
+            class="typewrite"
+            data-period="300"
+            data-type='[ "Hello!", "This is BachDuet.", "A Musical Genius.", "Well... Sort of.", "I studied with Bach.", "That Bach.", "No, Really.", "Wanna Try me?"]'
+          >
+            <span class="wrap"></span>
+          </p>
+        </h1>
+        <p ref="workerStatus" class="loadingStatus">
+          Loading in The Neural Network...
+        </p>
+        <button @click="entryProgram" ref="entryBtn" class="entryBtn">
+          Play with Neural Network
+        </button>
+      </div>
     </div>
 
-    <div class="timingControls">
-      <!-- 
+    <div ref="mainContent" id="mainContent" class="fade-in">
+      <div
+        style="
+          background-color: black;
+          opacity: 0.5;
+          display: fixed;
+          top: 0;
+          right: 0;
+          z-index: 999;
+        "
+      >
+        <!-- <span>NeuralNet Inference: {{ $store.state.neuralNetRefreshTime }}</span><br /> -->
+        <!-- <span>scoreUI Time: {{ $store.state.scoreUIRefreshTime }}</span> -->
+      </div>
+      <scoreUI />
+      <MIDI />
+      <gameUI />
+      <!-- <neuralNet /> -->
+      <keyboardUI
+        id="pianoKeyboard"
+        class="pianoKeyboard"
+        ref="usersKeyboardUIref"
+        :key="keyboardUIKey"
+        :octave-start="keyboardUIoctaveStart"
+        :octave-end="keyboardUIoctaveEnd"
+      />
+      <!-- <neuralNet/> -->
+
+      <!-- logic handled by this file for decoupling purposes. -->
+      <div class="octaveControls">
+        <button class="octs" v-if="clockInitialized" @click="toggleMetronome">
+          {{ metronomeStatus ? "Mute Metronome" : "Unmute Metronome" }}
+        </button>
+
+        <button
+          class="octs"
+          v-if="keyboardUIoctaveEnd !== 8"
+          @click="transposeOctUp"
+        >
+          OCT UP
+        </button>
+
+        <button
+          class="octs"
+          v-if="keyboardUIoctaveStart !== 0"
+          @click="transposeOctDown"
+        >
+          OCT DOWN
+        </button>
+      </div>
+
+      <div class="timingControls">
+        <!-- 
         Set to automatically binding between this input and the data BPM.
         v-model.lazy change the value only after the input lose focus.
       -->
-      <span style="color: white"
-        >BPM:<input id="bpm" v-model.lazy="BPM" maxlength="3" size="3"
-      /></span>
+        <span style="color: white"
+          >BPM:<input id="bpm" v-model.lazy="BPM" maxlength="3" size="3"
+        /></span>
 
-      <span style="color: white"
-        >Freq:<input id="freq" v-model.lazy="FREQ" maxlength="2" size="3"
-      /></span>
+        <span style="color: white"
+          >Freq:<input id="freq" v-model.lazy="FREQ" maxlength="2" size="3"
+        /></span>
 
-      <button class="octs" @click="toggleClock">Clock</button>
+        <button class="octs" @click="toggleClock">Clock</button>
+      </div>
     </div>
   </div>
 </template>
@@ -148,7 +170,7 @@ export default {
       screenWidth: document.body.clientWidth,
       screenHeight: document.body.clientHeight,
       keyboardUIKey: 0,
-      keyboardUIoctaveStart: 1,
+      keyboardUIoctaveStart: 2,
       keyboardUIoctaveEnd: 6,
       metronomeStatus: true,
       // tokensDict: TokensDict,
@@ -169,6 +191,67 @@ export default {
   },
 
   mounted() {
+    var introTypingText = function (el, toRotate, period) {
+      this.toRotate = toRotate;
+      this.el = el;
+      this.loopNum = 0;
+      this.period = parseInt(period, 10) || 300;
+      this.txt = "";
+      this.tick();
+      this.isDeleting = false;
+    };
+
+    introTypingText.prototype.tick = function () {
+      var i = this.loopNum % this.toRotate.length;
+      var fullTxt = this.toRotate[i];
+
+      if (this.isDeleting) {
+        this.txt = fullTxt.substring(0, this.txt.length - 1);
+      } else {
+        this.txt = fullTxt.substring(0, this.txt.length + 1);
+      }
+
+      this.el.innerHTML = '<span class="wrap">' + this.txt + "</span>";
+
+      var that = this;
+      var delta = 100 - Math.random() * 50;
+
+      if (this.isDeleting) {
+        delta /= 1.5;
+      }
+
+      if (!this.isDeleting && this.txt === fullTxt) {
+        delta = this.period;
+        this.isDeleting = true;
+      } else if (this.isDeleting && this.txt === "") {
+        this.isDeleting = false;
+        this.loopNum++;
+        delta = 500;
+      }
+
+      setTimeout(function () {
+        that.tick();
+      }, delta);
+    };
+
+    var elements = document.getElementsByClassName("typewrite");
+    for (var i = 0; i < elements.length; i++) {
+      var toRotate = elements[i].getAttribute("data-type");
+      var period = elements[i].getAttribute("data-period");
+      if (toRotate) {
+        new introTypingText(elements[i], JSON.parse(toRotate), period);
+      }
+    }
+    // INJECT CSS
+    var css = document.createElement("style");
+    css.type = "text/css";
+    css.innerHTML =
+      ".typewrite > .wrap { border-right: 0.03em solid rgb(89,50,54);color:rgb(89,50,54);}";
+    document.body.appendChild(css);
+
+    this.$refs.mainContent.style.display = "none";
+    this.$refs.entryBtn.style.visibility = "hidden";
+
     // AIKeyboardElement = this.$refs.aiKeyboard;
     this.$store.commit("setTokensDict", TokensDict.default);
 
@@ -222,18 +305,18 @@ export default {
       handler(newValue) {
         let octaves;
         if (newValue <= 750) {
-          octaves = 3;
+          octaves = 2;
         } else if (newValue <= 1024) {
           // for iPads. 1024 * 768.
-          octaves = 4;
+          octaves = 3;
         } else if (newValue <= 1366) {
           // for iPad Pros. 1366 * 1024.
-          octaves = 5;
+          octaves = 4;
         } else if (newValue <= 1920) {
           // for 1920 * 1080 screens.
-          octaves = 6;
+          octaves = 5;
         } else {
-          octaves = 7;
+          octaves = 6;
         }
         this.keyboardUIoctaveEnd = this.keyboardUIoctaveStart + octaves;
         // A trick, to force keyboardUI re-render itself.
@@ -264,31 +347,51 @@ export default {
   },
 
   methods: {
+    entryProgram() {
+      const vm = this;
+      vm.$refs.mainLoadingScreen.classList.add("fade-out");
+      vm.$refs.mainContent.style.display = "block";
+    },
     // neuralWorker's callback. Called every tick, and processes the AI's output
     workerCallback(e) {
-      var aiPrediction = e.data;
-      // // TODO convert aiOutput['note'] to the midi_artic representation
-      // var tokensDict = this.$store.getters.getTokensDict;
-      // var midiArticInd = aiOutput["midiArticInd"];
-      // var midiArticToken = tokensDict.midiArtic.index2token[midiArticInd];
-      // var midi = parseInt(midiArticToken.split("_")[0]);
-      // var cpc = midi % 12;
-      // if (midi == 0) {
-      //   cpc = 12;
-      // }
-      // var artic = midiArticToken.split("_")[1];
-      // var payload = {
-      //   currentTick: aiOutput["tick"],
-      //   prediction: {
-      //     midi: midi,
-      //     artic: artic,
-      //     cpc: cpc,
-      //     midiArticInd: midiArticInd,
-      //   },
-      // };
-      // // save AI's prediction to store.state.aiPredictions
-      // this.$store.dispatch("newAiPrediction", payload);
-      this.$store.dispatch("newAiPrediction", aiPrediction);
+      const vm = this;
+      const workerStatus = vm.$refs.workerStatus;
+      if (
+        e.data == "Neural Network is loaded!" ||
+        e.data.includes("Network is warming up. Current round") ||
+        e.data == "Neural Network is ready to play with you!"
+      ) {
+        if (e.data == "Neural Network is ready to play with you!") {
+          vm.$refs.entryBtn.classList.add("fade-in");
+          vm.$refs.entryBtn.style.visibility = "visible";
+        }
+
+        workerStatus.innerHTML = e.data;
+      } else {
+        var aiPrediction = e.data;
+        // // TODO convert aiOutput['note'] to the midi_artic representation
+        // var tokensDict = this.$store.getters.getTokensDict;
+        // var midiArticInd = aiOutput["midiArticInd"];
+        // var midiArticToken = tokensDict.midiArtic.index2token[midiArticInd];
+        // var midi = parseInt(midiArticToken.split("_")[0]);
+        // var cpc = midi % 12;
+        // if (midi == 0) {
+        //   cpc = 12;
+        // }
+        // var artic = midiArticToken.split("_")[1];
+        // var payload = {
+        //   currentTick: aiOutput["tick"],
+        //   prediction: {
+        //     midi: midi,
+        //     artic: artic,
+        //     cpc: cpc,
+        //     midiArticInd: midiArticInd,
+        //   },
+        // };
+        // // save AI's prediction to store.state.aiPredictions
+        // this.$store.dispatch("newAiPrediction", payload);
+        this.$store.dispatch("newAiPrediction", aiPrediction);
+      }
     },
     // moved the metronomeTrigger function inside methods
     // it doesn't take any input argument
@@ -405,7 +508,9 @@ export default {
       // is 1 (hit), then we trigger the AI sampler to play the note.
       // if there is already a note active, we have to triggerRelease first
       // if the predicted note is a rest ... blablabla.
-      var aiPrediction = this.$store.getters.getAiPredictionFor(this.$store.getters.getLocalTick);
+      var aiPrediction = this.$store.getters.getAiPredictionFor(
+        this.$store.getters.getLocalTick
+      );
       // console.log("in triger " + aiPrediction.midi + "_" + aiPrediction.artic)
       // to be continued
       if (aiPrediction.artic == 1) {
@@ -430,7 +535,7 @@ export default {
       }
     },
 
-    estimateHumanQuantizedNote(){
+    estimateHumanQuantizedNote() {
       // Here we are quantize and store the user's input
 
       var midi;
@@ -443,86 +548,91 @@ export default {
       var activeNotes = this.$store.getters.getActiveNotes;
       var lastNote = this.$store.getters.getLastNotePlayed;
       // check if keyboard is currently active, namely if there is at least one key pressed
-      // If keyboard NOT active 
-      if (!this.$store.getters.keyboardIsActive){
-          // if the buffer is empty
-          if (this.$store.getters.getNotesBuffer.length == 0){
-              // then we have a REST
-              midi = 0;
-              artic = 1;
-              cpc = 12;
-              name = "R"
+      // If keyboard NOT active
+      if (!this.$store.getters.keyboardIsActive) {
+        // if the buffer is empty
+        if (this.$store.getters.getNotesBuffer.length == 0) {
+          // then we have a REST
+          midi = 0;
+          artic = 1;
+          cpc = 12;
+          name = "R";
+        }
+        // if the buffer is not empty
+        else {
+          // sanity check  notesBuffer.pop() === lastNote
+          midi = Midi.toMidi(lastNote);
+          artic = 1;
+          cpc = midi % 12;
+          name = lastNote;
+        }
+      } else {
+        // there is at least one key pressed. We only care for the last key pressed so
+        // var lastNote = this.$store.getters.getLastNotePlayed
+        // var activeNotes = this.$store.getters.getActiveNotes
+        // var lastNoteTickStart = this.$store.getters.getLastNotePlayedOnTick
+        // var currentTick = this.$store.getters.getLocalTick
+        if (activeNotes.includes(lastNote)) {
+          // find artic
+          midi = Midi.toMidi(lastNote);
+          cpc = midi % 12;
+          name = lastNote;
+          if (
+            this.$store.getters.getGlobalTick -
+              this.$store.getters.getLastNotePlayedOnTick >
+            1
+          ) {
+            // if the note is active for more than 1 tick
+            // then the articulation is set to 0
+            artic = 0;
+          } else {
+            artic = 1;
           }
-          // if the buffer is not empty
-          else{
-              // sanity check  notesBuffer.pop() === lastNote
-              midi = Midi.toMidi(lastNote)
-              artic = 1
-              cpc = midi % 12
-              name = lastNote;
-
-          }
+        } else {
+          // TODO : does it ever enter here ???
+          midi = 0;
+          artic = 1;
+          cpc = 12;
+          name = "R";
+        }
       }
-      else{
-          // there is at least one key pressed. We only care for the last key pressed so
-          // var lastNote = this.$store.getters.getLastNotePlayed
-          // var activeNotes = this.$store.getters.getActiveNotes
-          // var lastNoteTickStart = this.$store.getters.getLastNotePlayedOnTick
-          // var currentTick = this.$store.getters.getLocalTick
-          if (activeNotes.includes(lastNote)){
-              // find artic
-              midi = Midi.toMidi(lastNote)
-              cpc = midi % 12
-              name = lastNote
-              if (this.$store.getters.getGlobalTick-this.$store.getters.getLastNotePlayedOnTick > 1){
-                // if the note is active for more than 1 tick
-                // then the articulation is set to 0
-                artic = 0
-              }
-              else {
-                artic = 1
-                }
-          }
-          else {
-            // TODO : does it ever enter here ???
-            midi = 0;
-            artic = 1
-            cpc = 12
-            name = "R"
-          }
-      }
 
-      
       // convert midi/cpc/artic to indexes that the AI understands
-      this.$store.dispatch("newHumanInputQuantized",  
-                            {"midi" : midi, 
-                             "artic" : artic,
-                             "cpc" : cpc, 
-                             "name" : name});
+      this.$store.dispatch("newHumanInputQuantized", {
+        midi: midi,
+        artic: artic,
+        cpc: cpc,
+        name: name,
+      });
     },
     // C: using async, improves the neural net's inference speed slightly. Don't know why.
     // update: removed async in order to use setTimeout(runTheWorker, 30)
     runTheWorker() {
-
-      
-
       this.estimateHumanQuantizedNote();
 
-      this.$store.commit('incrementTickDelayed');
+      this.$store.commit("incrementTickDelayed");
       this.$root.$refs.scoreUI.draw2();
-      console.assert(this.$store.getters.getLocalTick === this.$store.getters.getLocalTickDelayed)
+      console.assert(
+        this.$store.getters.getLocalTick ===
+          this.$store.getters.getLocalTickDelayed
+      );
 
       var rhythmToken = this.$store.getters.getRhythmToken;
-      var rhythmTokenInd = this.$store.getters.getTokensDict.rhythm.token2index[rhythmToken];
+      var rhythmTokenInd =
+        this.$store.getters.getTokensDict.rhythm.token2index[rhythmToken];
       var aiInp = {
         tick: this.$store.getters.getLocalTick, //input tick time (the AI will predict a note for time tick+1)
-        humanInp : this.$store.getters.getHumanInputFor(this.$store.getters.getLocalTick),
+        humanInp: this.$store.getters.getHumanInputFor(
+          this.$store.getters.getLocalTick
+        ),
         // humanInpMidi: midiArticInd, //users input at time tick
         // humanInpCpc: cpcInd,
         rhythmInd: rhythmTokenInd,
         // for the AI to generate the note for time tick + 1, besides the users input
         // it also takes as an input the note it played/generated for at time tick
-        aiInp: this.$store.getters.getAiPredictionFor(this.$store.getters.getLocalTick),
+        aiInp: this.$store.getters.getAiPredictionFor(
+          this.$store.getters.getLocalTick
+        ),
       };
       // console.log("to run the worker with ", aiInp, " tick is ", this.$store.getters.getLocalTick)
       this.neuralWorker.postMessage(aiInp); //{"currentTickNumber": vm.$store.getters.getLocalTick});
@@ -535,10 +645,8 @@ export default {
 .pianoKeyboard {
   z-index: 1;
   position: fixed;
-  bottom: 0;
+  bottom: 10px;
   border-radius: 2px;
-  -webkit-box-shadow: 0px 3px 19px 8px rgba(0, 0, 0, 0.68);
-  box-shadow: 0px 3px 19px 8px rgba(0, 0, 0, 0.68);
 }
 
 .octaveControls {
@@ -567,5 +675,129 @@ export default {
   margin: 0;
   position: absolute;
   bottom: 196px;
+}
+
+#mainLoadingScreen {
+  position: absolute;
+  z-index: 1;
+  height: 100vh;
+  width: 100%;
+  border: 13px solid rgb(89, 50, 54);
+}
+
+.fade-in {
+  -webkit-animation: fade-in 1s cubic-bezier(0.39, 0.575, 0.565, 1) both;
+  animation: fade-in 1s cubic-bezier(0.39, 0.575, 0.565, 1) both;
+}
+
+@-webkit-keyframes fade-in {
+  0% {
+    display: none;
+    opacity: 0;
+    visibility: hidden;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes fade-in {
+  0% {
+    display: none;
+    opacity: 0;
+    visibility: hidden;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.fade-out {
+  -webkit-animation: fade-out 0.3s cubic-bezier(0.39, 0.575, 0.565, 1) both;
+  animation: fade-out 0.3s cubic-bezier(0.39, 0.575, 0.565, 1) both;
+}
+
+@-webkit-keyframes fade-out {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    display: none;
+  }
+}
+@keyframes fade-out {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    display: none;
+  }
+}
+
+.loadingTitle {
+  z-index: 999;
+  font-size: 100px;
+  font-weight: 600;
+  font-style: italic;
+  line-height: 100px;
+}
+
+.loadingStatus {
+  z-index: 999;
+  font-size: 20px;
+  line-height: 20px;
+  margin-top: -5px;
+  font-weight: 500;
+}
+
+.center {
+  margin: 0;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.entryBtn {
+  font-family: source-serif-pro, serif;
+  z-index: 999;
+  width: auto;
+  font-size: 18px;
+  padding: 10px;
+  border: 4px solid rgb(89, 50, 54);
+  background: rgba(89, 50, 54, 0);
+}
+
+.entryBtn:hover {
+  font-weight: 800;
+}
+
+.entryBtn:active {
+  -webkit-animation: scale-down-center 0.05s
+    cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+  animation: scale-down-center 0.05s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}
+
+@-webkit-keyframes scale-down-center {
+  0% {
+    -webkit-transform: scale(1);
+    transform: scale(1);
+  }
+  100% {
+    -webkit-transform: scale(0.95);
+    transform: scale(0.95);
+  }
+}
+@keyframes scale-down-center {
+  0% {
+    -webkit-transform: scale(1);
+    transform: scale(1);
+  }
+  100% {
+    -webkit-transform: scale(0.95);
+    transform: scale(0.95);
+  }
 }
 </style>

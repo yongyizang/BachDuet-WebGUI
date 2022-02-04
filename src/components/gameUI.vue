@@ -6,7 +6,8 @@
 -->
 <template>
   <div>
-    <div ref="canvas"></div>
+    <div ref="canvas">
+    </div>
   </div>
 </template>
 <script>
@@ -16,8 +17,6 @@ import * as THREE from "three";
 // Define basic parameters.
 const colorForAI = 0x7dd87d;
 const colorForHuman = 0x4c9173;
-const backgroundColor = 0xffffff;
-const backgroundOpacity = 1; // between 0 to 1.
 const initialScaling = 10000; // a constant in scaling the noteblock.
 const KeyboardUIHeight = 200;
 const NoteAnimationMargin = 10; // margin of noteblock plane compared to the width of the key.
@@ -81,10 +80,10 @@ export default {
       this.camera = new THREE.OrthographicCamera(0, 1, 1, 0, 1, 1000);
       this.camera.position.z = 1;
       this.camera.lookAt(new THREE.Vector3(0, 0, 0));
-      this.renderer = new THREE.WebGLRenderer();
+      this.renderer = new THREE.WebGLRenderer({alpha: true });
       this.renderer.setSize(window.innerWidth, window.innerHeight);
       this.renderer.setPixelRatio(window.devicePixelRatio);
-      this.renderer.setClearColor(backgroundColor, backgroundOpacity);
+      this.renderer.setClearColor(0xffffff, 0);
       this.renderer.sortObjects = false;
       this.$refs.canvas.appendChild(this.renderer.domElement);
     },
@@ -170,7 +169,6 @@ export default {
       // If there is the noteblock we are looking for:
       if (this.currentNotes[selector] && this.currentNotes[selector].length) {
         const note = this.currentNotes[selector].shift();
-        // console.log(note);
         // Change its scale and position.
         note.plane.scale.y = Math.max(
           this.camera.position.y - note.position,

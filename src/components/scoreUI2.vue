@@ -1,7 +1,14 @@
 <template>
-  <div id="pianoScores">
+  <div ref="score" id="pianoScores">
+    <div id="scoreWrapper">
+      <div id="fadeBlockStart"></div>
     <div id="grandStaff"></div>
     <div id="noteBox"></div>
+    <div id="fadeBlockEnd"></div>
+    </div id="scoreWrapper">
+    <button type="button" @click="triggerCollapse" id="collapseBtn">
+      <i ref="collapseBtnSymbol" class="ri-arrow-up-s-line"></i>
+    </button>
   </div>
 </template>
 
@@ -122,7 +129,7 @@ export default {
   data() {
     return {
       // Customizable Properties for score rendering
-      lineWidth: 1.5,
+      lineWidth: 2,
       lineColor: "#000000",
       userNoteColor: "#000000",
       AINoteColor: "#FFFFFF",
@@ -189,16 +196,16 @@ export default {
         this.grandStaffDiv,
         this.VF.Renderer.Backends.SVG
       );
-      this.grandStaffRenderer.resize(100, 300);
+      this.grandStaffRenderer.resize(200, 300);
       var grandStaffContext = this.grandStaffRenderer.getContext();
-      var trebleStave = new this.VF.Stave(20, 50, 100)
+      var trebleStave = new this.VF.Stave(30, 50, 200)
         .addClef("treble")
         .setStyle({
           fillStyle: this.lineColor,
           strokeStyle: this.lineColor,
           lineWidth: this.lineWidth,
         });
-      var bassStave = new this.VF.Stave(20, 190, 100).addClef("bass").setStyle({
+      var bassStave = new this.VF.Stave(30, 150, 200).addClef("bass").setStyle({
         fillStyle: this.lineColor,
         strokeStyle: this.lineColor,
         lineWidth: this.lineWidth,
@@ -219,16 +226,16 @@ export default {
         this.targetDiv,
         this.VF.Renderer.Backends.SVG
       );
-      this.renderer.resize(this.screenWidth, 1000);
+      this.renderer.resize(this.screenWidth, 300);
       this.context = this.renderer.getContext();
 
       this.tickContexts.push(new this.VF.TickContext());
       this.tickContexts.push(new this.VF.TickContext());
 
-      this.staves.push(new this.VF.Stave(20, 50, 20000));
-      this.staves.push(new this.VF.Stave(20, 190, 20000));
+      this.staves.push(new this.VF.Stave(30, 50, 20000));
+      this.staves.push(new this.VF.Stave(30, 150, 20000));
 
-      this.context.setViewBox(this.viewX, 0, this.screenWidth, 1000);
+      this.context.setViewBox(this.viewX, 0, this.screenWidth, 300);
       this.staves[0]
         .setContext(this.context)
         .setStyle({
@@ -250,7 +257,7 @@ export default {
         // TODO I created a ref to main in order to access clockStatus. Is this a good way ? Or maybe store clockStatus in vuex ?
         // Yongyi: In the future we should move every variable we tried to call here to Vuex. But let's not worry about them now!
         if (this.$root.$refs.main.clockStatus && this.scrollEnabled) {
-          this.context.setViewBox(this.viewX, 0, this.screenWidth, 1000);
+          this.context.setViewBox(this.viewX, 0, this.screenWidth, 300);
           this.viewX +=
             (this.scrollStepTime * this.tickStepPixels) /
             ((1000 * 60) / this.$root.$refs.main.bpm / 4);
@@ -605,35 +612,162 @@ export default {
         this.scrollEnabled = true;
       }
     },
+
+    triggerCollapse() {
+      const btnSymbol = this.$refs.collapseBtnSymbol.classList;
+      const score = this.$refs.score;
+      const scoreClass = score.classList;
+      if (scoreClass.contains("slide-up")){
+        scoreClass.replace("slide-up", "slide-down");
+        btnSymbol.replace("ri-arrow-down-s-line","ri-arrow-up-s-line");
+      } else if (scoreClass.contains("slide-down")){
+        scoreClass.replace("slide-down", "slide-up");
+        btnSymbol.replace("ri-arrow-up-s-line","ri-arrow-down-s-line")
+      } else {
+        scoreClass.add("slide-up");
+        btnSymbol.replace("ri-arrow-up-s-line","ri-arrow-down-s-line")
+      }
+    }
   },
 };
 </script>
 
 <style scoped>
 #pianoScores {
+  overflow: hidden;
   z-index: 1;
-  background-image: url("/paper-texture.jpg");
-  background-repeat: no-repeat;
-  background-size: cover;
-  background-position: center;
-  width: 100%;
-  height: 50%;
-  position: fixed;
-  top: 0;
-  -webkit-box-shadow: 0px 8px 16px -6px #000000;
-  box-shadow: 0px 8px 16px -6px #000000;
+  width: calc(100% - 20px);
+  height: 350px;
+  position:absolute;
+  left:10px;
+  top:0;
+}
+
+#scoreWrapper {
+  position:absolute;
+  height:300px;
+  width:100%;
+  overflow-x:hidden;
+-webkit-box-shadow: -4px 6px 15px -9px #000000; 
+box-shadow: -4px 6px 15px -9px #000000;
+
+  background-color:rgb(233,197,147);
+    -webkit-border-bottom-right-radius: 40px;
+-webkit-border-bottom-left-radius: 40px;
+-moz-border-radius-bottomright: 40px;
+-moz-border-radius-bottomleft: 40px;
+border-bottom-right-radius: 40px;
+border-bottom-left-radius: 40px;
 }
 
 #grandStaff {
   z-index: 997;
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
 }
 #noteBox {
   z-index: 995;
-  position: fixed;
+  position: absolute;
   top: 0px;
-  left: 80px;
+  left: 50px;
 }
+
+#collapseBtn {
+  z-index: 999;
+  width:60px;
+  height:40px;
+  position:absolute;
+  top:300px;
+  left:calc(50% - 30px);
+-webkit-box-shadow: -4px 6px 15px -9px #000000; 
+box-shadow: -4px 6px 15px -9px #000000;
+  background-color:rgb(233,197,147);
+  color:white;
+  font-size:35px;
+  -webkit-border-bottom-right-radius: 20px;
+-webkit-border-bottom-left-radius: 20px;
+-moz-border-radius-bottomright: 20px;
+-moz-border-radius-bottomleft: 20px;
+border-bottom-right-radius: 20px;
+border-bottom-left-radius: 20px;
+border-style: hidden;
+}
+
+#fadeBlockStart{
+  z-index:996;
+  display:block;
+  width:150px;
+  height:300px;
+  position:absolute;
+  top:0;
+  left:0;
+  background:linear-gradient(270deg, rgba(233,197,147,0) 0%, rgba(233,197,147,1) 50%);
+}
+
+#fadeBlockEnd{
+  z-index:999;
+  display:inline-block;
+  width:60px;
+  height:300px;
+  position:absolute;
+  top:0;
+  left:calc(100% - 60px);
+  background:linear-gradient(90deg, rgba(233,197,147,0) 0%, rgba(233,197,147,1) 70%);
+}
+
+.slide-up {
+	-webkit-animation: slide-up 0.5s cubic-bezier(0.190, 1.000, 0.220, 1.000) both;
+	        animation: slide-up 0.5s cubic-bezier(0.190, 1.000, 0.220, 1.000) both;
+}
+
+.slide-down {
+	-webkit-animation: slide-down 0.5s cubic-bezier(0.190, 1.000, 0.220, 1.000) both;
+	        animation: slide-down 0.5s cubic-bezier(0.190, 1.000, 0.220, 1.000) both;
+}
+
+
+@-webkit-keyframes slide-up {
+  0% {
+    -webkit-transform: translateY(0);
+            transform: translateY(0);
+            
+  }
+  100% {
+    -webkit-transform: translateY(-300px);
+            transform: translateY(-300px);
+  }
+}
+@keyframes slide-up {
+  0% {
+    -webkit-transform: translateY(0);
+            transform: translateY(0);
+  }
+  100% {
+    -webkit-transform: translateY(-300px);
+            transform: translateY(-300px);
+  }
+}
+
+@-webkit-keyframes slide-down {
+  0% {
+    -webkit-transform: translateY(-300px);
+            transform: translateY(-300px);
+  }
+  100% {
+    -webkit-transform: translateY(0);
+            transform: translateY(0);
+  }
+}
+@keyframes slide-down {
+  0% {
+    -webkit-transform: translateY(-300px);
+            transform: translateY(-300px);
+  }
+  100% {
+    -webkit-transform: translateY(0);
+            transform: translateY(0);
+  }
+}
+
 </style>
