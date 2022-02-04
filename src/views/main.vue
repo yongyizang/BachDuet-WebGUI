@@ -9,7 +9,7 @@
           <p
             class="typewrite"
             data-period="300"
-            data-type='[ "Hello!", "This is BachDuet.", "A Musical Genius.", "Well... Sort of.", "I studied with Bach.", "That Bach.", "No, Really.", "Wanna Try me?"]'
+            data-type='[ "Hello!", "This is BachDuet.", "A Musical Genius.", "Well... Sort of.", "Studied from Bach.4r", "That Bach.", "No, Really.", "Wanna Try me?"]'
           >
             <span class="wrap"></span>
           </p>
@@ -740,6 +740,7 @@ export default {
   font-weight: 600;
   font-style: italic;
   line-height: 100px;
+  width:95%;
 }
 
 .loadingStatus {
@@ -753,6 +754,7 @@ export default {
 .center {
   margin: 0;
   position: absolute;
+  width:100%;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
