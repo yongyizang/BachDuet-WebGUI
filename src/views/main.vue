@@ -9,7 +9,7 @@
           <p
             class="typewrite"
             data-period="300"
-            data-type='[ "Hello!", "This is BachDuet.", "A Musical Genius.", "Well... Sort of.", "Studied from Bach.4r", "That Bach.", "No, Really.", "Wanna Try me?"]'
+            data-type='[ "Hello!", "This is BachDuet.", "A Musical Genius.", "Well... Sort of.", "Studied from Bach.", "That Bach.", "No, Really.", "Wanna Try me?"]'
           >
             <span class="wrap"></span>
           </p>
