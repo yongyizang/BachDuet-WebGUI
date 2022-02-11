@@ -14,7 +14,6 @@
   </div>
 </template>
 <script>
-var timerStart = Date.now();
 export default {
   watch: {
     $route() {
@@ -67,8 +66,8 @@ body {
 #LoadingScreen {
   position: absolute;
   z-index: 1;
-  height: calc(100% - 26px);
-  width: calc(100% - 26px);
+  height: 100%;
+  width: 100%;
   border: 13px solid rgb(89, 50, 54);
 }
 

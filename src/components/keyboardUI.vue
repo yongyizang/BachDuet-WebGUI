@@ -19,10 +19,15 @@
         :style="key.style"
         @mousedown="toggleAttack(key.name)"
         @mouseup="toggleRelease(key.name)"
-        :class="[...key.class, { active: noteActive(key.name) }]"
+        :class="[
+          ...key.class,
+          { active: noteActive(key.name) },
+          { audiokeys: key.name in audioKeysMap },
+        ]"
         :ref="key.name"
       >
-        <span>{{ key.name }}</span>
+        <p v-if="key.name in audioKeysMap" style="font-family: roboto;line-height:15px;margin-bottom:0px"><span style="font-size:20px;padding:30px;">{{ audioKeysMap[key.name] }}</span> </n> <span style="opacity: 0.5;font-size:5px">{{ key.name }}</span></p>
+        <span style="opacity: 0.5; font-family: roboto" v-else="key.name in audioKeysMap" >{{ key.name }}</span>
       </li>
     </ul>
   </div>
@@ -141,6 +146,40 @@ export default {
         noteStart: 0,
         noteEnd: 0,
       },
+      audioKeysMap: {
+        C4: "Z",
+        "C#4": "S",
+        D4: "X",
+        "D#4": "D",
+        E4: "C",
+        F4: "V",
+        "F#4": "G",
+        G4: "B",
+        "G#4": "H",
+        A4: "N",
+        "A#4": "J",
+        B4: "M",
+        C5: "Q",
+        "C#5": "2",
+        D5: "W",
+        "D#5": "3",
+        E5: "E",
+        F5: "R",
+        "F#5": "5",
+        G5: "T",
+        "G#5": "6",
+        A5: "Y",       
+        "A#5": "7",
+        B5: "U",     
+        C6: "I",
+        "C#6": "9",
+        D6: "O",
+        "D#6": "0",
+        E6: "P",
+        F6: "[",
+        "F#6": "=",
+        G6: "]",
+      },
     };
   },
 
@@ -229,15 +268,13 @@ export default {
       for (let i = this.offsetStart, j = 0; j < this.totalWhiteKeys; i++, j++) {
         const octave = this.calculateOctave(i);
         const keyName = WHITE_KEYS[i % 7];
-
         const key = {
           name: `${keyName}${octave}`,
-          class: ["white", keyName, `${keyName}${octave}`], // "white-activate",
+          class: ["white", keyName, `${keyName}${octave}`],
           style: {
             "grid-column": `${j === 0 ? 1 : 4 + (j - 1) * 3} / span 3`,
           },
         };
-
         keys.push(key);
       }
 
@@ -323,9 +360,13 @@ li.black span {
   border-style: hidden;
   box-shadow: -1px 0 0 rgba(255, 255, 255, 0.8) inset, 0 0 5px #ccc inset,
     0 0 3px rgba(0, 0, 0, 0.2);
-  background: linear-gradient(to bottom, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0.9) 100%);
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.5) 0%,
+    rgba(255, 255, 255, 0.9) 100%
+  );
   padding-bottom: 10px;
-    -webkit-animation: scale-up-center 0.05s cubic-bezier(0.25, 0.46, 0.45, 0.94)
+  -webkit-animation: scale-up-center 0.05s cubic-bezier(0.25, 0.46, 0.45, 0.94)
     both;
   animation: scale-up-center 0.05s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
 }
@@ -375,8 +416,8 @@ li.black span {
   box-shadow: 2px 0 3px rgba(0, 0, 0, 0.1) inset,
     -5px 5px 20px rgba(0, 0, 0, 0.2) inset, 0 0 3px rgba(0, 0, 0, 0.2);
   background: linear-gradient(to bottom, rgb(170, 26, 26) 0%, #e9e9e9 100%);
-  -webkit-animation: scale-down-center 0.05s cubic-bezier(0.25, 0.46, 0.45, 0.94)
-    both;
+  -webkit-animation: scale-down-center 0.05s
+    cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
   animation: scale-down-center 0.05s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
 }
 
@@ -407,8 +448,8 @@ li.black span {
     0 -2px 2px 3px rgba(0, 0, 0, 0.6) inset, 0 1px 2px rgba(0, 0, 0, 0.5);
   border-radius: 10px;
   background: linear-gradient(to right, #444 0%, rgb(170, 26, 26) 100%);
-    -webkit-animation: scale-down-center 0.05s cubic-bezier(0.25, 0.46, 0.45, 0.94)
-    both;
+  -webkit-animation: scale-down-center 0.05s
+    cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
   animation: scale-down-center 0.05s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
 }
 

@@ -331,8 +331,6 @@ export default {
       rootNote: 60,
     });
     keyboard.down(function (note) {
-      // console.log("in down")
-      // console.log(note)
       let name = Midi.midiToNoteName(note.note, { sharps: true });
       self.$refs.usersKeyboardUIref.toggleAttack(name);
     });
@@ -414,6 +412,7 @@ export default {
               userAgent: vm.userAgent,
               pageLoad: vm.pageLoadTime,
               modelLoad: vm.modelLoadTime,
+              dataAddTime: Date.now()
             });
             vm.userDataID = docRef.id;
             console.log("Written to firebase with ID ", docRef.id);
@@ -707,8 +706,8 @@ export default {
 #mainLoadingScreen {
   position: absolute;
   z-index: 1;
-  height: calc(100% - 26px);
-  width: calc(100% - 26px);
+  height: 100%;
+  width: 100%;
   border: 13px solid rgb(89, 50, 54);
 }
 

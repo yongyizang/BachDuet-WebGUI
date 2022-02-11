@@ -6,8 +6,8 @@
 [ ] Design and create Settings Modal
 [ ] Design and create Mixing console Modal
 
-[ ] Implement load time data collections
-[ ] Design and create firebase database
+[x] Implement load time data collections
+[x] Design and create firebase database
 [ ] Design user feedback modal
 
 [ ] Electric Piano module
