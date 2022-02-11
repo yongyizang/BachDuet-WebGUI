@@ -18,7 +18,7 @@ import * as THREE from "three";
 const colorForAI = 0x7dd87d;
 const colorForHuman = 0x4c9173;
 const initialScaling = 10000; // a constant in scaling the noteblock.
-const KeyboardUIHeight = 200;
+const KeyboardUIHeight = 210;
 const NoteAnimationMargin = 10; // margin of noteblock plane compared to the width of the key.
 
 // Define basic "material" for three.js to build note blocks.

@@ -1,7 +1,10 @@
 # TODO before beta launch
 [ ] Move every user setting to a unified place (store)
-[ ] Integrate Audiokeys to visual keyboard
-[ ] Write visual keyboard prompt
+[x] Integrate Audiokeys to visual keyboard
+[x] Write visual keyboard prompt
+
+[ ] Write a method in keyboardUI to change key class
+[ ] Expose that UI Class out
 
 [ ] Design and create Settings Modal
 [ ] Design and create Mixing console Modal

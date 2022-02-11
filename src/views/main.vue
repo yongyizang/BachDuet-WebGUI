@@ -677,16 +677,18 @@ export default {
 
 .octaveControls {
   z-index: 3;
+  color:black;
   position: fixed;
   right: 30px;
-  bottom: 170px;
+  bottom: 230px;
 }
 
 .timingControls {
   z-index: 3;
+  color:black;
   position: fixed;
   left: 30px;
-  bottom: 170px;
+  bottom: 230px;
 }
 
 .octs {
