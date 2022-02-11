@@ -14,6 +14,7 @@
   </div>
 </template>
 <script>
+var timerStart = Date.now();
 export default {
   watch: {
     $route() {

@@ -50,7 +50,6 @@
         :octave-end="keyboardUIoctaveEnd"
       />
       <!-- <neuralNet/> -->
-
       <!-- logic handled by this file for decoupling purposes. -->
       <div class="octaveControls">
         <button class="octs" v-if="clockInitialized" @click="toggleMetronome">
@@ -108,6 +107,40 @@ import * as TokensDict from "@/../public/globalTokenIndexDict.json";
 
 import AudioKeys from "audiokeys";
 
+// Use Google Firebase and Analytics for data gathering
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+import { getFirestore, collection, addDoc } from "firebase/firestore";
+
+// TODO: DO NOT MAKE THIS PART PUBLIC!!
+// TODO: DO NOT MAKE THIS PART PUBLIC!!
+// TODO: DO NOT MAKE THIS PART PUBLIC!!
+// TODO: DO NOT MAKE THIS PART PUBLIC!!
+// TODO: DO NOT MAKE THIS PART PUBLIC!!
+// TODO: DO NOT MAKE THIS PART PUBLIC!!
+// TODO: DO NOT MAKE THIS PART PUBLIC!!
+// TODO: DO NOT MAKE THIS PART PUBLIC!!
+const firebaseConfig = {
+  apiKey: "AIzaSyCVFIcL_nokMdYVET7lvxnuIbLLoUi5YSs",
+  authDomain: "bachduet-b9d02.firebaseapp.com",
+  projectId: "bachduet-b9d02",
+  storageBucket: "bachduet-b9d02.appspot.com",
+  messagingSenderId: "668363580240",
+  appId: "1:668363580240:web:f301aa62ecf8310caa8255",
+  measurementId: "G-Z0DKQ7L50N",
+};
+// TODO: DO NOT MAKE THIS PART PUBLIC!!
+// TODO: DO NOT MAKE THIS PART PUBLIC!!
+// TODO: DO NOT MAKE THIS PART PUBLIC!!
+// TODO: DO NOT MAKE THIS PART PUBLIC!!
+// TODO: DO NOT MAKE THIS PART PUBLIC!!
+// TODO: DO NOT MAKE THIS PART PUBLIC!!
+// TODO: DO NOT MAKE THIS PART PUBLIC!!
+// TODO: DO NOT MAKE THIS PART PUBLIC!!
+
+const firebaseApp = initializeApp(firebaseConfig);
+const analytics = getAnalytics(firebaseApp);
+const db = getFirestore();
 // import globalDict from "globalTokenIndexDict.json"
 
 /*
@@ -175,6 +208,11 @@ export default {
       metronomeStatus: true,
       // tokensDict: TokensDict,
       lastNoteOnAi: "",
+      // Userdata
+      userDataID: null,
+      userAgent: null,
+      pageLoadTime: null,
+      modelLoadTime: null,
     };
   },
 
@@ -191,6 +229,13 @@ export default {
   },
 
   mounted() {
+    this.userAgent = navigator.userAgent;
+    // get loading time.
+    this.pageLoadTime =
+      window.performance.timing.domContentLoadedEventEnd -
+      window.performance.timing.navigationStart;
+    this.modelLoadTime = Date.now();
+
     var introTypingText = function (el, toRotate, period) {
       this.toRotate = toRotate;
       this.el = el;
@@ -354,41 +399,31 @@ export default {
       vm.$refs.mainContent.style.display = "block";
     },
     // neuralWorker's callback. Called every tick, and processes the AI's output
-    workerCallback(e) {
+    async workerCallback(e) {
       const vm = this;
       const workerStatus = vm.$refs.workerStatus;
-      if (
-       typeof e.data === 'string' || e.data instanceof String
-      ) {
+      if (typeof e.data === "string" || e.data instanceof String) {
         if (e.data == "Neural Network is ready to play with you!") {
           vm.$refs.entryBtn.classList.add("fade-in");
           vm.$refs.entryBtn.style.visibility = "visible";
-        }
+          vm.modelLoadTime = Date.now() - vm.modelLoadTime;
 
+          // try writing to firebase
+          try {
+            const docRef = await addDoc(collection(db, "loadingTimes"), {
+              userAgent: vm.userAgent,
+              pageLoad: vm.pageLoadTime,
+              modelLoad: vm.modelLoadTime,
+            });
+            vm.userDataID = docRef.id;
+            console.log("Written to firebase with ID ", docRef.id);
+          } catch (e) {
+            console.error("Error writing to firebase. ", e);
+          }
+        }
         workerStatus.innerHTML = e.data;
       } else {
         var aiPrediction = e.data;
-        // // TODO convert aiOutput['note'] to the midi_artic representation
-        // var tokensDict = this.$store.getters.getTokensDict;
-        // var midiArticInd = aiOutput["midiArticInd"];
-        // var midiArticToken = tokensDict.midiArtic.index2token[midiArticInd];
-        // var midi = parseInt(midiArticToken.split("_")[0]);
-        // var cpc = midi % 12;
-        // if (midi == 0) {
-        //   cpc = 12;
-        // }
-        // var artic = midiArticToken.split("_")[1];
-        // var payload = {
-        //   currentTick: aiOutput["tick"],
-        //   prediction: {
-        //     midi: midi,
-        //     artic: artic,
-        //     cpc: cpc,
-        //     midiArticInd: midiArticInd,
-        //   },
-        // };
-        // // save AI's prediction to store.state.aiPredictions
-        // this.$store.dispatch("newAiPrediction", payload);
         this.$store.dispatch("newAiPrediction", aiPrediction);
       }
     },
@@ -432,13 +467,6 @@ export default {
       // Allowing tickNumber to add to itself.
       // console.log(tokensDict)
       vm.clockStatus = !vm.clockStatus;
-
-      // C: we don't need this if else statement
-      // if (vm.clockStatus) {
-      //   if (metronomeBus.muted) metronomeBus.mute = false;
-      // } else {
-      //   metronomeBus.mute = true;
-      // }
 
       // If the clock is not yet initialized...
       if (!vm.clockInitialized) {
@@ -740,7 +768,7 @@ export default {
   font-weight: 600;
   font-style: italic;
   line-height: 100px;
-  width:95%;
+  width: 95%;
 }
 
 .loadingStatus {
@@ -754,7 +782,7 @@ export default {
 .center {
   margin: 0;
   position: absolute;
-  width:100%;
+  width: 100%;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);

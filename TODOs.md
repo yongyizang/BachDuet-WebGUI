@@ -1,20 +1,20 @@
-# TODOs!
-- PROVIDE PROPER COMMENTING
+# TODO before beta launch
+[ ] Move every user setting to a unified place (store)
+[ ] Integrate Audiokeys to visual keyboard
+[ ] Write visual keyboard prompt
 
-- Vuex Migration
-  - Migrate all global data to Vuex modules, and change all code to that.
+[ ] Design and create Settings Modal
+[ ] Design and create Mixing console Modal
 
-- UI Design Guidelines
-  - Design colors and fonts
-  - Design components
+[ ] Implement load time data collections
+[ ] Design and create firebase database
+[ ] Design user feedback modal
 
-- All Samplers
-  - Replaced sample with harpischord
-  - Sends them out to different buses
-  - Provide **UGLY** Mixing interface
+[ ] Electric Piano module
+[ ] Harpischord
+[ ] Consider putting all samples to CDN
+[ ] Deploy to Netlify
 
-- Front End UI Optimization
-  
-- Server Deployment
-
-- Network Optimization (CDN, Object Storage, etc.)
+[ ] Documentation
+[ ] BUG Fix
+[ ] Code Refactor
