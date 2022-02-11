@@ -189,7 +189,7 @@ const actions = {
                 state.lastHumanNote.name = args.name;
                 state.lastHumanNote.dur = 1;
                 state.lastHumanNote.startTick = getters.getGlobalTickDelayed();
-                console.log("mesa")
+                // console.log("mesa")
             }
         }
         else {
@@ -206,10 +206,10 @@ const actions = {
                 state.lastHumanNote.dur += 1
             }
         }
-        console.log(getters.getGlobalTickDelayed(), " ",
-            state.lastHumanNote.midi, " ",
-        state.lastHumanNote.dur, " ",
-        state.lastHumanNote.startTick, " ", )
+        // console.log(getters.getGlobalTickDelayed(), " ",
+        //     state.lastHumanNote.midi, " ",
+        // state.lastHumanNote.dur, " ",
+        // state.lastHumanNote.startTick, " ", )
 
     },
 

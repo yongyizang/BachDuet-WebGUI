@@ -146,8 +146,13 @@ export default {
       lastSvgGroupTreble: null,
       lastSvgGroupBass: null,
       lastSvgGroupTrebleXOffset: null,
+      lastSvgGroupTrebleXOffset_lastNote: null,
       lastSvgGroupBassXOffset: null,
-      
+      lastSvgGroupBassXOffset_lastNote: null,
+      afairetisHuman: 0,
+      afairetisAI: 0,
+      barTieHuman: false,
+      barTieAI: true,
       tickContexts: [],
       context: null,
       staves: [],
@@ -273,7 +278,7 @@ export default {
       this.context.setViewBox(this.viewX, 0, this.screenWidth, 300);
     },
 
-    formatQuantizedNote(quantNoteDict, clef = "treble") {
+    formatQuantizedNote(quantNoteDict, clef = "treble", afairetis = 0) {
       const vm = this;
 
       var formName;
@@ -290,8 +295,8 @@ export default {
       // get formatted duration
       var durationTokens;
       var durations;
-      [durationTokens, durations] = DurationFormatter(quantNoteDict.dur);
-      console.log(formName, " ", durationTokens);
+      [durationTokens, durations] = DurationFormatter(quantNoteDict.dur - afairetis);
+      // console.log(formName, " ", durationTokens);
       var notes = [];
       for (let i = 0; i < durationTokens.length; i++) {
         let newNote = new vm.VF.StaveNote({
@@ -316,7 +321,7 @@ export default {
     drawTop(quantNoteDict) {
       var notesToDraw;
       var durations;
-      var processed = this.formatQuantizedNote(quantNoteDict, "treble");
+      var processed = this.formatQuantizedNote(quantNoteDict, "treble", this.afairetisHuman);
       notesToDraw = processed.notes;
       durations = processed.durations;
       this.tickContexts[0].setX(this.xTreble);
@@ -331,11 +336,17 @@ export default {
           this.tickContexts[0].setX(this.xTreble);
         }
       }
+
+      // TODO we can't use a Formatter here (or maybe we can for each measure)
+      // So I have to replicate some of its functionallity manually.
+      // One problem is that the current X position of the note is not
+      // stored as a class field, and that's why I have to maintain the external
+      // variables first_x, last_x
       const group = this.context.openGroup();
 
       this.lastSvgGroupTreble = group;
       this.lastSvgGroupTrebleXOffset = this.xTreble;
-
+      var first_x = this.xTreble;
       for (let i = 0; i < notesToDraw.length; i++) {
         let currentNote = notesToDraw[i];
         // console.log(i, " ", currentNote);
@@ -345,34 +356,47 @@ export default {
         currentNote.preFormat();
 
         currentNote.draw();
+        
         this.xTreble += this.tickStepPixels * durations[i];
         this.tickContexts[0].setX(this.xTreble);
-      }
+        if (i>0){
+          let last_x = this.xTreble;
+          var curve = new this.VF.Curve(notesToDraw[0],
+                                        notesToDraw[1],
+                                        {
+                                              cps: [
+                                                { x: 0, y: 20 },
+                                                { x: 0, y: 20 },
+                                              ],
+                                              // invert: true,
+                                              // position_end: 'nearTop',
+                                              x_shift: 2*notesToDraw[0].getWidth(),
+                                              y_shift: 20,
+                                            },
+                                        );
+          curve.setContext(this.context);
+          // curve.draw()
+          curve.renderCurve({
+            first_x:first_x + 40,
+            last_x:last_x + 40,
+            first_y:notesToDraw[0].getYs()[0],
+            last_y:notesToDraw[1].getYs()[0],
+            direction: -1,
+          });
 
-      // TODO : for some uknown reason it doesn't work
-      // if (notesToDraw.length == 2){
-      //     var curve = new this.VF.Curve({from : notesToDraw[0],
-      //                                   to : notesToDraw[1],
-      //                                   options: {
-      //                                         cps: [
-      //                                           { x: 0, y: 20 },
-      //                                           { x: 0, y: 20 },
-      //                                         ],
-      //                                         invert: true,
-      //                                         position_end: 'nearTop',
-      //                                         y_shift: 20,
-      //                                       },
-      //                                   });
-      //     curve.setContext(this.context);
-      //     curve.draw()
-      // }
+          first_x = last_x;
+
+        }
+      }
+      // TODO fix the name and maybe group it with lastSvgGroupTrebleXOffset
+      this.lastSvgGroupTrebleXOffset_lastNote = this.xTreble;
       this.context.closeGroup();
     },
 
     drawBottom(quantNoteDict) {
       var notesToDraw;
       var durations;
-      var processed = this.formatQuantizedNote(quantNoteDict, "bass");
+      var processed = this.formatQuantizedNote(quantNoteDict, "bass", this.afairetisAI);
       notesToDraw = processed.notes;
       durations = processed.durations;
       this.tickContexts[1].setX(this.xBass);
@@ -407,6 +431,47 @@ export default {
     draw() {
       var humanQuantNoteDict = this.$store.getters.getLastHumanNoteQuantized;
       var aiQuantNoteDict = this.$store.getters.getLastAINoteQuantized;
+      // if duration = 1 : teleia popa, den peirazeis tipota
+      // if duration > 1: if = 2, set afaireti = 2 + prevMeasures*16, set newDur = duration - afaireti + 1
+      // 
+      // 0
+      // 1  dur 1 newDur = 1 - 0
+      // 2  dur 2 newDur = 2 - 0
+      // 3  dur 3 newDur = 3 - 0
+      // 0  dur 4  --> afairetis = 3 --> newDur = 4 - 3
+      // 1  dur 5  newDur = 5 - 3
+      // 2  dur 6  newDur = 6 - 3
+      // 3  dur 7  newDur = 7 - 3
+      // 0  dur 8  --> afairetis = 7 --> newDur = 8-7
+      // 1  dur 9
+      // 2  dur 1
+      // 3
+
+      if (humanQuantNoteDict.dur == 1){
+        this.afairetisHuman = 0;
+      }
+      if (aiQuantNoteDict.dur == 1){
+        this.afairetisAI = 0;
+      }
+      if (this.$store.getters.getLocalTickDelayed % 16 === 0) {
+        if (humanQuantNoteDict.dur == 1){
+          this.afairetisHuman = 0;
+          this.barTieHuman = false;
+        }
+        else if (humanQuantNoteDict.dur > 1){
+          this.afairetisHuman = humanQuantNoteDict.dur -1;
+          self.barTieHuman = true;
+        }
+        if (aiQuantNoteDict.dur == 1){
+          this.afairetisAI = 0;
+          this.barTieAI = false;
+        }
+        else if (aiQuantNoteDict.dur > 1){
+          this.afairetisAI = aiQuantNoteDict.dur -1;
+          self.barTieAI = true;
+        }
+      }
+      
       this.drawTop(humanQuantNoteDict);
       this.drawBottom(aiQuantNoteDict);
 
@@ -414,12 +479,13 @@ export default {
       // here we draw the barline and bar-number
       if (this.$store.getters.getLocalTickDelayed % 16 === 0) {
         // Draw Barnumber
+        // this.xCurrent += 
         this.currentBarNumber += 1;
         this.context.font="22px Georgia";
         this.context.fillText(
           this.currentBarNumber,
-          this.xCurrent,
-          this.staves[0].getYForLine(0) - 10
+          this.xCurrent + Math.floor(this.tickStepPixels / 2) ,
+          this.staves[0].getYForLine(0) - 20
         );
 
         // Draw Barline
@@ -427,7 +493,7 @@ export default {
         let topY = this.staves[0].getYForLine(0);
         let botY = this.staves[1].getYForLine(this.staves[1].getNumLines() - 1);
         this.context.fillRect(
-          this.xCurrent,
+          this.xCurrent + this.tickStepPixels/2,
           topY,
           thickness,
           botY - topY
@@ -440,7 +506,7 @@ export default {
         // To fix that we can try to perform this check more often (i.e every beat)
         if (this.scrollEnabled == true){
           let scrollsDiff = this.scrollsNumberPerMeasure - this.scrollsCounter;
-          console.log(scrollsDiff);
+          // console.log(scrollsDiff);
           this.scrollScore(scrollsDiff);
           this.scrollsCounter = 0;
         }
@@ -451,7 +517,7 @@ export default {
       // find the position of the next note in relation with the screenWidth
       var pos = (this.xCurrent - this.viewX) / this.screenWidth;
       if (pos > this.latestNotePosition) {
-        console.log(pos);
+        // console.log(pos);
         this.scrollEnabled = true;
       }
     },
