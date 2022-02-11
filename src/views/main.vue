@@ -528,7 +528,7 @@ export default {
     },
 
     triggerAiSampler() {
-      // TODO
+      // TODO use lastAiNote from vuex
       // here, we check the note the AI predicted in the previous tick,
       // for the tick we are now. If the articulation of the predicted note
       // is 1 (hit), then we trigger the AI sampler to play the note.
@@ -637,7 +637,7 @@ export default {
       this.estimateHumanQuantizedNote();
 
       this.$store.commit("incrementTickDelayed");
-      this.$root.$refs.scoreUI.draw2();
+      this.$root.$refs.scoreUI.draw();
       console.assert(
         this.$store.getters.getLocalTick ===
           this.$store.getters.getLocalTickDelayed

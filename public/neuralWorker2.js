@@ -38,7 +38,7 @@ loadModels()
 
 // self.lastAiPrediction = {'aiInpMidi':96, 'aiInpCpc':12};
 
-self.temperature = 0.2;
+self.temperature = 0.9;
 self.counter = 0;
 
 onmessage = function(e) {
