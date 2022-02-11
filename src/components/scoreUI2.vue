@@ -147,8 +147,11 @@ export default {
       lastSvgGroupBass: null,
       lastSvgGroupTrebleXOffset: null,
       lastSvgGroupTrebleXOffset_lastNote: null,
+      lastSvgGroupTrebleXOffset_lastNote_prevBar: null,
       lastSvgGroupBassXOffset: null,
       lastSvgGroupBassXOffset_lastNote: null,
+      lastDrawnNote_Human: null,
+      lastDrawnNote_Human_prevBar: null,
       afairetisHuman: 0,
       afairetisAI: 0,
       barTieHuman: false,
@@ -359,9 +362,41 @@ export default {
         
         this.xTreble += this.tickStepPixels * durations[i];
         this.tickContexts[0].setX(this.xTreble);
+        if (i==0 && this.barTieHuman == true){
+          // let last_x = this.xTreble;
+          console.log("IN BAR CURVE")
+          var curve = new this.VF.Curve(this.lastDrawnNote_Human_prevBar,
+                                        notesToDraw[0],
+                                        
+                                        {
+                                              cps: [
+                                                { x: 0, y: 20 },
+                                                { x: 0, y: 20 },
+                                              ],
+                                              // invert: true,
+                                              // position_end: 'nearTop',
+                                              x_shift: 2*notesToDraw[0].getWidth(),
+                                              y_shift: 20,
+                                            },
+                                        );
+          curve.setContext(this.context);
+          // curve.draw()
+          curve.renderCurve({
+            first_x:this.lastSvgGroupTrebleXOffset_lastNote_prevBar + 40,
+            last_x:this.xTreble + 40,
+            first_y:this.lastDrawnNote_Human_prevBar.getYs()[0],
+            last_y:notesToDraw[0].getYs()[0],
+            direction: -1,
+          });
+
+          // first_x = last_x;
+
+        }
+
         if (i>0){
           let last_x = this.xTreble;
-          var curve = new this.VF.Curve(notesToDraw[0],
+          // TODO : this indexing here is not generic, it works only if we have 2 notesToDraw
+          var curve = new this.VF.Curve(notesToDraw[0], 
                                         notesToDraw[1],
                                         {
                                               cps: [
@@ -388,8 +423,9 @@ export default {
 
         }
       }
-      // TODO fix the name and maybe group it with lastSvgGroupTrebleXOffset
+      // TODO fix the names and maybe group all the Human and AI variables in one.
       this.lastSvgGroupTrebleXOffset_lastNote = this.xTreble;
+      this.lastDrawnNote_Human = notesToDraw[notesToDraw.length-1];
       this.context.closeGroup();
     },
 
@@ -431,36 +467,26 @@ export default {
     draw() {
       var humanQuantNoteDict = this.$store.getters.getLastHumanNoteQuantized;
       var aiQuantNoteDict = this.$store.getters.getLastAINoteQuantized;
-      // if duration = 1 : teleia popa, den peirazeis tipota
-      // if duration > 1: if = 2, set afaireti = 2 + prevMeasures*16, set newDur = duration - afaireti + 1
-      // 
-      // 0
-      // 1  dur 1 newDur = 1 - 0
-      // 2  dur 2 newDur = 2 - 0
-      // 3  dur 3 newDur = 3 - 0
-      // 0  dur 4  --> afairetis = 3 --> newDur = 4 - 3
-      // 1  dur 5  newDur = 5 - 3
-      // 2  dur 6  newDur = 6 - 3
-      // 3  dur 7  newDur = 7 - 3
-      // 0  dur 8  --> afairetis = 7 --> newDur = 8-7
-      // 1  dur 9
-      // 2  dur 1
-      // 3
 
+      // TODO some if's are redudant. 
       if (humanQuantNoteDict.dur == 1){
         this.afairetisHuman = 0;
+        this.barTieHuman = false;
       }
       if (aiQuantNoteDict.dur == 1){
         this.afairetisAI = 0;
+        this.barTieAI = false;
       }
       if (this.$store.getters.getLocalTickDelayed % 16 === 0) {
+        // this.lastDrawnNote_Human_prevBar = this.lastDrawnNote_Human;
+        // this.lastSvgGroupTrebleXOffset_lastNote_prevBar = this.lastSvgGroupTrebleXOffset_lastNote;
         if (humanQuantNoteDict.dur == 1){
           this.afairetisHuman = 0;
           this.barTieHuman = false;
         }
         else if (humanQuantNoteDict.dur > 1){
           this.afairetisHuman = humanQuantNoteDict.dur -1;
-          self.barTieHuman = true;
+          this.barTieHuman = true;
         }
         if (aiQuantNoteDict.dur == 1){
           this.afairetisAI = 0;
@@ -468,10 +494,10 @@ export default {
         }
         else if (aiQuantNoteDict.dur > 1){
           this.afairetisAI = aiQuantNoteDict.dur -1;
-          self.barTieAI = true;
+          this.barTieAI = true;
         }
       }
-      
+
       this.drawTop(humanQuantNoteDict);
       this.drawBottom(aiQuantNoteDict);
 
@@ -519,6 +545,11 @@ export default {
       if (pos > this.latestNotePosition) {
         // console.log(pos);
         this.scrollEnabled = true;
+      }
+
+      if (this.$store.getters.getLocalTickDelayed % 16 === 15) {
+        this.lastDrawnNote_Human_prevBar = this.lastDrawnNote_Human;
+        this.lastSvgGroupTrebleXOffset_lastNote_prevBar = this.lastSvgGroupTrebleXOffset_lastNote;
       }
     },
 
