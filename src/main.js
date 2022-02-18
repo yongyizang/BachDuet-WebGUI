@@ -5,12 +5,9 @@ import "./registerServiceWorker";
 import router from "./router";
 import "remixicon/fonts/remixicon.css";
 import Vue2TouchEvents from "vue2-touch-events";
-import VueMaterial from 'vue-material'
-import 'vue-material/dist/vue-material.min.css'
-import 'vue-material/dist/theme/default.css'
+import ToggleButton from 'vue-js-toggle-button'
 
-Vue.use(VueMaterial)
-
+Vue.use(ToggleButton);
 Vue.use(Vue2TouchEvents, {
   disableClick: true,
   touchClass: "",

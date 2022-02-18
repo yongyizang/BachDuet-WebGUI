@@ -68,7 +68,6 @@ body {
   z-index: 1;
   height: 100%;
   width: 100%;
-  border: 13px solid rgb(89, 50, 54);
 }
 
 .center {

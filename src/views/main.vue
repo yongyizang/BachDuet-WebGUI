@@ -17,6 +17,17 @@
         <p ref="workerStatus" class="loadingStatus">
           Loading in The Neural Network...
         </p>
+        <div style="padding-bottom: 20px">
+          <toggle-button
+            color="#74601c"
+            :value="true"
+            @change="onPrivacyAgreeBtn($event)"
+          />
+          <span>
+            Send us data of your interaction with BachDuet anonymously.</span
+          >
+        </div>
+        <sweet-modal>This is an alert.</sweet-modal>
         <button @click="entryProgram" ref="entryBtn" class="entryBtn">
           Play with Neural Network
         </button>
@@ -33,10 +44,7 @@
           right: 0;
           z-index: 999;
         "
-      >
-        <!-- <span>NeuralNet Inference: {{ $store.state.neuralNetRefreshTime }}</span><br /> -->
-        <!-- <span>scoreUI Time: {{ $store.state.scoreUIRefreshTime }}</span> -->
-      </div>
+      ></div>
       <scoreUI />
       <MIDI />
       <gameUI />
@@ -390,12 +398,14 @@ export default {
   },
 
   methods: {
+    // To fade between loading screen and main content.
     entryProgram() {
       const vm = this;
       vm.$refs.mainLoadingScreen.classList.add("fade-out");
       vm.$refs.mainLoadingScreen.style.display = "none";
       vm.$refs.mainContent.style.display = "block";
     },
+
     // neuralWorker's callback. Called every tick, and processes the AI's output
     async workerCallback(e) {
       const vm = this;
@@ -412,10 +422,10 @@ export default {
               userAgent: vm.userAgent,
               pageLoad: vm.pageLoadTime,
               modelLoad: vm.modelLoadTime,
-              dataAddTime: Date.now()
+              dataAddTime: Date.now(),
             });
             vm.userDataID = docRef.id;
-            console.log("Written to firebase with ID ", docRef.id);
+            vm.$store.commit('writeSessionID', docRef.id);
           } catch (e) {
             console.error("Error writing to firebase. ", e);
           }
@@ -438,6 +448,11 @@ export default {
         metronomeSampler.triggerAttackRelease(note, 0.2, Tone.now());
       }
     },
+
+    onPrivacyAgreeBtn(event) {
+      this.$store.commit("changeDataCollectionState", event.value);
+    },
+
     // when Metronome is toggled.
     toggleMetronome() {
       metronomeBus.mute = this.metronomeStatus;
@@ -677,7 +692,7 @@ export default {
 
 .octaveControls {
   z-index: 3;
-  color:black;
+  color: black;
   position: fixed;
   right: 30px;
   bottom: 230px;
@@ -685,7 +700,7 @@ export default {
 
 .timingControls {
   z-index: 3;
-  color:black;
+  color: black;
   position: fixed;
   left: 30px;
   bottom: 230px;
@@ -710,7 +725,6 @@ export default {
   z-index: 1;
   height: 100%;
   width: 100%;
-  border: 13px solid rgb(89, 50, 54);
 }
 
 .fade-in {
@@ -808,6 +822,11 @@ export default {
   -webkit-animation: scale-down-center 0.05s
     cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
   animation: scale-down-center 0.05s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}
+
+.typewrite {
+  padding: 0;
+  margin: 0;
 }
 
 @-webkit-keyframes scale-down-center {
