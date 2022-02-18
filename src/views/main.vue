@@ -27,7 +27,6 @@
             Send us data of your interaction with BachDuet anonymously.</span
           >
         </div>
-        <sweet-modal>This is an alert.</sweet-modal>
         <button @click="entryProgram" ref="entryBtn" class="entryBtn">
           Play with Neural Network
         </button>
@@ -49,6 +48,32 @@
       <MIDI />
       <gameUI />
       <!-- <neuralNet /> -->
+      <div style="position: absolute; bottom: 230px; right: 20px">
+        <md-button @click="toggleClock" class="md-raised" style="width: 40px">
+          <md-icon>{{ localSyncClockStatus ? "pause" : "play_arrow" }}</md-icon>
+          <span> {{ localSyncClockStatus ? "Pause" : "Play" }}</span>
+        </md-button>
+        <md-button @click="showSettingsModal" class="md-raised">
+          <md-icon>settings</md-icon>
+          <span> Settings </span>
+        </md-button>
+      </div>
+      <md-button
+        v-if="keyboardUIoctaveEnd !== 8"
+        @click="transposeOctUp"
+        class="md-icon-button md-raised"
+        style="position:absolute;right:20px;bottom:100px;"
+      >
+        <md-icon>arrow_forward</md-icon>
+      </md-button>
+      <md-button
+        v-if="keyboardUIoctaveStart !== 0"
+        @click="transposeOctDown"
+        class="md-icon-button md-raised"
+        style="position:absolute;left:20px;bottom:100px;"
+      >
+        <md-icon>arrow_back</md-icon>
+      </md-button>
       <keyboardUI
         id="pianoKeyboard"
         class="pianoKeyboard"
@@ -59,43 +84,43 @@
       />
       <!-- <neuralNet/> -->
       <!-- logic handled by this file for decoupling purposes. -->
-      <div class="octaveControls">
-        <button class="octs" v-if="clockInitialized" @click="toggleMetronome">
-          {{ metronomeStatus ? "Mute Metronome" : "Unmute Metronome" }}
-        </button>
-
-        <button
-          class="octs"
-          v-if="keyboardUIoctaveEnd !== 8"
-          @click="transposeOctUp"
+      <modal name="settingsModal">
+        <div
+          style="
+            padding: 10px;
+            min-height: 100%;
+            background-color: rgb(243, 225, 190);
+          "
         >
-          OCT UP
-        </button>
-
-        <button
-          class="octs"
-          v-if="keyboardUIoctaveStart !== 0"
-          @click="transposeOctDown"
-        >
-          OCT DOWN
-        </button>
-      </div>
-
-      <div class="timingControls">
-        <!-- 
-        Set to automatically binding between this input and the data BPM.
-        v-model.lazy change the value only after the input lose focus.
-      -->
-        <span style="color: white"
-          >BPM:<input id="bpm" v-model.lazy="BPM" maxlength="3" size="3"
-        /></span>
-
-        <span style="color: white"
-          >Freq:<input id="freq" v-model.lazy="FREQ" maxlength="2" size="3"
-        /></span>
-
-        <button class="octs" @click="toggleClock">Clock</button>
-      </div>
+          <p>Settings</p>
+          <div>
+            <span> BPM: {{ BPM }} </span>
+            <vue-slider
+              v-model="BPM"
+              :lazy="true"
+              :min="60"
+              :max="120"
+            ></vue-slider>
+          </div>
+          <div>
+            <span> Frequency: {{ FREQ }} beats per measure </span>
+            <vue-slider
+              v-model="FREQ"
+              :lazy="true"
+              :min="2"
+              :max="6"
+            ></vue-slider>
+          </div>
+          <div style="padding-bottom: 20px">
+            <toggle-button
+              color="#74601c"
+              :value="true"
+              @change="toggleMetronome"
+            />
+            <span> Metronome</span>
+          </div>
+        </div>
+      </modal>
     </div>
   </div>
 </template>
@@ -109,7 +134,7 @@ import gameUI from "@/components/gameUI.vue";
 import scoreUI from "@/components/scoreUI2.vue";
 import MIDI from "@/components/MIDI.vue";
 // import neuralNet from "@/components/neuralNet.vue";
-
+import fab from "vue-fab";
 import Instruments from "@/library/instruments";
 import * as TokensDict from "@/../public/globalTokenIndexDict.json";
 
@@ -120,14 +145,6 @@ import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 import { getFirestore, collection, addDoc } from "firebase/firestore";
 
-// TODO: DO NOT MAKE THIS PART PUBLIC!!
-// TODO: DO NOT MAKE THIS PART PUBLIC!!
-// TODO: DO NOT MAKE THIS PART PUBLIC!!
-// TODO: DO NOT MAKE THIS PART PUBLIC!!
-// TODO: DO NOT MAKE THIS PART PUBLIC!!
-// TODO: DO NOT MAKE THIS PART PUBLIC!!
-// TODO: DO NOT MAKE THIS PART PUBLIC!!
-// TODO: DO NOT MAKE THIS PART PUBLIC!!
 const firebaseConfig = {
   apiKey: "AIzaSyCVFIcL_nokMdYVET7lvxnuIbLLoUi5YSs",
   authDomain: "bachduet-b9d02.firebaseapp.com",
@@ -137,14 +154,6 @@ const firebaseConfig = {
   appId: "1:668363580240:web:f301aa62ecf8310caa8255",
   measurementId: "G-Z0DKQ7L50N",
 };
-// TODO: DO NOT MAKE THIS PART PUBLIC!!
-// TODO: DO NOT MAKE THIS PART PUBLIC!!
-// TODO: DO NOT MAKE THIS PART PUBLIC!!
-// TODO: DO NOT MAKE THIS PART PUBLIC!!
-// TODO: DO NOT MAKE THIS PART PUBLIC!!
-// TODO: DO NOT MAKE THIS PART PUBLIC!!
-// TODO: DO NOT MAKE THIS PART PUBLIC!!
-// TODO: DO NOT MAKE THIS PART PUBLIC!!
 
 const firebaseApp = initializeApp(firebaseConfig);
 const analytics = getAnalytics(firebaseApp);
@@ -204,10 +213,7 @@ export default {
     return {
       BPM: 60,
       FREQ: 4,
-      bpm: 60,
-      intervalIntegar: 4,
-      clockStatus: false,
-      clockInitialized: false,
+      localSyncClockStatus: false, // used to trigger local UI change
       screenWidth: document.body.clientWidth,
       screenHeight: document.body.clientHeight,
       keyboardUIKey: 0,
@@ -228,6 +234,7 @@ export default {
     keyboardUI,
     scoreUI,
     gameUI,
+    fab,
     MIDI,
     // neuralNet
   },
@@ -323,14 +330,6 @@ export default {
       })();
     };
 
-    // let self = this;
-    // window.addEventListener('keyup', function(event) {
-    //   var whichKey = event.key.toLowerCase();
-    // });
-    // window.addEventListener('keydown', function(event) {
-    //   var whichKey = event.key.toLowerCase();
-
-    // });
     let self = this;
     var keyboard = new AudioKeys({
       polyphony: 100,
@@ -386,13 +385,13 @@ export default {
     FREQ: {
       immediate: true,
       handler(newValue) {
-        this.intervalIntegar = newValue;
+        this.$store.commit("setFrequency", newValue);
       },
     },
     BPM: {
       immediate: true,
       handler(newValue) {
-        this.bpm = newValue;
+        this.$store.commit("setBPM", newValue);
       },
     },
   },
@@ -425,7 +424,7 @@ export default {
               dataAddTime: Date.now(),
             });
             vm.userDataID = docRef.id;
-            vm.$store.commit('writeSessionID', docRef.id);
+            vm.$store.commit("writeSessionID", docRef.id);
           } catch (e) {
             console.error("Error writing to firebase. ", e);
           }
@@ -442,15 +441,24 @@ export default {
     metronomeTrigger() {
       // var vm = this;
       // console.log("IN METRONOMETRIGGER " + this.$store.getters.getLocalTick)
-      if (this.$store.getters.getLocalTick % this.intervalIntegar == 0) {
+      if (
+        this.$store.getters.getLocalTick % this.$store.getters.getFrequency ==
+        0
+      ) {
         var note = this.$store.getters.getLocalTick % 16 === 0 ? "G0" : "C0";
-        // console.log(note);
         metronomeSampler.triggerAttackRelease(note, 0.2, Tone.now());
       }
     },
 
     onPrivacyAgreeBtn(event) {
       this.$store.commit("changeDataCollectionState", event.value);
+    },
+
+    showSettingsModal() {
+      this.$modal.show("settingsModal");
+    },
+    hideSettingsModal() {
+      this.$modal.hide("settingsModal");
     },
 
     // when Metronome is toggled.
@@ -478,19 +486,20 @@ export default {
       // console.log(this.$refs.mytestref.$el.children[0].getElementsByClassName("A1")[0].classList)
 
       var vm = this;
+      vm.localSyncClockStatus = !vm.localSyncClockStatus;
       // Allowing tickNumber to add to itself.
       // console.log(tokensDict)
-      vm.clockStatus = !vm.clockStatus;
+      vm.$store.commit("changeClockStatus");
 
       // If the clock is not yet initialized...
-      if (!vm.clockInitialized) {
+      if (!vm.$store.getters.getClockInitialized) {
         // Then set it to intialized
-        vm.clockInitialized = true;
+        vm.$store.commit("initializeClock");
         // And intialized it.
 
         // Clock behavior function.
         function tickBehavior() {
-          if (vm.clockStatus) {
+          if (vm.$store.getters.getClockStatus) {
             vm.$store.commit("incrementTick");
             // }
             // Below are behaviors.
@@ -534,7 +543,7 @@ export default {
         function sendOutTicks() {
           // console.log("tick send.");
           tickBehavior();
-          setTimeout(sendOutTicks, (60 / vm.bpm / 4) * 1000);
+          setTimeout(sendOutTicks, (60 / vm.$store.getters.getBPM / 4) * 1000);
         }
 
         // Call it for the first time.

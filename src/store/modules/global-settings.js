@@ -46,11 +46,14 @@ const mutations = {
     state.sessionID = id;
     console.log(id);
   },
+  changeClockStatus(state){
+    state.clockStatus = !state.clockStatus;
+  },
   setClockStatus(state, status){
     state.clockStatus = status;
   },
-  setClockinitialized(state, status){
-    state.clockInitialized = status;
+  initializeClock(state){
+    state.clockInitialized = true;
   },
   setBPM(state, bpm){
     state.bpm = bpm;
