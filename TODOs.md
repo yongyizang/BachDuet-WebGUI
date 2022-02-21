@@ -30,3 +30,10 @@
 
 # Before Launch
     [ ] Deploy to Netlify at a beta testing url (bachduet.com/beta)
+
+# Documentations
+    [ ] Why use this repo for your presentation?
+    [ ] Quick Start Guide: How to quickly import your module?
+    [ ] Project Overview and Structure Overview
+    [ ] Design Guidelines
+    [ ] How to deploy
