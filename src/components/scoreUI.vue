@@ -359,7 +359,7 @@ export default {
         currentNote.preFormat();
 
         currentNote.draw();
-        
+        this.lastSvgGroupTrebleXOffset_lastNote = this.xTreble;
         this.xTreble += this.tickStepPixels * durations[i];
         this.tickContexts[0].setX(this.xTreble);
         if (i==0 && this.barTieHuman == true){
@@ -388,7 +388,7 @@ export default {
             last_y:notesToDraw[0].getYs()[0],
             direction: -1,
           });
-
+          this.barTieHuman = false
           // first_x = last_x;
 
         }
@@ -424,7 +424,7 @@ export default {
         }
       }
       // TODO fix the names and maybe group all the Human and AI variables in one.
-      this.lastSvgGroupTrebleXOffset_lastNote = this.xTreble;
+      // this.lastSvgGroupTrebleXOffset_lastNote = this.xTreble;
       this.lastDrawnNote_Human = notesToDraw[notesToDraw.length-1];
       this.context.closeGroup();
     },
