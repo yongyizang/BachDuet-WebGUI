@@ -127,13 +127,11 @@
 
 <script>
 import * as Tone from "tone";
-import { Buffer, Sequence, Transport, Event, Draw, context } from "tone";
 import { Midi } from "@tonaljs/tonal";
 import keyboardUI from "@/components/keyboardUI.vue";
 import gameUI from "@/components/gameUI.vue";
-import scoreUI from "@/components/scoreUI2.vue";
+import scoreUI from "@/components/scoreUI.vue";
 import MIDI from "@/components/MIDI.vue";
-// import neuralNet from "@/components/neuralNet.vue";
 import fab from "vue-fab";
 import Instruments from "@/library/instruments";
 import * as TokensDict from "@/../public/globalTokenIndexDict.json";
@@ -159,6 +157,12 @@ const firebaseApp = initializeApp(firebaseConfig);
 const analytics = getAnalytics(firebaseApp);
 const db = getFirestore();
 // import globalDict from "globalTokenIndexDict.json"
+
+// This is for Web Audio restrictions, we need to make an user behavior to trigger the Tone.start() function.
+window.onclick = () => {
+  Tone.start();
+  Tone.context.lookAhead = 0;
+};
 
 /*
   Initialization Process.
@@ -195,16 +199,11 @@ const metronomeSampler = new Instruments().createSampler(
     metronome.release = 2;
   }
 );
+
 // This is the metronome Bus. We would need this for mixing purposes.
 const metronomeBus = new Tone.Channel().toDestination();
 metronomeSampler.connect(metronomeBus);
 //C: how about user and ai bus ?
-
-// This is for Web Audio restrictions, we need to make an user behavior to trigger the Tone.start() function.
-window.onclick = () => {
-  Tone.start();
-  Tone.context.lookAhead = 0;
-};
 
 export default {
   name: "mainScreen",
@@ -315,7 +314,7 @@ export default {
     // AIKeyboardElement = this.$refs.aiKeyboard;
     this.$store.commit("setTokensDict", TokensDict.default);
 
-    this.neuralWorker = new Worker("neuralWorker2.js"); //, { type: "module" })
+    this.neuralWorker = new Worker("neuralWorker.js"); //, { type: "module" })
 
     // the workerCallback function is called when the neuralWorker returns the AI's prediction
     this.neuralWorker.onmessage = this.workerCallback;
@@ -431,7 +430,9 @@ export default {
         }
         workerStatus.innerHTML = e.data;
       } else {
+        // HERE
         var aiPrediction = e.data;
+        // write something here to send it to firebase
         this.$store.dispatch("newAiPrediction", aiPrediction);
       }
     },

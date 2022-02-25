@@ -112,7 +112,6 @@ const getters = {
 const actions = {
     newAiPrediction ({ commit, state, getters }, aiPrediction) {
         // aiPrediction is a dict with keys "midiArticInd" and "tick"
-
         // first convert the midiArticInd to the token midiArtic 
         // using the tokensDict
         var midiArticInd = aiPrediction.midiArticInd
@@ -165,7 +164,6 @@ const actions = {
                 state.lastAINote.dur += 1
             }
         }
-
     },
     newHumanInputQuantized ({ commit, state, getters }, args) {
         

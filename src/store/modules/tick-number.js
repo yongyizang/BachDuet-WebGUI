@@ -1,7 +1,6 @@
-
 import Vue from "vue";
 
-//Maximum of the localTick
+// Maximum of the localTick
 const LOCALMAX = 16;
 
 const bar =  [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-1];
