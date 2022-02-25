@@ -7,4 +7,3 @@
 ### KeyboardUI
 
 ### ScoreUI
-- Scrolling stopped working

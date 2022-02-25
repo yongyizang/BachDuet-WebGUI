@@ -265,19 +265,17 @@ export default {
         .draw();
 
       setInterval(() => {
-        // TODO I created a ref to main in order to access clockStatus. Is this a good way ? Or maybe store clockStatus in vuex ?
-        // Yongyi: In the future we should move every variable we tried to call here to Vuex. But let's not worry about them now!
-        if (this.$root.$refs.main.clockStatus && this.scrollEnabled) {
+        if (this.$store.getters.getClockStatus && this.scrollEnabled) {
           this.scrollScore(1)
           this.scrollsCounter += 1;
-          this.scrollsNumberPerMeasure = 60 / this.$root.$refs.main.bpm * 4 * 1000 / this.scrollStepTime       
+          this.scrollsNumberPerMeasure = 60 / this.$store.getters.getBPM * 4 * 1000 / this.scrollStepTime       
         }
       }, this.scrollStepTime);
     },
 
     scrollScore(steps){
       this.viewX += steps*(this.scrollStepTime * this.tickStepPixels) /
-                        ((1000 * 60) / this.$root.$refs.main.bpm / 4);     
+                        ((1000 * 60) / this.$store.getters.getBPM / 4);     
       this.context.setViewBox(this.viewX, 0, this.screenWidth, 300);
     },
 
