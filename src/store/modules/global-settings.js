@@ -12,6 +12,7 @@ const state = {
   clockInitialized: false,
   bpm: 60,
   frequency: 4,
+  temperature: 0.5
 };
 
 const getters = {
@@ -32,6 +33,9 @@ const getters = {
   },
   getFrequency(state){
     return state.frequency;
+  },
+  getTemperature(state){
+    return state.temperature;
   }
 };
 
@@ -60,6 +64,9 @@ const mutations = {
   },
   setFrequency(state, frequency){
     state.frequency = frequency;
+  },
+  setTemperature(state, temperature){
+    state.temperature = temperature;
   }
 };
 

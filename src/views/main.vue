@@ -111,6 +111,16 @@
               :max="6"
             ></vue-slider>
           </div>
+          <div> 
+            <!-- Feel free to change that -->
+            <span> Randomness </span>
+            <vue-slider
+              v-model="temperature"
+              :lazy="true"
+              :min="1"
+              :max="200"
+            ></vue-slider>
+          </div>
           <div style="padding-bottom: 20px">
             <toggle-button
               color="#74601c"
@@ -212,6 +222,7 @@ export default {
     return {
       BPM: 60,
       FREQ: 4,
+      temperature: 50,
       localSyncClockStatus: false, // used to trigger local UI change
       screenWidth: document.body.clientWidth,
       screenHeight: document.body.clientHeight,
@@ -391,6 +402,12 @@ export default {
       immediate: true,
       handler(newValue) {
         this.$store.commit("setBPM", newValue);
+      },
+    },
+    temperature: {
+      immediate: true,
+      handler(newValue) {
+        this.$store.commit("setTemperature", newValue / 100);
       },
     },
   },
@@ -682,8 +699,9 @@ export default {
         // for the AI to generate the note for time tick + 1, besides the users input
         // it also takes as an input the note it played/generated for at time tick
         aiInp: this.$store.getters.getAiPredictionFor(
-          this.$store.getters.getLocalTick
+          this.$store.getters.getLocalTick,
         ),
+        temperature : this.$store.getters.getTemperature
       };
       // console.log("to run the worker with ", aiInp, " tick is ", this.$store.getters.getLocalTick)
       this.neuralWorker.postMessage(aiInp); //{"currentTickNumber": vm.$store.getters.getLocalTick});

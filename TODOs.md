@@ -1,8 +1,9 @@
 # Settings Modal
 ### App Settings
     [ ] Metronome Frequency Implementation with Buttons
-    [ ] Temperature slider. Linear scale. Don't display number to user; Less Random - More Random
-    [ ] Reset button on the main UI. Manual control to reset the network.
+    [C] Temperature slider. Linear scale. Don't display number to user; Less Random - More Random
+    [C] Reset button on the main UI. Manual control to reset the network.
+    [C] Predifined hidden states for the neural net
 
 ### MIDI Device
     [ ] Integrate MIDI module to settings modal
@@ -11,9 +12,9 @@
 
 # External Logic
     [ ] Before user click play, nothing in the UI should respond
-    [ ] Timeout, if user doesn't play anything for ~10 secs? pause the clock.
-    [ ] Auto-reset. If the neural network is playing the same note for x seconds, then reset the neural network.
-    [ ] Misalignment. If the neural network is outputting a different tick than current tick, send out warning.    
+    [C] Timeout, if user doesn't play anything for ~10 secs? pause the clock.
+    [C] Auto-reset. If the neural network is playing the same note for x seconds, then reset the neural network.
+    [C] Misalignment. If the neural network is outputting a different tick than current tick, send out warning.    
 
 ### Reverb & Mixing Console
     [ ] Implement some reverb choices
@@ -23,7 +24,7 @@
     [ ] Volume controls
 
 ### Feedback Modal
-    [ ] Christo: Waiting for Christo to design feedback questions
+    [C] Christo: Waiting for Christo to design feedback questions
     [ ] (OPTIONAL) https://github.com/jldec/marked-forms Check marked-forms, consider the possibility of changing this code for feedback questionire auto-generation
     [ ] Implement Feedback Section
 
@@ -45,8 +46,8 @@
     [ ] Project Overview and Structure Overview
     [ ] Design Guidelines
     [ ] How to deploy
-    [ ] Quick Start Guide: How to quickly import your module?
-    [ ] How to swap out models
+    [C] Quick Start Guide: How to quickly import your module?
+    [C] How to swap out models
 
 # Cool to have things
     [ ] Map part of the keyboard to Cello and part to violin

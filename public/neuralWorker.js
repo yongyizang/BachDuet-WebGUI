@@ -41,8 +41,8 @@ loadModels()
 
 // self.lastAiPrediction = {'aiInpMidi':96, 'aiInpCpc':12};
 
-self.temperature = 0.9;
-self.counter = 0;
+// self.temperature = 0.9;
+// self.counter = 0;
 
 onmessage = function(e) {
     var data = e.data
@@ -75,12 +75,13 @@ onmessage = function(e) {
     
     var logits = out[0]
     
-    var logits_temp = logits.div(self.temperature);
+    var logits_temp = logits.div(data["temperature"]);
     var predictedNote = tf.multinomial(logits_temp, 2);
 
     // console.log('counter is ', self.counter, ' pred is ', predictedNote.dataSync()[0], ' mean logit ', logits.mean().dataSync()[0]);
     // var t2 = performance.now();
     // console.log("neuralNet: " + (t2`-t1) + " tick " + tick);
+    console.log("temperature is ", data["temperature"])
     var output = {
         'tick' : data['tick'],
         'midiArticInd' : predictedNote.dataSync()[0]
