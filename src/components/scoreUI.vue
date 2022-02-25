@@ -20,6 +20,7 @@ const CLEF_SEPARATE_AT = "B3"; // Here, we define the separate point between tre
 
 function NoteFormatter(note) {
   // Expecting input: "C#1" or "C3"
+  
   if (note.charAt(1) == "#") {
     return (
       note.charAt(0).toLowerCase() +
@@ -225,9 +226,7 @@ export default {
       bassStave.setContext(grandStaffContext).draw();
 
       var brace = new this.VF.StaveConnector(trebleStave, bassStave).setType(3);
-      var lineLeft = new this.VF.StaveConnector(trebleStave, bassStave).setType(
-        1
-      );
+      var lineLeft = new this.VF.StaveConnector(trebleStave, bassStave).setType(1);
       brace.setContext(grandStaffContext).draw();
       lineLeft.setContext(grandStaffContext).draw();
 
@@ -243,7 +242,7 @@ export default {
       this.tickContexts.push(new this.VF.TickContext());
       this.tickContexts.push(new this.VF.TickContext());
 
-      this.staves.push(new this.VF.Stave(30, 50, 20000));
+      this.staves.push(new this.VF.Stave(30, 50, 20000)); 
       this.staves.push(new this.VF.Stave(30, 150, 20000));
 
       this.context.setViewBox(this.viewX, 0, this.screenWidth, 300);
@@ -310,6 +309,9 @@ export default {
         });
         if (durationTokens[i].includes("d")) {
           newNote.addDotToAll();
+        }
+        if (formName.charAt(1) == "#"){
+          newNote.addAccidental(0, new vm.VF.Accidental("#"));
         }
         notes.push(newNote);
       }

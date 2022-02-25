@@ -535,27 +535,11 @@ export default {
             vm.triggerAiSampler();
             // console.log("Tick #" + vm.$store.getters.getLocalTick + " sent out at "  +"\n");
 
-            // 3 ways to run inference to the neural net
-
-            // A) using a web worker without async
-            // neuralWorker.postMessage(vm.$store.getters.getLocalTick);//{"currentTickNumber": vm.$store.getters.getLocalTick});
-            // console.log('Message posted to worker');
-
             // B) using a web worker with async
             // vm.runTheWorker();
             setTimeout(function () {
               vm.runTheWorker();
-            }, 50);
-
-            // C) without using a web worker
-            // C : any better ways to reference the neuralNet component ???
-            // var neuralNetObj = vm.$children.find(child => { return child.$options.name === "neuralNet"; })
-            // var predictedNote = neuralNetObj.inference(vm.$store.getters.getLocalTick);
-
-            // console.log(vm.$store.getters.getNotesBuffer);
-            // console.log(
-            //   "Last note played: " + vm.$store.getters.getLastNotePlayed
-            // );
+            }, (60 / vm.$store.getters.getBPM / 4) * 1000 / 5);
 
             vm.$store.commit("clearNotesBuffer");
           }
