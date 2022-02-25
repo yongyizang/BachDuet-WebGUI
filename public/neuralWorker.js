@@ -52,6 +52,12 @@ onmessage = function(e) {
 
     // console.assert(self.lastAiPrediction['aiInpMidi']==data['aiInp'].midiArticInd)
 
+    if (data["reset"] == 1){
+        self.states1A = tf.randomNormal([1,600]);
+        self.states1B = tf.randomNormal([1,600]);
+        self.states2A = tf.randomNormal([1,600]);
+        self.states2B = tf.randomNormal([1,600]);
+    }
     var midiInp = tf.tensor2d([[data['aiInp'].midiArticInd, data['humanInp'].midiArticInd]]);//data['humanInpMidi']]]);
     var cpcInp = tf.tensor2d([[data['aiInp'].cpc, data['humanInp'].cpc]]); //data['humanInpCpc']]]); 
     var rhyInp = tf.tensor2d([[data['rhythmInd']]]);
@@ -81,7 +87,7 @@ onmessage = function(e) {
     // console.log('counter is ', self.counter, ' pred is ', predictedNote.dataSync()[0], ' mean logit ', logits.mean().dataSync()[0]);
     // var t2 = performance.now();
     // console.log("neuralNet: " + (t2`-t1) + " tick " + tick);
-    console.log("temperature is ", data["temperature"])
+    // console.log("temperature is ", data["temperature"])
     var output = {
         'tick' : data['tick'],
         'midiArticInd' : predictedNote.dataSync()[0]

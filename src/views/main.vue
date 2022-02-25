@@ -232,6 +232,7 @@ export default {
       metronomeStatus: true,
       // tokensDict: TokensDict,
       lastNoteOnAi: "",
+      reset: 0,
       // Userdata
       userDataID: null,
       userAgent: null,
@@ -452,6 +453,8 @@ export default {
         // write something here to send it to firebase
         this.$store.dispatch("newAiPrediction", aiPrediction);
       }
+
+      this.reset = 0; // for explanation see the comment about reset inside runTheWorker()
     },
     // moved the metronomeTrigger function inside methods
     // it doesn't take any input argument
@@ -701,8 +704,16 @@ export default {
         aiInp: this.$store.getters.getAiPredictionFor(
           this.$store.getters.getLocalTick,
         ),
-        temperature : this.$store.getters.getTemperature
+        temperature : this.$store.getters.getTemperature,
+        reset : this.reset
       };
+      // when this.reset is 1, then for this tick only, the neural network will reset its memory. 
+      // after that we ll have to set this.reset = 0 again (in the workerCallback), because if not, 
+      // the AI will keep reseting its memory. I think that's a terrible way to implement the reset function. 
+      // My problem is that the only way to communicate with the AI is through the input arguments of postMessage().
+      // Ideally we want to have a reset button that calls a callback that exists inside the neuralWorker.js, 
+      // but I don't know if this is possible
+      
       // console.log("to run the worker with ", aiInp, " tick is ", this.$store.getters.getLocalTick)
       this.neuralWorker.postMessage(aiInp); //{"currentTickNumber": vm.$store.getters.getLocalTick});
     },

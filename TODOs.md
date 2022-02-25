@@ -1,8 +1,8 @@
 # Settings Modal
 ### App Settings
     [ ] Metronome Frequency Implementation with Buttons
-    [C] Temperature slider. Linear scale. Don't display number to user; Less Random - More Random
-    [C] Reset button on the main UI. Manual control to reset the network.
+    [ ] (done) Temperature slider. Linear scale. TODO : Don't display number to user; Less Random - More Random
+    [ ] Reset button on the main UI. Manual control to reset the network. (look for this.reset in main.vue and check the comments I added)
     [C] Predifined hidden states for the neural net
 
 ### MIDI Device
