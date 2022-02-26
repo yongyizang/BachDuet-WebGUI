@@ -83,59 +83,87 @@
       />
       <!-- <neuralNet/> -->
       <!-- logic handled by this file for decoupling purposes. -->
-      <modal name="settingsModal">
+      <modal name="settingsModal" :height="500">
         <div
           style="
-            padding: 10px;
+            padding: 20px;
             min-height: 100%;
             background-color: rgb(243, 225, 190);
+            overflow-y: scroll;
           "
         >
-          <p>Settings</p>
-          <div>
-            <span> BPM: {{ BPM }} </span>
-            <vue-slider
-              v-model="BPM"
-              :lazy="true"
-              :min="60"
-              :max="120"
-            ></vue-slider>
-          </div>
-          <div>
-            <span> Frequency: {{ FREQ }} beats per measure </span>
-            <vue-slider
-              v-model="FREQ"
-              :lazy="true"
-              :min="2"
-              :max="6"
-            ></vue-slider>
-          </div>
-          <div>
-            <span> Randomness </span>
-            <vue-slider
-              v-model="temperature"
-              :lazy="true"
-              :min="1"
-              :max="200"
-            ></vue-slider>
-          </div>
-          <div style="padding-bottom: 20px">
-            <toggle-button
-              color="#74601c"
-              :value="true"
-              @change="toggleMetronome"
-            />
-            <span> Metronome</span>
-          </div>
-          <div class="MIDIInput">
-            <select
-              v-model="selectedMIDIDevice"
-              @change="onMIDIDeviceSelectedChange"
+          <p
+            style="
+              font-weight: 800;
+              font-size: 2rem;
+              margin: 0;
+              padding-top: 20px;
+              padding-bottom: 10px;
+            "
+          >
+            Settings
+          </p>
+          <hr style="border-top: 1px solid #000; opacity: 12%" />
+          <p class="settingsSubtitle">Audio</p>
+          <div class="md-layout md-gutter md-alignment-center">
+            <div
+              class="md-layout-item md-medium-size-33 md-small-size-50 md-xsmall-size-100"
             >
-              <option v-for="item in activeDevices" :value="item.index">
-                {{ item.name }}
-              </option>
-            </select>
+              <div class="settingsDiv">
+                <p class="settingsOptionTitle">BPM</p>
+                <p class="settingsValue">{{ BPM }}</p>
+                <vue-slider
+                  v-model="BPM"
+                  :lazy="true"
+                  :min="60"
+                  :max="120"
+                  class="settingsSlider"
+                ></vue-slider>
+              </div>
+            </div>
+            <div
+              class="md-layout-item md-medium-size-33 md-small-size-50 md-xsmall-size-100"
+            >
+              <div class="settingsDiv" style="padding-top: 10px">
+                <span class="settingsOptionTitle">Metronome</span>
+                <toggle-button
+                  color="#74601c"
+                  :value="true"
+                  @change="toggleMetronome"
+                  style="transform: scale(0.9)"
+                />
+              </div>
+            </div>
+          </div>
+          <p class="settingsSubtitle">MIDI</p>
+          <div class="MIDIInput">
+            <Dropdown
+              :options="activeDevices"
+              v-on:selected="onMIDIDeviceSelectedChange"
+              placeholder="Type here to search for MIDI device"
+            >
+            </Dropdown>
+          </div>
+          <p class="settingsSubtitle">Network</p>
+          <div class="md-layout md-gutter md-alignment-center">
+            <div
+              class="md-layout-item md-medium-size-33 md-small-size-50 md-xsmall-size-100"
+            >
+              <div class="settingsDiv">
+                <p class="settingsOptionTitle"> Randomness </p>
+                <p>{{this.number2RandomnessDescription(temperature)}}</p>
+                <vue-slider
+                  v-model="temperature"
+                  :lazy="true"
+                  :tooltip="'none'"
+                  :min="1"
+                  :max="100"
+                ></vue-slider>
+              </div>
+            </div>
+            <div
+              class="md-layout-item md-medium-size-33 md-small-size-50 md-xsmall-size-100"
+            ></div>
           </div>
         </div>
       </modal>
@@ -149,12 +177,11 @@ import { Midi } from "@tonaljs/tonal";
 import keyboardUI from "@/components/keyboardUI.vue";
 import gameUI from "@/components/gameUI.vue";
 import scoreUI from "@/components/scoreUI.vue";
-import fab from "vue-fab";
 import Instruments from "@/library/instruments";
 import * as TokensDict from "@/../public/globalTokenIndexDict.json";
 import { WebMidi } from "webmidi";
 var midiAccess;
-
+import Dropdown from "vue-simple-search-dropdown";
 import AudioKeys from "audiokeys";
 
 // Use Google Firebase and Analytics for data gathering
@@ -256,7 +283,7 @@ export default {
     keyboardUI,
     scoreUI,
     gameUI,
-    fab,
+    Dropdown,
   },
 
   created() {
@@ -272,7 +299,7 @@ export default {
     // Enable WebMIDI, then call onEnabled method.
     WebMidi.enable()
       .then(vm.onEnabled)
-      .catch((err) => alert(err));
+      .catch((err) => console.log(err));
 
     this.userAgent = navigator.userAgent;
     // get loading time.
@@ -430,21 +457,26 @@ export default {
   },
 
   methods: {
+    // For midi components.
     onEnabled() {
       var vm = this;
       if (WebMidi.inputs.length < 1) {
         vm.activeDevices = [];
       } else {
         WebMidi.inputs.forEach((device) => {
-          vm.activeDevices.push({ index: device.id, name: device.name });
+          vm.activeDevices.push({ id: device.id, name: device.name });
         });
-        this.selectedMIDIDevice = this.activeDevices[0].index;
+        this.selectedMIDIDevice = this.activeDevices[0].id;
         this.messageListener();
       }
     },
 
-    onMIDIDeviceSelectedChange() {
-      console.log("MIDI Device Changed to " + this.selectedMIDIDevice);
+    onMIDIDeviceSelectedChange(state) {
+      if (state.id) {
+        this.selectedMIDIDevice = state.id;
+        console.log("MIDI Device Changed to " + this.selectedMIDIDevice);
+        this.messageListener();
+      }
     },
 
     messageListener() {
@@ -458,6 +490,7 @@ export default {
       });
       inputDevice.addListener("disconnected", vm.onEnabled);
     },
+
     // To fade between loading screen and main content.
     entryProgram() {
       const vm = this;
@@ -540,6 +573,32 @@ export default {
     transposeOctDown() {
       this.keyboardUIoctaveStart -= 1;
       this.keyboardUIoctaveEnd -= 1;
+    },
+
+    number2RandomnessDescription(num){
+      if (num < 10){
+        return "Not-So-Random";
+      } else if (num < 20){
+        return "Getting a bit HOT in here";
+      } else if (num < 30){
+        return "Some randomness";
+      } else if (num < 40){
+        return "Good balance"
+      } else if (num < 50){
+        return "Getting a bit messy..."
+      } else if (num < 60){
+        return "A bit on the messy side"
+      } else if (num < 70){
+        return "Messy! but not too messy."
+      } else if (num < 80){
+        return "So random!"
+      } else if (num < 90){
+        return "A bit too random"
+      } else if (num < 100){
+        return "Careful! So much randomness"
+      } else {
+        return "OMG Maximum RANDOMNESS"
+      }
     },
 
     // The clock behavior is defined here.
@@ -915,5 +974,28 @@ export default {
     -webkit-transform: scale(0.95);
     transform: scale(0.95);
   }
+}
+.settingsSubtitle {
+  margin: 0;
+  font-weight: 800;
+  font-size: 20px;
+  padding-top: 30px;
+  padding-bottom: 5px;
+}
+.settingsDiv {
+  height: 50px;
+  padding-top: 5px;
+}
+.settingsOptionTitle {
+  margin: 0;
+  font-weight: 800;
+}
+.settingsValue {
+  margin: 0;
+  font-size: 20px;
+}
+.settingsSlider {
+  margin-top: -30px;
+  margin-left: 50px;
 }
 </style>
