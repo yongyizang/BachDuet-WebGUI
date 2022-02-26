@@ -257,8 +257,6 @@ export default {
     scoreUI,
     gameUI,
     fab,
-    MIDI,
-    // neuralNet
   },
 
   created() {
