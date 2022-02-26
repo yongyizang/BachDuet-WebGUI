@@ -1,7 +1,7 @@
 # Settings Modal
 ### App Settings
-    [ ] Metronome Frequency Implementation with Buttons
-    [ ] (done)Temperature slider. Linear scale. (TODO) Don't display number to user; Less Random - More Random
+    [ ] Metronome Frequency Implementation with Buttons (After some thought, Maybe we shouldn't do this?)
+    [x] Temperature slider. Linear scale. (TODO) Don't display number to user; Less Random - More Random
     [ ] Reset button on the main UI. Manual control to reset the network. (look for this.reset in main.vue and check the comments I added)
     [ ] Predifined hidden states for the neural net
 
@@ -12,8 +12,6 @@
 
 # External Logic
     [ ] Before user click play, nothing in the UI should respond
-    [ ] Timeout, if user doesn't play anything for ~10 secs? pause the clock. (after some thought, we can skip this. We can discuss it.)
-    [ ] Auto-reset. If the neural network is playing the same note for x seconds, then reset the neural network. (after some thought, we can skip this. We can discuss it.)
     [ ] Misalignment. If the neural network is outputting a different tick than current tick, send out warning.    
 
 ### Reverb & Mixing Console

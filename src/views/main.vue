@@ -575,6 +575,7 @@ export default {
       this.keyboardUIoctaveEnd -= 1;
     },
 
+    // Check this function! You could change the prompt if you would like.
     number2RandomnessDescription(num){
       if (num < 10){
         return "Not-So-Random";
