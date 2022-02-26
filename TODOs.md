@@ -6,7 +6,7 @@
     [ ] Predifined hidden states for the neural net
 
 ### MIDI Device
-    [ ] Integrate MIDI module to settings modal
+    [x] Integrate MIDI module to settings modal
     [ ] Integrate MIDI alert into global alert system
     [ ] If user browser doesn't support Web MIDI, then just display an error message.
 

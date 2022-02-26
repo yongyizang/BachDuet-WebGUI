@@ -45,7 +45,6 @@
         "
       ></div>
       <scoreUI />
-      <MIDI />
       <gameUI />
       <!-- <neuralNet /> -->
       <div style="position: absolute; bottom: 230px; right: 20px">
@@ -62,7 +61,7 @@
         v-if="keyboardUIoctaveEnd !== 8"
         @click="transposeOctUp"
         class="md-icon-button md-raised"
-        style="position:absolute;right:20px;bottom:100px;"
+        style="position: absolute; right: 20px; bottom: 100px"
       >
         <md-icon>arrow_forward</md-icon>
       </md-button>
@@ -70,7 +69,7 @@
         v-if="keyboardUIoctaveStart !== 0"
         @click="transposeOctDown"
         class="md-icon-button md-raised"
-        style="position:absolute;left:20px;bottom:100px;"
+        style="position: absolute; left: 20px; bottom: 100px"
       >
         <md-icon>arrow_back</md-icon>
       </md-button>
@@ -111,8 +110,7 @@
               :max="6"
             ></vue-slider>
           </div>
-          <div> 
-            <!-- Feel free to change that -->
+          <div>
             <span> Randomness </span>
             <vue-slider
               v-model="temperature"
@@ -128,6 +126,16 @@
               @change="toggleMetronome"
             />
             <span> Metronome</span>
+          </div>
+          <div class="MIDIInput">
+            <select
+              v-model="selectedMIDIDevice"
+              @change="onMIDIDeviceSelectedChange"
+            >
+              <option v-for="item in activeDevices" :value="item.index">
+                {{ item.name }}
+              </option>
+            </select>
           </div>
         </div>
       </modal>
@@ -145,6 +153,8 @@ import MIDI from "@/components/MIDI.vue";
 import fab from "vue-fab";
 import Instruments from "@/library/instruments";
 import * as TokensDict from "@/../public/globalTokenIndexDict.json";
+import { WebMidi } from "webmidi";
+var midiAccess;
 
 import AudioKeys from "audiokeys";
 
@@ -238,6 +248,8 @@ export default {
       userAgent: null,
       pageLoadTime: null,
       modelLoadTime: null,
+      activeDevices: [],
+      selectedMIDIDevice: "",
     };
   },
 
@@ -255,6 +267,16 @@ export default {
   },
 
   mounted() {
+    var vm = this;
+    navigator.requestMIDIAccess().then(function (access) {
+      access.onstatechange = vm.onEnabled;
+    });
+
+    // Enable WebMIDI, then call onEnabled method.
+    WebMidi.enable()
+      .then(vm.onEnabled)
+      .catch((err) => alert(err));
+
     this.userAgent = navigator.userAgent;
     // get loading time.
     this.pageLoadTime =
@@ -330,9 +352,6 @@ export default {
 
     // the workerCallback function is called when the neuralWorker returns the AI's prediction
     this.neuralWorker.onmessage = this.workerCallback;
-
-    // Everytime the window resizes, update the screenWidth in data immediately.
-    const vm = this;
 
     window.onresize = () => {
       return (() => {
@@ -414,6 +433,34 @@ export default {
   },
 
   methods: {
+    onEnabled() {
+      var vm = this;
+      if (WebMidi.inputs.length < 1) {
+        vm.activeDevices = [];
+      } else {
+        WebMidi.inputs.forEach((device) => {
+          vm.activeDevices.push({ index: device.id, name: device.name });
+        });
+        this.selectedMIDIDevice = this.activeDevices[0].index;
+        this.messageListener();
+      }
+    },
+
+    onMIDIDeviceSelectedChange() {
+      console.log("MIDI Device Changed to " + this.selectedMIDIDevice);
+    },
+
+    messageListener() {
+      var vm = this;
+      const inputDevice = WebMidi.getInputById(this.selectedMIDIDevice);
+      inputDevice.addListener("noteon", (message) => {
+        vm.$root.$refs.keyboardUI.toggleAttack(message.note.identifier);
+      });
+      inputDevice.addListener("noteoff", (message) => {
+        vm.$root.$refs.keyboardUI.toggleRelease(message.note.identifier);
+      });
+      inputDevice.addListener("disconnected", vm.onEnabled);
+    },
     // To fade between loading screen and main content.
     entryProgram() {
       const vm = this;
@@ -539,7 +586,7 @@ export default {
             // vm.runTheWorker();
             setTimeout(function () {
               vm.runTheWorker();
-            }, (60 / vm.$store.getters.getBPM / 4) * 1000 / 5);
+            }, ((60 / vm.$store.getters.getBPM / 4) * 1000) / 5);
 
             vm.$store.commit("clearNotesBuffer");
           }
@@ -686,18 +733,18 @@ export default {
         // for the AI to generate the note for time tick + 1, besides the users input
         // it also takes as an input the note it played/generated for at time tick
         aiInp: this.$store.getters.getAiPredictionFor(
-          this.$store.getters.getLocalTick,
+          this.$store.getters.getLocalTick
         ),
-        temperature : this.$store.getters.getTemperature,
-        reset : this.reset
+        temperature: this.$store.getters.getTemperature,
+        reset: this.reset,
       };
-      // when this.reset is 1, then for this tick only, the neural network will reset its memory. 
-      // after that we ll have to set this.reset = 0 again (in the workerCallback), because if not, 
-      // the AI will keep reseting its memory. I think that's a terrible way to implement the reset function. 
+      // when this.reset is 1, then for this tick only, the neural network will reset its memory.
+      // after that we ll have to set this.reset = 0 again (in the workerCallback), because if not,
+      // the AI will keep reseting its memory. I think that's a terrible way to implement the reset function.
       // My problem is that the only way to communicate with the AI is through the input arguments of postMessage().
-      // Ideally we want to have a reset button that calls a callback that exists inside the neuralWorker.js, 
+      // Ideally we want to have a reset button that calls a callback that exists inside the neuralWorker.js,
       // but I don't know if this is possible
-      
+
       // console.log("to run the worker with ", aiInp, " tick is ", this.$store.getters.getLocalTick)
       this.neuralWorker.postMessage(aiInp); //{"currentTickNumber": vm.$store.getters.getLocalTick});
     },
