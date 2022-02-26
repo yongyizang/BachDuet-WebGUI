@@ -190,12 +190,14 @@ export default {
     },
 
     toggleAttack(currentNote) {
+      if (this.$store.getters.getClockStatus){
       // Trigger the sampler.
       // console.log("The CURRENT note IS ", currentNote)
       // set the second parameter here to False for human.
       this.$root.$refs.gameUI.keyDown(currentNote, true);
       this.$store.dispatch("noteOn", currentNote);
       pianoSampler.triggerAttack(currentNote, Tone.now());
+      }
     },
 
     toggleRelease(currentNote) {

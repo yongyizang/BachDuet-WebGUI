@@ -11,7 +11,8 @@
     [ ] If user browser doesn't support Web MIDI, then just display an error message.
 
 # External Logic
-    [ ] Before user click play, nothing in the UI should respond
+    [x] Before user click play, nothing in the UI should respond
+    [x] GameUI and Sampler should all work with clock status
     [ ] Misalignment. If the neural network is outputting a different tick than current tick, send out warning.    
 
 ### Reverb & Mixing Console

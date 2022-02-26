@@ -6,8 +6,7 @@
 -->
 <template>
   <div>
-    <div ref="canvas">
-    </div>
+    <div ref="canvas"></div>
   </div>
 </template>
 <script>
@@ -80,7 +79,7 @@ export default {
       this.camera = new THREE.OrthographicCamera(0, 1, 1, 0, 1, 1000);
       this.camera.position.z = 1;
       this.camera.lookAt(new THREE.Vector3(0, 0, 0));
-      this.renderer = new THREE.WebGLRenderer({alpha: true });
+      this.renderer = new THREE.WebGLRenderer({ alpha: true });
       this.renderer.setSize(window.innerWidth, window.innerHeight);
       this.renderer.setPixelRatio(window.devicePixelRatio);
       this.renderer.setClearColor(0xffffff, 0);
@@ -103,24 +102,24 @@ export default {
     },
 
     animate() {
-      // Update lastUpdate time and compute the time difference since last update.
-      const delta = Date.now() - this.lastUpdateTime;
-      this.lastUpdateTime = Date.now();
-
-      // Tell three.js to give us another frame!
-      requestAnimationFrame(this.animate);
-
-      // Update camera position.
-      // Camera moves down to give the illusion that every noteblock goes up.
-      this.camera.position.y += (1 / 10) * delta;
-
-      // Tell renderer to re-render.
-      this.renderer.render(this.scene, this.camera);
+        // Update lastUpdate time and compute the time difference since last update.
+        const delta = Date.now() - this.lastUpdateTime;
+        this.lastUpdateTime = Date.now();
+        // Tell three.js to give us another frame!
+        requestAnimationFrame(this.animate);
+        if (this.$store.getters.getClockStatus) {
+        // Update camera position.
+        // Camera moves down to give the illusion that every noteblock goes up.
+        this.camera.position.y += (1 / 10) * delta;
+        }
+        // Tell renderer to re-render.
+        this.renderer.render(this.scene, this.camera);
     },
 
     keyDown(noteInput, AI) {
-      // Get the note's position.
-      /* 
+      if (this.$store.getters.getClockStatus) {
+        // Get the note's position.
+        /* 
         NOTE: this is a **temporary hack**!
         for now, PLEASE AVOID USING 'C4' 'Cs4' style CSS class anywhere!
         This line of code would automatically find the first element with a matching note name CSS class
@@ -128,37 +127,38 @@ export default {
 
         I know this is not elegant. I know there must be better ways. I just can't think of them right now.
       */
-      // console.log("in gameUI DOWN is ", noteInput, " human ", AI);
-      if (document.getElementsByClassName(noteInput.replace("#", "s"))[0]) {
-        const notePosition = document
-          .getElementsByClassName(noteInput.replace("#", "s"))[0]
-          .getBoundingClientRect();
+        // console.log("in gameUI DOWN is ", noteInput, " human ", AI);
+        if (document.getElementsByClassName(noteInput.replace("#", "s"))[0]) {
+          const notePosition = document
+            .getElementsByClassName(noteInput.replace("#", "s"))[0]
+            .getBoundingClientRect();
 
-        // Define the noteblock plane.
-        const plane = new THREE.Mesh(geometry, AI ? aiMaterial : material);
-        const noteWidth =
-          notePosition.right - notePosition.left - NoteAnimationMargin * 2;
-        plane.scale.set(noteWidth, initialScaling, 1);
+          // Define the noteblock plane.
+          const plane = new THREE.Mesh(geometry, AI ? aiMaterial : material);
+          const noteWidth =
+            notePosition.right - notePosition.left - NoteAnimationMargin * 2;
+          plane.scale.set(noteWidth, initialScaling, 1);
 
-        // Define the plane's position.
-        plane.position.x =
-          notePosition.left + noteWidth / 2 + NoteAnimationMargin;
-        plane.position.y =
-          window.innerHeight + this.camera.position.y + initialScaling / 2;
-        plane.position.z = 0;
+          // Define the plane's position.
+          plane.position.x =
+            notePosition.left + noteWidth / 2 + NoteAnimationMargin;
+          plane.position.y =
+            window.innerHeight + this.camera.position.y + initialScaling / 2;
+          plane.position.z = 0;
 
-        // Add that plane to the scene.
-        this.scene.add(plane);
+          // Add that plane to the scene.
+          this.scene.add(plane);
 
-        // Register this noteblock to the currentNotes data.
-        const selector = AI ? "AI" + noteInput : "Human" + noteInput;
-        if (!this.currentNotes.hasOwnProperty(selector)) {
-          this.currentNotes[selector] = [];
+          // Register this noteblock to the currentNotes data.
+          const selector = AI ? "AI" + noteInput : "Human" + noteInput;
+          if (!this.currentNotes.hasOwnProperty(selector)) {
+            this.currentNotes[selector] = [];
+          }
+          this.currentNotes[selector].push({
+            plane: plane,
+            position: this.camera.position.y,
+          });
         }
-        this.currentNotes[selector].push({
-          plane: plane,
-          position: this.camera.position.y,
-        });
       }
     },
 
