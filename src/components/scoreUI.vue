@@ -102,6 +102,12 @@ export default {
   },
 
   mounted() {
+    const vm = this;
+    document.addEventListener("keypress", function (event) {
+      if (event.keyCode == 32) {
+        vm.triggerCollapse();
+      }
+    });
     this.init();
     this.resize();
   },
