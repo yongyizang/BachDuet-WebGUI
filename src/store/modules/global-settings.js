@@ -12,7 +12,8 @@ const state = {
   clockInitialized: false,
   bpm: 60,
   frequency: 4,
-  temperature: 0.5
+  temperature: 0.5,
+  modalStatus: false,
 };
 
 const getters = {
@@ -33,6 +34,9 @@ const getters = {
   },
   getTemperature(state){
     return state.temperature;
+  },
+  getModalStatus(state){
+    return state.modalStatus;
   }
 };
 
@@ -59,7 +63,9 @@ const mutations = {
   setBPM(state, bpm){
     state.bpm = bpm;
   },
-
+  changeModalStatus(state){
+    state.modalStatus = !state.modalStatus;
+  },
   setTemperature(state, temperature){
     state.temperature = temperature;
   }

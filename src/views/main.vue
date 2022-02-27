@@ -85,7 +85,7 @@
         :octave-start="keyboardUIoctaveStart"
         :octave-end="keyboardUIoctaveEnd"
       />
-      <modal name="feedbackModal" :minHeight="500" :adaptive="true">
+      <modal name="feedbackModal" :minHeight="500" :adaptive="true" @opened="modalCallback" @closed="modalCallback">
         <div
           style="
             padding: 20px;
@@ -131,7 +131,7 @@
           </md-button>
         </div>
       </modal>
-      <modal name="settingsModal" :minHeight="600" :adaptive="true">
+      <modal name="settingsModal" :minHeight="600" :adaptive="true" @opened="modalCallback" @closed="modalCallback">
         <div
           style="
             padding: 20px;
@@ -987,6 +987,10 @@ export default {
       } else {
         return "OMG Maximum RANDOMNESS";
       }
+    },
+
+    modalCallback() {
+      this.$store.commit("changeModalStatus");
     },
 
     // For data kill switch in modal.

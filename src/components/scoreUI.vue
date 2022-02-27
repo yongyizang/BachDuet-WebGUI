@@ -104,7 +104,7 @@ export default {
   mounted() {
     const vm = this;
     document.addEventListener("keypress", function (event) {
-      if (event.keyCode == 32) {
+      if (event.keyCode == 32 && !vm.$store.getters.getModalStatus) {
         vm.triggerCollapse();
       }
     });
