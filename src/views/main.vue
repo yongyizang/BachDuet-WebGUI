@@ -536,15 +536,13 @@ export default {
               playData: arrayUnion({
                 tick: e.data.tick,
                 type: "AI",
-                midiArtic: e.data.midiArticInd
+                midiArticInd: e.data.midiArticInd
               })});
           } catch (e) {
             console.error("Error writing to firebase. ", e);
           }
-        // write something here to send it to firebase
         this.$store.dispatch("newAiPrediction", aiPrediction);
       }
-
       this.reset = false; // for explanation see the comment about reset inside runTheWorker()
     },
     // moved the metronomeTrigger function inside methods
@@ -807,6 +805,7 @@ export default {
     // C: using async, improves the neural net's inference speed slightly. Don't know why.
     // update: removed async in order to use setTimeout(runTheWorker, 30)
     runTheWorker() {
+      const vm = this;
       this.estimateHumanQuantizedNote();
 
       this.$store.commit("incrementTickDelayed");
@@ -835,6 +834,17 @@ export default {
         temperature: this.$store.getters.getTemperature,
         reset: this.reset,
       };
+      // try writing to firebase
+          try {
+            updateDoc(doc(db, "data", vm.$store.getters.getSessionID),{
+              playData: arrayUnion({
+                tick: aiInp.tick,
+                type: "User",
+                midiArticInd: aiInp.humanInp.midiArticInd,
+              })});
+          } catch (e) {
+            console.error("Error writing to firebase. ", e);
+          }
       // when this.reset is 1, then for this tick only, the neural network will reset its memory.
       // after that we ll have to set this.reset = 0 again (in the workerCallback), because if not,
       // the AI will keep reseting its memory. I think that's a terrible way to implement the reset function.
