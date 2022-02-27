@@ -56,6 +56,10 @@
           <md-icon>settings</md-icon>
           <span> Settings </span>
         </md-button>
+        <md-button @click="showFeedbackModal" class="md-raised">
+          <md-icon>chat</md-icon>
+          <span> Feedback </span>
+        </md-button>
       </div>
       <md-button
         v-if="keyboardUIoctaveEnd !== 8"
@@ -81,8 +85,52 @@
         :octave-start="keyboardUIoctaveStart"
         :octave-end="keyboardUIoctaveEnd"
       />
-      <!-- <neuralNet/> -->
-      <!-- logic handled by this file for decoupling purposes. -->
+      <modal name="feedbackModal" :minHeight="500" :adaptive="true">
+        <div
+          style="
+            padding: 20px;
+            height: 100%;
+            background-color: rgb(243, 225, 190);
+          "
+        >
+          <p
+            style="
+              font-weight: 800;
+              font-size: 2rem;
+              margin: 0;
+              padding-top: 20px;
+              padding-bottom: 10px;
+            "
+          >
+            Feedback
+          </p>
+          <hr style="border-top: 1px solid #000; opacity: 12%" />
+          <p class="settingsSubtitle">
+            How would you rate your experience using BachDuet?
+          </p>
+          <star-rating
+            v-model="feedbackRating"
+            inactive-color="#e1bad9"
+            active-color="#cc1166"
+            :increment="0.01"
+            :fixed-points="2"
+          ></star-rating>
+          <p class="settingsSubtitle">
+            Please tell us more about your experience.
+          </p>
+          <md-field>
+            <label>What's your experience using BachDuet?</label>
+            <md-textarea v-model="feedbackText"></md-textarea>
+          </md-field>
+          <md-button
+            @click="submitFeedback"
+            class="md-raised"
+            style="width: 100%;margin:0;"
+          >
+            Submit
+          </md-button>
+        </div>
+      </modal>
       <modal name="settingsModal" :minHeight="600" :adaptive="true">
         <div
           style="
@@ -166,7 +214,12 @@
             >
             </Dropdown>
           </div>
-          <span v-else="WebMIDISupport"> Currently, Using MIDI devices in browser is only supported by Google Chrome v43+, Opera v30+ and Microsoft Edge v79+. Please update to one of those browsers if you want to use Web MIDI functionalities.</span>
+          <span v-else="WebMIDISupport">
+            Currently, Using MIDI devices in browser is only supported by Google
+            Chrome v43+, Opera v30+ and Microsoft Edge v79+. Please update to
+            one of those browsers if you want to use Web MIDI
+            functionalities.</span
+          >
           <p class="settingsSubtitle">Network</p>
           <div class="md-layout md-gutter md-alignment-center">
             <div
@@ -236,6 +289,7 @@ import * as TokensDict from "@/../public/globalTokenIndexDict.json";
 import { WebMidi } from "webmidi";
 import Dropdown from "vue-simple-search-dropdown";
 import AudioKeys from "audiokeys";
+import StarRating from "vue-star-rating";
 
 /*
  * Use Google Firebase and Analytics for data gathering.
@@ -296,6 +350,8 @@ export default {
       selectedMIDIDevice: "",
       userPianoVolume: 10,
       AIPianoVolume: 10,
+      feedbackRating: 5.0,
+      feedbackText: "",
     };
   },
 
@@ -304,6 +360,7 @@ export default {
     scoreUI,
     gameUI,
     Dropdown,
+    StarRating,
   },
 
   mounted() {
@@ -648,6 +705,7 @@ export default {
               modelLoad: vm.modelLoadTime,
               dataAddTime: Date.now(),
               playData: [],
+              feedback: [],
             });
             vm.userDataID = docRef.id;
             vm.$store.commit("writeSessionID", docRef.id);
@@ -879,6 +937,10 @@ export default {
       this.$modal.show("settingsModal");
     },
 
+    showFeedbackModal() {
+      this.$modal.show("feedbackModal");
+    },
+
     hideSettingsModal() {
       this.$modal.hide("settingsModal");
     },
@@ -932,6 +994,30 @@ export default {
         console.error("Firebase error:", e);
       }
       window.location.reload(true);
+    },
+
+    async submitFeedback() {
+      const vm = this;
+      try {
+        await updateDoc(doc(db, "data", vm.$store.getters.getSessionID), {
+          feedback: arrayUnion({
+            rating: vm.feedbackRating,
+            text: vm.feedbackText,
+            time: Date.now(),
+          }),
+        });
+      } catch (e) {
+        this.$toasted.show(
+          "Error submitting feedback to firebase. Error Message in console."
+        );
+        console.log("Firebase error:", e);
+      }
+      vm.feedbackRating = 5.0;
+      vm.feedbackText = "";
+      this.$modal.hide("feedbackModal");
+      this.$toasted.show(
+          "Your feedback is submitted! Thanks."
+        );
     },
   },
 };

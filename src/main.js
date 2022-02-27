@@ -8,18 +8,19 @@ import VModal from 'vue-js-modal'
 import Toasted from 'vue-toasted';
 import VueSlider from 'vue-slider-component'
 import 'vue-slider-component/theme/default.css'
-import { MdButton, MdIcon } from 'vue-material/dist/components'
+import { MdButton, MdIcon, MdField} from 'vue-material/dist/components'
 import 'vue-material/dist/vue-material.min.css'
 import 'vue-material/dist/theme/default.css'
 import Dropdown from 'vue-simple-search-dropdown';
 
 Vue.use(MdButton);
 Vue.use(MdIcon);
+Vue.use(MdField);
 Vue.use(Dropdown);
 Vue.component('VueSlider', VueSlider);
 Vue.use(VModal);
 Vue.use(Toasted, {
-  duration: 500
+  duration: 1000
 });
 Vue.use(ToggleButton);
 Vue.use(Vue2TouchEvents, {

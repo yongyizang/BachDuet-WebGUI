@@ -1,12 +1,6 @@
 # Settings Modal
 ### App Settings
-
     [ ] Predifined hidden states for the neural net
-
-### Feedback Modal
-    [ ] Christo: Waiting for Christo to design feedback questions
-    [ ] (OPTIONAL) https://github.com/jldec/marked-forms Check marked-forms, consider the possibility of changing this code for feedback questionire auto-generation
-    [ ] Implement Feedback Section
 
 ### Privacy
     [ ] Privacy Statement collapsible
