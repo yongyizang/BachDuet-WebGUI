@@ -7,7 +7,7 @@
       <div class="center">
         <h1 class="loadingTitle">
           <p
-            class="typewrite"
+            class="loadingTypewriter"
             data-period="300"
             data-type='[ "Hello!", "This is BachDuet.", "A Musical Genius.", "Well... Sort of.", "Studied from Bach.", "That Bach.", "No, Really.", "Wanna Try me?"]'
           >
@@ -230,16 +230,16 @@ import { Midi } from "@tonaljs/tonal";
 import keyboardUI from "@/components/keyboardUI.vue";
 import gameUI from "@/components/gameUI.vue";
 import scoreUI from "@/components/scoreUI.vue";
-import Instruments from "@/library/instruments";
 import * as TokensDict from "@/../public/globalTokenIndexDict.json";
 import { WebMidi } from "webmidi";
-import Toasted from "vue-toasted";
 import Dropdown from "vue-simple-search-dropdown";
 import AudioKeys from "audiokeys";
 
-// Use Google Firebase and Analytics for data gathering
+/*
+ * Use Google Firebase and Analytics for data gathering.
+ */
+
 import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
 import {
   getFirestore,
   collection,
@@ -249,8 +249,8 @@ import {
   deleteDoc,
   arrayUnion,
 } from "firebase/firestore";
-
-const firebaseConfig = {
+// Firebase Configurations.
+const firebaseApp = initializeApp({
   apiKey: "AIzaSyCVFIcL_nokMdYVET7lvxnuIbLLoUi5YSs",
   authDomain: "bachduet-b9d02.firebaseapp.com",
   projectId: "bachduet-b9d02",
@@ -258,12 +258,9 @@ const firebaseConfig = {
   messagingSenderId: "668363580240",
   appId: "1:668363580240:web:f301aa62ecf8310caa8255",
   measurementId: "G-Z0DKQ7L50N",
-};
-
-const firebaseApp = initializeApp(firebaseConfig);
-const analytics = getAnalytics(firebaseApp);
+});
+// Use this variable to reference firestore.
 const db = getFirestore();
-// import globalDict from "globalTokenIndexDict.json"
 
 // This is for Web Audio restrictions, we need to make an user behavior to trigger the Tone.start() function.
 window.onclick = () => {
@@ -286,10 +283,8 @@ export default {
       keyboardUIoctaveStart: 2,
       keyboardUIoctaveEnd: 6,
       metronomeStatus: true,
-      // tokensDict: TokensDict,
       lastNoteOnAi: "",
       reset: false,
-      // Userdata
       userDataID: null,
       userAgent: null,
       pageLoadTime: null,
@@ -306,15 +301,22 @@ export default {
     scoreUI,
     gameUI,
     Dropdown,
-    Toasted,
   },
-
-  // created() {
-  //   this.$root.$refs.main = this;
-  // },
 
   mounted() {
     var vm = this;
+    /*
+     * Initialize page load data collections
+     */
+    vm.userAgent = navigator.userAgent;
+    vm.pageLoadTime =
+      window.performance.timing.domContentLoadedEventEnd -
+      window.performance.timing.navigationStart;
+    vm.modelLoadTime = Date.now();
+
+    /*
+     * Web MIDI logic
+     */
     navigator.requestMIDIAccess().then(function (access) {
       access.onstatechange = vm.onEnabled;
     });
@@ -324,13 +326,68 @@ export default {
       .then(vm.onEnabled)
       .catch((err) => this.$toasted.show("WebMIDI Error: " + err));
 
-    this.userAgent = navigator.userAgent;
-    // get loading time.
-    this.pageLoadTime =
-      window.performance.timing.domContentLoadedEventEnd -
-      window.performance.timing.navigationStart;
-    this.modelLoadTime = Date.now();
+    /*
+     * Initialize computer keyboard logic
+     */
+    var keyboard = new AudioKeys({
+      polyphony: 100,
+      rows: 2,
+      priority: "last",
+      rootNote: 60,
+    });
+    keyboard.down(function (note) {
+      var currentNote = Midi.midiToNoteName(note.note, { sharps: true });
+      if (vm.$store.getters.getClockStatus) {
+        vm.$root.$refs.gameUI.keyDown(currentNote, true);
+        vm.$store.dispatch("noteOn", currentNote);
+        const payload = {
+          name: "user",
+          note: currentNote,
+          time: Tone.now(),
+        };
+        vm.$store.dispatch("samplerOn", payload);
+      }
+    });
 
+    keyboard.up(function (note) {
+      var currentNote = Midi.midiToNoteName(note.note, { sharps: true });
+      vm.$root.$refs.gameUI.keyUp(currentNote, true);
+      vm.$store.dispatch("noteOff", currentNote);
+      const payload = {
+        name: "user",
+        note: currentNote,
+        time: Tone.now(),
+      };
+      vm.$store.dispatch("samplerOff", payload);
+    });
+
+    /*
+     * Initialize neural network token dictionary, web worker and worker callback function.
+     * Neural network works as a web worker, and we communicate to it by posting message.
+     * workerCallback function is called when the neuralWorker returns the AI's prediction.
+     * Check out methods: "runTheWorker" and "workerCallback" for more information.
+     */
+    this.$store.commit("setTokensDict", TokensDict.default);
+    this.neuralWorker = new Worker("neuralWorker.js");
+    this.neuralWorker.onmessage = this.workerCallback;
+
+    /*
+     * Loading Animation: set initial status of both div
+     */
+    this.$refs.mainContent.style.display = "none";
+    this.$refs.entryBtn.style.visibility = "hidden";
+
+    // When window resize, self-update this data.
+    window.onresize = () => {
+      return (() => {
+        window.screenWidth = document.body.clientWidth;
+        vm.screenWidth = window.screenWidth;
+      })();
+    };
+
+    /*
+     * Loading Animation: Typewriter animation logic & CSS
+     */
     var introTypingText = function (el, toRotate, period) {
       this.toRotate = toRotate;
       this.el = el;
@@ -341,6 +398,7 @@ export default {
       this.isDeleting = false;
     };
 
+    // This function would automatically add text to the span under the p element.
     introTypingText.prototype.tick = function () {
       var i = this.loopNum % this.toRotate.length;
       var fullTxt = this.toRotate[i];
@@ -374,7 +432,7 @@ export default {
       }, delta);
     };
 
-    var elements = document.getElementsByClassName("typewrite");
+    var elements = document.getElementsByClassName("loadingTypewriter");
     for (var i = 0; i < elements.length; i++) {
       var toRotate = elements[i].getAttribute("data-type");
       var period = elements[i].getAttribute("data-period");
@@ -382,52 +440,16 @@ export default {
         new introTypingText(elements[i], JSON.parse(toRotate), period);
       }
     }
-    // INJECT CSS
     var css = document.createElement("style");
     css.type = "text/css";
     css.innerHTML =
-      ".typewrite > .wrap { border-right: 0.03em solid rgb(89,50,54);color:rgb(89,50,54);}";
+      ".loadingTypewriter > .wrap { border-right: 0.03em solid rgb(89,50,54);color:rgb(89,50,54);}";
     document.body.appendChild(css);
-
-    this.$refs.mainContent.style.display = "none";
-    this.$refs.entryBtn.style.visibility = "hidden";
-
-    // AIKeyboardElement = this.$refs.aiKeyboard;
-    this.$store.commit("setTokensDict", TokensDict.default);
-
-    this.neuralWorker = new Worker("neuralWorker.js"); //, { type: "module" })
-
-    // the workerCallback function is called when the neuralWorker returns the AI's prediction
-    this.neuralWorker.onmessage = this.workerCallback;
-
-    window.onresize = () => {
-      return (() => {
-        window.screenWidth = document.body.clientWidth;
-        vm.screenWidth = window.screenWidth;
-      })();
-    };
-
-    let self = this;
-    var keyboard = new AudioKeys({
-      polyphony: 100,
-      rows: 2,
-      priority: "last",
-      rootNote: 60,
-    });
-    keyboard.down(function (note) {
-      let name = Midi.midiToNoteName(note.note, { sharps: true });
-      self.$refs.usersKeyboardUIref.toggleAttack(name);
-    });
-
-    keyboard.up(function (note) {
-      let name = Midi.midiToNoteName(note.note, { sharps: true });
-      self.$refs.usersKeyboardUIref.toggleRelease(name);
-    });
   },
 
   watch: {
-    // At every screenWidth data change, this would automatically change the keyboardUI's octave number.
     screenWidth: {
+      // At every screenWidth data change, this would automatically change the keyboardUI's octave number.
       immediate: true,
       handler(newValue) {
         let octaves;
@@ -450,19 +472,11 @@ export default {
         this.keyboardUIKey += 1;
       },
     },
-    // Using the same trick, when the UI octave Start number changes, forcing it to re-render.
     keyboardUIoctaveStart: {
       immediate: true,
       handler(newValue) {
+        // A trick, to force keyboardUI re-render itself.
         this.keyboardUIKey += 1;
-      },
-    },
-    // this FREQ variable/field currently appears in the main GUI.
-    // later we will move that to a "settings" dialog box.
-    FREQ: {
-      immediate: true,
-      handler(newValue) {
-        this.$store.commit("setFrequency", newValue);
       },
     },
     BPM: {
@@ -492,7 +506,9 @@ export default {
   },
 
   methods: {
-    // For midi components.
+    /*
+     * Web MIDI
+     */
     onEnabled() {
       var vm = this;
       if (WebMidi.inputs.length < 1) {
@@ -519,9 +535,6 @@ export default {
 
       inputDevice.addListener("noteon", (message) => {
         if (this.$store.getters.getClockStatus) {
-          // Trigger the sampler.
-          // console.log("The CURRENT note IS ", currentNote)
-          // set the second parameter here to False for human.
           var currentNote = message.note.identifier;
           this.$root.$refs.gameUI.keyDown(currentNote, true);
           this.$store.dispatch("noteOn", currentNote);
@@ -531,7 +544,6 @@ export default {
             time: Tone.now(),
           };
           this.$store.dispatch("samplerOn", payload);
-          // pianoSampler.triggerAttack(currentNote, Tone.now());
         }
       });
 
@@ -546,14 +558,11 @@ export default {
         };
         this.$store.dispatch("samplerOff", payload);
       });
-
-      inputDevice.addListener("disconnected", (message) => {
-        vm.onEnabled;
-        vm.$toasted.show("MIDI Device Disconnected: " + message);
-      });
     },
 
-    // To fade between loading screen and main content.
+    /*
+     * Loading animation, switch between main content and loading welcome page.
+     */
     entryProgram() {
       const vm = this;
       vm.$refs.mainLoadingScreen.classList.add("fade-out");
@@ -561,7 +570,61 @@ export default {
       vm.$refs.mainContent.style.display = "block";
     },
 
-    // neuralWorker's callback. Called every tick, and processes the AI's output
+    /*
+     * neural network web worker's callback and worker call methods.
+     * Called every tick, and processes the AI's output.
+     */
+
+    runTheWorker() {
+      const vm = this;
+      this.estimateHumanQuantizedNote();
+
+      this.$store.commit("incrementTickDelayed");
+      this.$root.$refs.scoreUI.draw();
+      console.assert(
+        this.$store.getters.getLocalTick ===
+          this.$store.getters.getLocalTickDelayed
+      );
+
+      var rhythmToken = this.$store.getters.getRhythmToken;
+      var rhythmTokenInd =
+        this.$store.getters.getTokensDict.rhythm.token2index[rhythmToken];
+      var aiInp = {
+        tick: this.$store.getters.getLocalTick, //input tick time (the AI will predict a note for time tick+1)
+        humanInp: this.$store.getters.getHumanInputFor(
+          this.$store.getters.getLocalTick
+        ),
+        rhythmInd: rhythmTokenInd,
+        // for the AI to generate the note for time tick + 1, besides the users input
+        // it also takes as an input the note it played/generated for at time tick
+        aiInp: this.$store.getters.getAiPredictionFor(
+          this.$store.getters.getLocalTick
+        ),
+        temperature: this.$store.getters.getTemperature,
+        reset: this.reset,
+      };
+      // try writing to firebase
+      if (this.$store.getters.getDataCollectingState) {
+        try {
+          updateDoc(doc(db, "data", vm.$store.getters.getSessionID), {
+            playData: arrayUnion({
+              tick: aiInp.tick,
+              type: "User",
+              midiArticInd: aiInp.humanInp.midiArticInd,
+            }),
+          });
+        } catch (e) {
+          this.$toasted.show(
+            "Error writing AI note to firebase. Error Message in console."
+          );
+          console.log("Firebase error:", e);
+        }
+      }
+      // when this.reset is 1, then for this tick only, the neural network will reset its memory.
+
+      this.neuralWorker.postMessage(aiInp);
+    },
+
     async workerCallback(e) {
       const vm = this;
       const workerStatus = vm.$refs.workerStatus;
@@ -594,21 +657,24 @@ export default {
       } else {
         // If the worker is giving us ai prediction
         var aiPrediction = e.data;
-        // try writing to firebase
-        try {
-          await updateDoc(doc(db, "data", vm.$store.getters.getSessionID), {
-            playData: arrayUnion({
-              tick: e.data.tick,
-              type: "AI",
-              midiArticInd: e.data.midiArticInd,
-            }),
-          });
-        } catch (e) {
-          this.$toasted.show(
-            "Error updating to firebase. Error Message in console."
-          );
-          console.log("Firebase error:", e);
+        // try writing to firebase, if there's user permission
+        if (this.$store.getters.getDataCollectingState) {
+          try {
+            await updateDoc(doc(db, "data", vm.$store.getters.getSessionID), {
+              playData: arrayUnion({
+                tick: e.data.tick,
+                type: "AI",
+                midiArticInd: e.data.midiArticInd,
+              }),
+            });
+          } catch (e) {
+            this.$toasted.show(
+              "Error updating to firebase. Error Message in console."
+            );
+            console.log("Firebase error:", e);
+          }
         }
+
         // Misalignment Check
         if (aiPrediction.tick !== this.$store.getters.getLocalTickDelayed) {
           this.$toasted.show(
@@ -622,159 +688,12 @@ export default {
       }
       this.reset = false; // for explanation see the comment about reset inside runTheWorker()
     },
-    // moved the metronomeTrigger function inside methods
-    // it doesn't take any input argument
-    // and it doesn't use a switch statement for to check the interval for every tick.
-    metronomeTrigger() {
-      // var vm = this;
-      // console.log("IN METRONOMETRIGGER " + this.$store.getters.getLocalTick)
-      if (
-        this.$store.getters.getLocalTick % this.$store.getters.getFrequency ==
-        0
-      ) {
-        var currentNote =
-          this.$store.getters.getLocalTick % 16 === 0 ? "G0" : "C0";
-        const payload = {
-          name: "metronome",
-          note: currentNote,
-          time: Tone.now(),
-        };
-        this.$store.dispatch("samplerOn", payload);
-      }
-    },
-
-    onPrivacyAgreeBtn(event) {
-      this.$store.commit("changeDataCollectionState", event.value);
-    },
-
-    showSettingsModal() {
-      this.$modal.show("settingsModal");
-    },
-
-    hideSettingsModal() {
-      this.$modal.hide("settingsModal");
-    },
-
-    // when Metronome is toggled.
-    toggleMetronome() {
-      this.$store.commit("muteMetronome");
-      this.$store.commit("flipMetronomeStatus");
-    },
-
-    transposeOctUp() {
-      this.keyboardUIoctaveStart += 1;
-      this.keyboardUIoctaveEnd += 1;
-    },
-
-    transposeOctDown() {
-      this.keyboardUIoctaveStart -= 1;
-      this.keyboardUIoctaveEnd -= 1;
-    },
-
-    // Check this function! You could change the prompt if you would like.
-    number2RandomnessDescription(num) {
-      if (num < 10) {
-        return "Not-So-Random";
-      } else if (num < 20) {
-        return "Getting a bit HOT in here";
-      } else if (num < 30) {
-        return "Some randomness";
-      } else if (num < 40) {
-        return "Good balance";
-      } else if (num < 50) {
-        return "Getting a bit messy...";
-      } else if (num < 60) {
-        return "A bit on the messy side";
-      } else if (num < 70) {
-        return "Messy! but not too messy.";
-      } else if (num < 80) {
-        return "So random!";
-      } else if (num < 90) {
-        return "A bit too random";
-      } else if (num < 100) {
-        return "Careful! So much randomness";
-      } else {
-        return "OMG Maximum RANDOMNESS";
-      }
-    },
 
     resetNetwork() {
       this.reset = true;
     },
 
-    async killData() {
-      const vm = this;
-      try {
-        await deleteDoc(doc(db, "data", vm.$store.getters.getSessionID));
-      } catch (e) {
-        this.$toasted.show(
-          "Error deleting doc from firebase. Error Message in console."
-        );
-        console.log("Firebase error:", e);
-      }
-      window.location.reload(true);
-    },
-
-    // The clock behavior is defined here.
-    // This is currently triggered by a button, but you could call this function anywhere to toggle the clock.
-    toggleClock() {
-      // vm is short for ViewModel
-      // this.$refs.mytestref.$el.children[0].getElementsByClassName("A1")[0].classList.add('white-activate')
-      // console.log(this.$refs.mytestref.$el.children[0].children[0].classList)
-      // console.log(this.$refs.mytestref.$el.children[0].getElementsByClassName("A1")[0].classList)
-
-      var vm = this;
-      vm.localSyncClockStatus = !vm.localSyncClockStatus;
-      // Allowing tickNumber to add to itself.
-      // console.log(tokensDict)
-      vm.$store.commit("changeClockStatus");
-
-      // If the clock is not yet initialized...
-      if (!vm.$store.getters.getClockInitialized) {
-        // Then set it to intialized
-        vm.$store.commit("initializeClock");
-        // And intialized it.
-
-        // Clock behavior function.
-        function tickBehavior() {
-          if (vm.$store.getters.getClockStatus) {
-            vm.$store.commit("incrementTick");
-            // }
-            // Below are behaviors.
-            // console.log(
-            //   "Tick #" +
-            //     vm.$store.getters.getLocalTick +
-            //     " sent out!\n Quantized Inputs include: "
-            // );
-            vm.metronomeTrigger();
-
-            // trigger the ai sampler to play the note the AI predicted
-            vm.triggerAiSampler();
-            // console.log("Tick #" + vm.$store.getters.getLocalTick + " sent out at "  +"\n");
-
-            // B) using a web worker with async
-            // vm.runTheWorker();
-            setTimeout(function () {
-              vm.runTheWorker();
-            }, ((60 / vm.$store.getters.getBPM / 4) * 1000) / 5);
-
-            vm.$store.commit("clearNotesBuffer");
-          }
-        }
-
-        function sendOutTicks() {
-          // console.log("tick send.");
-          tickBehavior();
-          setTimeout(sendOutTicks, (60 / vm.$store.getters.getBPM / 4) * 1000);
-        }
-
-        // Call it for the first time.
-        sendOutTicks();
-      }
-    },
-
-    triggerAiSampler() {
-      // TODO use lastAiNote from vuex
+        triggerAiSampler() {
       // here, we check the note the AI predicted in the previous tick,
       // for the tick we are now. If the articulation of the predicted note
       // is 1 (hit), then we trigger the AI sampler to play the note.
@@ -783,8 +702,6 @@ export default {
       var aiPrediction = this.$store.getters.getAiPredictionFor(
         this.$store.getters.getLocalTick
       );
-      // console.log("in triger " + aiPrediction.midi + "_" + aiPrediction.artic)
-      // to be continued
       if (aiPrediction.artic == 1) {
         if (aiPrediction.midi != 0) {
           if (!(this.lastNoteOnAi === "")) {
@@ -824,7 +741,6 @@ export default {
 
     estimateHumanQuantizedNote() {
       // Here we are quantize and store the user's input
-
       var midi;
       var artic;
       var cpc;
@@ -855,10 +771,6 @@ export default {
         }
       } else {
         // there is at least one key pressed. We only care for the last key pressed so
-        // var lastNote = this.$store.getters.getLastNotePlayed
-        // var activeNotes = this.$store.getters.getActiveNotes
-        // var lastNoteTickStart = this.$store.getters.getLastNotePlayedOnTick
-        // var currentTick = this.$store.getters.getLocalTick
         if (activeNotes.includes(lastNote)) {
           // find artic
           midi = Midi.toMidi(lastNote);
@@ -876,7 +788,6 @@ export default {
             artic = 1;
           }
         } else {
-          // TODO : does it ever enter here ???
           midi = 0;
           artic = 1;
           cpc = 12;
@@ -892,62 +803,130 @@ export default {
         name: name,
       });
     },
-    // C: using async, improves the neural net's inference speed slightly. Don't know why.
-    // update: removed async in order to use setTimeout(runTheWorker, 30)
-    runTheWorker() {
+
+    // Initialize clock recursive function.
+    // At each clock tick, this method would wait for a tick's time to call next tick.
+    toggleClock() {
+      var vm = this;
+      vm.localSyncClockStatus = !vm.localSyncClockStatus;
+      // Allowing tickNumber to add to itself.
+      vm.$store.commit("changeClockStatus");
+
+      // If the clock is not yet initialized...
+      if (!vm.$store.getters.getClockInitialized) {
+        // Then set it to intialized
+        vm.$store.commit("initializeClock");
+        // And intialized it.
+
+        // Clock behavior function.
+        function tickBehavior() {
+          if (vm.$store.getters.getClockStatus) {
+            vm.$store.commit("incrementTick");
+            vm.metronomeTrigger();
+            vm.triggerAiSampler();
+            setTimeout(function () {
+              vm.runTheWorker();
+            }, ((60 / vm.$store.getters.getBPM / 4) * 1000) / 5);
+
+            vm.$store.commit("clearNotesBuffer");
+          }
+        }
+
+        function sendOutTicks() {
+          tickBehavior();
+          setTimeout(sendOutTicks, (60 / vm.$store.getters.getBPM / 4) * 1000);
+        }
+
+        sendOutTicks();
+      }
+    },
+
+    /*
+     * metronome status.
+     */
+    toggleMetronome() {
+      // This method would update the status of metronome in Vuex Store.
+      this.$store.commit("muteMetronome");
+      this.$store.commit("flipMetronomeStatus");
+    },
+    metronomeTrigger() {
+      // This method would trigger the metronome sampler.
+      if (
+        this.$store.getters.getLocalTick % this.$store.getters.getFrequency ==
+        0
+      ) {
+        var currentNote =
+          this.$store.getters.getLocalTick % 16 === 0 ? "G0" : "C0";
+        const payload = {
+          name: "metronome",
+          note: currentNote,
+          time: Tone.now(),
+        };
+        this.$store.dispatch("samplerOn", payload);
+      }
+    },
+
+    onPrivacyAgreeBtn(event) {
+      this.$store.commit("changeDataCollectionState", event.value);
+    },
+
+    showSettingsModal() {
+      this.$modal.show("settingsModal");
+    },
+
+    hideSettingsModal() {
+      this.$modal.hide("settingsModal");
+    },
+
+    transposeOctUp() {
+      this.keyboardUIoctaveStart += 1;
+      this.keyboardUIoctaveEnd += 1;
+    },
+
+    transposeOctDown() {
+      this.keyboardUIoctaveStart -= 1;
+      this.keyboardUIoctaveEnd -= 1;
+    },
+
+    // Check this function! You could change the prompt if you would like.
+    number2RandomnessDescription(num) {
+      if (num < 10) {
+        return "Not-So-Random";
+      } else if (num < 20) {
+        return "Getting a bit HOT in here";
+      } else if (num < 30) {
+        return "Some randomness";
+      } else if (num < 40) {
+        return "Good balance";
+      } else if (num < 50) {
+        return "Getting a bit messy...";
+      } else if (num < 60) {
+        return "A bit on the messy side";
+      } else if (num < 70) {
+        return "Messy! but not too messy.";
+      } else if (num < 80) {
+        return "So random!";
+      } else if (num < 90) {
+        return "A bit too random";
+      } else if (num < 100) {
+        return "Careful! So much randomness";
+      } else {
+        return "OMG Maximum RANDOMNESS";
+      }
+    },
+
+    // For data kill switch in modal.
+    async killData() {
       const vm = this;
-      this.estimateHumanQuantizedNote();
-
-      this.$store.commit("incrementTickDelayed");
-      this.$root.$refs.scoreUI.draw();
-      console.assert(
-        this.$store.getters.getLocalTick ===
-          this.$store.getters.getLocalTickDelayed
-      );
-
-      var rhythmToken = this.$store.getters.getRhythmToken;
-      var rhythmTokenInd =
-        this.$store.getters.getTokensDict.rhythm.token2index[rhythmToken];
-      var aiInp = {
-        tick: this.$store.getters.getLocalTick, //input tick time (the AI will predict a note for time tick+1)
-        humanInp: this.$store.getters.getHumanInputFor(
-          this.$store.getters.getLocalTick
-        ),
-        // humanInpMidi: midiArticInd, //users input at time tick
-        // humanInpCpc: cpcInd,
-        rhythmInd: rhythmTokenInd,
-        // for the AI to generate the note for time tick + 1, besides the users input
-        // it also takes as an input the note it played/generated for at time tick
-        aiInp: this.$store.getters.getAiPredictionFor(
-          this.$store.getters.getLocalTick
-        ),
-        temperature: this.$store.getters.getTemperature,
-        reset: this.reset,
-      };
-      // try writing to firebase
       try {
-        updateDoc(doc(db, "data", vm.$store.getters.getSessionID), {
-          playData: arrayUnion({
-            tick: aiInp.tick,
-            type: "User",
-            midiArticInd: aiInp.humanInp.midiArticInd,
-          }),
-        });
+        await deleteDoc(doc(db, "data", vm.$store.getters.getSessionID));
       } catch (e) {
         this.$toasted.show(
-          "Error writing AI note to firebase. Error Message in console."
+          "Error deleting doc from firebase. Error Message in console."
         );
-        console.log("Firebase error:", e);
+        console.error("Firebase error:", e);
       }
-      // when this.reset is 1, then for this tick only, the neural network will reset its memory.
-      // after that we ll have to set this.reset = 0 again (in the workerCallback), because if not,
-      // the AI will keep reseting its memory. I think that's a terrible way to implement the reset function.
-      // My problem is that the only way to communicate with the AI is through the input arguments of postMessage().
-      // Ideally we want to have a reset button that calls a callback that exists inside the neuralWorker.js,
-      // but I don't know if this is possible
-
-      // console.log("to run the worker with ", aiInp, " tick is ", this.$store.getters.getLocalTick)
-      this.neuralWorker.postMessage(aiInp); //{"currentTickNumber": vm.$store.getters.getLocalTick});
+      window.location.reload(true);
     },
   },
 };
@@ -1095,9 +1074,14 @@ export default {
   animation: scale-down-center 0.05s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
 }
 
-.typewrite {
+.loadingTypewriter {
   padding: 0;
   margin: 0;
+}
+
+.loadingTypewriter .wrap {
+  border-right: 0.03em solid rgb(89, 50, 54);
+  color: rgb(89, 50, 54);
 }
 
 @-webkit-keyframes scale-down-center {

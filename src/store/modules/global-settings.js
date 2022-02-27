@@ -31,9 +31,6 @@ const getters = {
   getBPM(state){
     return state.bpm;
   },
-  getFrequency(state){
-    return state.frequency;
-  },
   getTemperature(state){
     return state.temperature;
   }
@@ -62,9 +59,7 @@ const mutations = {
   setBPM(state, bpm){
     state.bpm = bpm;
   },
-  setFrequency(state, frequency){
-    state.frequency = frequency;
-  },
+
   setTemperature(state, temperature){
     state.temperature = temperature;
   }
