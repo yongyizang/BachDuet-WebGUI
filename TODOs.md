@@ -16,10 +16,7 @@
     [ ] Misalignment. If the neural network is outputting a different tick than current tick, send out warning.    
 
 ### Reverb & Mixing Console
-    [ ] Implement some reverb choices
     [x] Design and create Mixing console Modal
-    [ ] Reverb amount control
-    [ ] Reverb choice control (Small? Large? etc.)
     [x] Volume controls (Incorporated into main modal)
 
 ### Feedback Modal
@@ -29,7 +26,7 @@
 
 ### Privacy
     [ ] Privacy Statement collapsible
-    [ ] Data Kill Button
+    [x] Data Kill Button
 
 # Data Collection
     - Send data to firestore at every tick

@@ -83,13 +83,12 @@
       />
       <!-- <neuralNet/> -->
       <!-- logic handled by this file for decoupling purposes. -->
-      <modal name="settingsModal" :height="500">
+      <modal name="settingsModal" :minHeight="600" :adaptive="true">
         <div
           style="
             padding: 20px;
-            min-height: 100%;
+            height: 100%;
             background-color: rgb(243, 225, 190);
-            overflow-y: scroll;
           "
         >
           <p
@@ -188,10 +187,35 @@
             <div
               class="md-layout-item md-medium-size-33 md-small-size-50 md-xsmall-size-100"
             >
-              <md-button @click="resetNetwork">
+              <md-button @click="resetNetwork" style="width: 100%">
                 <md-icon>close</md-icon>
                 <span>Reset Network</span>
               </md-button>
+            </div>
+          </div>
+          <p class="settingsSubtitle">Privacy</p>
+          <div class="md-layout md-gutter md-alignment-center">
+            <div
+              class="md-layout-item md-medium-size-33 md-small-size-50 md-xsmall-size-100"
+            >
+              <span>
+                By clicking this button, you would destroy all data sent to our
+                server, including all your play data and all app performance
+                data. All your data is gathered anonymously, and would only be
+                used for research purposes.
+              </span>
+            </div>
+            <div
+              class="md-layout-item md-medium-size-33 md-small-size-50 md-xsmall-size-100"
+            >
+              <md-button
+                @click="killData"
+                class="md-raised md-accent"
+                style="height: 100%; width: 100%"
+                >Kill Your Data<br /><br />Session ID:<br />{{
+                  this.$store.getters.getSessionID
+                }}</md-button
+              >
             </div>
           </div>
         </div>
@@ -216,7 +240,15 @@ import AudioKeys from "audiokeys";
 // Use Google Firebase and Analytics for data gathering
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
-import { getFirestore, collection, doc, addDoc, updateDoc, arrayUnion } from "firebase/firestore";
+import {
+  getFirestore,
+  collection,
+  doc,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  arrayUnion,
+} from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCVFIcL_nokMdYVET7lvxnuIbLLoUi5YSs",
@@ -531,16 +563,17 @@ export default {
         // HERE
         var aiPrediction = e.data;
         // try writing to firebase
-          try {
-            await updateDoc(doc(db, "data", vm.$store.getters.getSessionID),{
-              playData: arrayUnion({
-                tick: e.data.tick,
-                type: "AI",
-                midiArticInd: e.data.midiArticInd
-              })});
-          } catch (e) {
-            console.error("Error writing to firebase. ", e);
-          }
+        try {
+          await updateDoc(doc(db, "data", vm.$store.getters.getSessionID), {
+            playData: arrayUnion({
+              tick: e.data.tick,
+              type: "AI",
+              midiArticInd: e.data.midiArticInd,
+            }),
+          });
+        } catch (e) {
+          console.error("Error writing to firebase. ", e);
+        }
         this.$store.dispatch("newAiPrediction", aiPrediction);
       }
       this.reset = false; // for explanation see the comment about reset inside runTheWorker()
@@ -573,7 +606,7 @@ export default {
     showSettingsModal() {
       this.$modal.show("settingsModal");
     },
-    
+
     hideSettingsModal() {
       this.$modal.hide("settingsModal");
     },
@@ -623,6 +656,16 @@ export default {
 
     resetNetwork() {
       this.reset = true;
+    },
+
+    async killData() {
+      const vm = this;
+      try {
+        await deleteDoc(doc(db, "data", vm.$store.getters.getSessionID));
+      } catch (e) {
+        console.error("Error deleting doc from firebase. ", e);
+      };
+      window.location.reload(true);
     },
 
     // The clock behavior is defined here.
@@ -835,16 +878,17 @@ export default {
         reset: this.reset,
       };
       // try writing to firebase
-          try {
-            updateDoc(doc(db, "data", vm.$store.getters.getSessionID),{
-              playData: arrayUnion({
-                tick: aiInp.tick,
-                type: "User",
-                midiArticInd: aiInp.humanInp.midiArticInd,
-              })});
-          } catch (e) {
-            console.error("Error writing to firebase. ", e);
-          }
+      try {
+        updateDoc(doc(db, "data", vm.$store.getters.getSessionID), {
+          playData: arrayUnion({
+            tick: aiInp.tick,
+            type: "User",
+            midiArticInd: aiInp.humanInp.midiArticInd,
+          }),
+        });
+      } catch (e) {
+        console.error("Error writing to firebase. ", e);
+      }
       // when this.reset is 1, then for this tick only, the neural network will reset its memory.
       // after that we ll have to set this.reset = 0 again (in the workerCallback), because if not,
       // the AI will keep reseting its memory. I think that's a terrible way to implement the reset function.
