@@ -191,12 +191,11 @@ export default {
       // set the second parameter here to False for human.
       this.$root.$refs.gameUI.keyDown(currentNote, true);
       this.$store.dispatch("noteOn", currentNote);
-      console.log(currentNote);
       const payload = {
         name: "user",
         note: currentNote,
         time: Tone.now()
-      }
+      };
       this.$store.dispatch("samplerOn", payload);
       // pianoSampler.triggerAttack(currentNote, Tone.now());
       }

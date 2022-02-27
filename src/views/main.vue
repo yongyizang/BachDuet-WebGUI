@@ -107,7 +107,7 @@
           <p class="settingsSubtitle">Audio</p>
           <div class="md-layout md-gutter md-alignment-center">
             <div
-              class="md-layout-item md-medium-size-33 md-small-size-50 md-xsmall-size-100"
+              class="md-layout-item md-small-size-50 md-xsmall-size-100"
             >
               <div class="settingsDiv">
                 <p class="settingsOptionTitle">BPM</p>
@@ -122,7 +122,7 @@
               </div>
             </div>
             <div
-              class="md-layout-item md-medium-size-33 md-small-size-50 md-xsmall-size-100"
+              class="md-layout-item md-small-size-50 md-xsmall-size-100"
             >
               <div class="settingsDiv" style="padding-top: 10px">
                 <span class="settingsOptionTitle">Metronome</span>
@@ -132,6 +132,36 @@
                   @change="toggleMetronome"
                   style="transform: scale(0.9)"
                 />
+              </div>
+            </div>
+            <div
+              class="md-layout-item md-small-size-50 md-xsmall-size-100"
+            >
+              <div class="settingsDiv">
+                <p class="settingsOptionTitle">Your Piano Volume</p>
+                <p class="settingsValue">{{ userPianoVolume }}</p>
+                <vue-slider
+                  v-model="userPianoVolume"
+                  :lazy="true"
+                  :min="1"
+                  :max="10"
+                  class="settingsSlider"
+                ></vue-slider>
+              </div>
+            </div>
+                        <div
+              class="md-layout-item md-small-size-50 md-xsmall-size-100"
+            >
+              <div class="settingsDiv">
+                <p class="settingsOptionTitle">Network Piano Volume</p>
+                <p class="settingsValue">{{ AIPianoVolume }}</p>
+                <vue-slider
+                  v-model="AIPianoVolume"
+                  :lazy="true"
+                  :min="1"
+                  :max="10"
+                  class="settingsSlider"
+                ></vue-slider>
               </div>
             </div>
           </div>
@@ -242,6 +272,8 @@ export default {
       modelLoadTime: null,
       activeDevices: [],
       selectedMIDIDevice: "",
+      userPianoVolume: 10,
+      AIPianoVolume: 10,
     };
   },
 
@@ -420,6 +452,18 @@ export default {
         this.$store.commit("setTemperature", newValue / 100);
       },
     },
+    userPianoVolume: {
+      immediate: true,
+      handler(newValue) {
+        this.$store.commit("setUserPianoVolume", newValue);
+      },
+    },
+    AIPianoVolume: {
+      immediate: true,
+      handler(newValue) {
+        this.$store.commit("setAIPianoVolume", newValue);
+      },
+    },
   },
 
   methods: {
@@ -532,8 +576,8 @@ export default {
 
     // when Metronome is toggled.
     toggleMetronome() {
-      this.$store.dispatch("toggleMetronome");
-      this.metronomeStatus = this.$store.getters.getMetronomeStatus;
+      this.$store.commit("muteMetronome");
+      this.$store.commit("flipMetronomeStatus");
     },
 
     transposeOctUp() {
@@ -986,7 +1030,7 @@ export default {
   font-size: 20px;
 }
 .settingsSlider {
-  margin-top: -30px;
+  margin-top: -18px;
   margin-left: 50px;
 }
 </style>
