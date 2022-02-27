@@ -106,9 +106,7 @@
           <hr style="border-top: 1px solid #000; opacity: 12%" />
           <p class="settingsSubtitle">Audio</p>
           <div class="md-layout md-gutter md-alignment-center">
-            <div
-              class="md-layout-item md-small-size-50 md-xsmall-size-100"
-            >
+            <div class="md-layout-item md-small-size-50 md-xsmall-size-100">
               <div class="settingsDiv">
                 <p class="settingsOptionTitle">BPM</p>
                 <p class="settingsValue">{{ BPM }}</p>
@@ -121,9 +119,7 @@
                 ></vue-slider>
               </div>
             </div>
-            <div
-              class="md-layout-item md-small-size-50 md-xsmall-size-100"
-            >
+            <div class="md-layout-item md-small-size-50 md-xsmall-size-100">
               <div class="settingsDiv" style="padding-top: 10px">
                 <span class="settingsOptionTitle">Metronome</span>
                 <toggle-button
@@ -134,9 +130,7 @@
                 />
               </div>
             </div>
-            <div
-              class="md-layout-item md-small-size-50 md-xsmall-size-100"
-            >
+            <div class="md-layout-item md-small-size-50 md-xsmall-size-100">
               <div class="settingsDiv">
                 <p class="settingsOptionTitle">Your Piano Volume</p>
                 <p class="settingsValue">{{ userPianoVolume }}</p>
@@ -149,9 +143,7 @@
                 ></vue-slider>
               </div>
             </div>
-                        <div
-              class="md-layout-item md-small-size-50 md-xsmall-size-100"
-            >
+            <div class="md-layout-item md-small-size-50 md-xsmall-size-100">
               <div class="settingsDiv">
                 <p class="settingsOptionTitle">Network Piano Volume</p>
                 <p class="settingsValue">{{ AIPianoVolume }}</p>
@@ -224,7 +216,7 @@ import AudioKeys from "audiokeys";
 // Use Google Firebase and Analytics for data gathering
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
-import { getFirestore, collection, addDoc } from "firebase/firestore";
+import { getFirestore, collection, doc, addDoc, updateDoc, arrayUnion } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCVFIcL_nokMdYVET7lvxnuIbLLoUi5YSs",
@@ -521,11 +513,12 @@ export default {
 
           // try writing to firebase
           try {
-            const docRef = await addDoc(collection(db, "loadingTimes"), {
+            const docRef = await addDoc(collection(db, "data"), {
               userAgent: vm.userAgent,
               pageLoad: vm.pageLoadTime,
               modelLoad: vm.modelLoadTime,
               dataAddTime: Date.now(),
+              playData: [],
             });
             vm.userDataID = docRef.id;
             vm.$store.commit("writeSessionID", docRef.id);
@@ -537,6 +530,17 @@ export default {
       } else {
         // HERE
         var aiPrediction = e.data;
+        // try writing to firebase
+          try {
+            await updateDoc(doc(db, "data", vm.$store.getters.getSessionID),{
+              playData: arrayUnion({
+                tick: e.data.tick,
+                type: "AI",
+                midiArtic: e.data.midiArticInd
+              })});
+          } catch (e) {
+            console.error("Error writing to firebase. ", e);
+          }
         // write something here to send it to firebase
         this.$store.dispatch("newAiPrediction", aiPrediction);
       }
@@ -553,14 +557,15 @@ export default {
         this.$store.getters.getLocalTick % this.$store.getters.getFrequency ==
         0
       ) {
-        var currentNote = this.$store.getters.getLocalTick % 16 === 0 ? "G0" : "C0";
+        var currentNote =
+          this.$store.getters.getLocalTick % 16 === 0 ? "G0" : "C0";
         const payload = {
           name: "metronome",
           note: currentNote,
-          time: Tone.now()
-        }
+          time: Tone.now(),
+        };
         this.$store.dispatch("samplerOn", payload);
-              }
+      }
     },
 
     onPrivacyAgreeBtn(event) {
@@ -570,6 +575,7 @@ export default {
     showSettingsModal() {
       this.$modal.show("settingsModal");
     },
+    
     hideSettingsModal() {
       this.$modal.hide("settingsModal");
     },
@@ -617,7 +623,7 @@ export default {
       }
     },
 
-    resetNetwork(){
+    resetNetwork() {
       this.reset = true;
     },
 
@@ -698,7 +704,7 @@ export default {
               name: "AI",
               note: this.lastNoteOnAi,
               time: Tone.now(),
-            }
+            };
             this.$store.dispatch("samplerOff", payload);
             this.$root.$refs.gameUI.keyUp(this.lastNoteOnAi, false);
           }
@@ -706,11 +712,11 @@ export default {
             sharps: true,
           });
           var payload = {
-              name: "AI",
-              note: currentNote,
-              time: Tone.now(),
-            }
-            this.$store.dispatch("samplerOn", payload);
+            name: "AI",
+            note: currentNote,
+            time: Tone.now(),
+          };
+          this.$store.dispatch("samplerOn", payload);
           this.$root.$refs.gameUI.keyDown(currentNote, false);
           this.lastNoteOnAi = currentNote;
         } else {
@@ -719,7 +725,7 @@ export default {
               name: "AI",
               note: this.lastNoteOnAi,
               time: Tone.now(),
-            }
+            };
             this.$store.dispatch("samplerOff", payload);
             this.$root.$refs.gameUI.keyUp(this.lastNoteOnAi, false);
             this.lastNoteOnAi = "";
