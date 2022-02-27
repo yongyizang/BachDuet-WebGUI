@@ -4,7 +4,7 @@
       <div id="fadeBlockStart"></div>
       <div id="grandStaff"></div>
       <div id="noteBox"></div>
-      <div id="staffBackground"></div>
+      <div id="staveBackground"></div>
       <div id="fadeBlockEnd"></div>
     </div>
     <button type="button" @click="triggerCollapse" id="collapseBtn">
@@ -143,6 +143,39 @@ export default {
       brace.setContext(grandStaffContext).draw();
       lineLeft.setContext(grandStaffContext).draw();
 
+      // Set ground for background staves.
+      this.targetDiv = document.getElementById("staveBackground");
+      this.renderer = new this.VF.Renderer(
+        this.targetDiv,
+        this.VF.Renderer.Backends.SVG
+      );
+      this.renderer.resize(this.screenWidth, 300);
+      this.context = this.renderer.getContext();
+
+      this.tickContexts.push(new this.VF.TickContext());
+      this.tickContexts.push(new this.VF.TickContext());
+
+      this.staves.push(new this.VF.Stave(30, 50, 4000));
+      this.staves.push(new this.VF.Stave(30, 150, 4000));
+
+      this.context.setViewBox(this.viewX, 0, this.screenWidth, 300);
+      this.staves[0]
+        .setContext(this.context)
+        .setStyle({
+          fillStyle: this.lineColor,
+          strokeStyle: this.lineColor,
+          lineWidth: this.lineWidth,
+        })
+        .draw();
+      this.staves[1]
+        .setContext(this.context)
+        .setStyle({
+          fillStyle: this.lineColor,
+          strokeStyle: this.lineColor,
+          lineWidth: this.lineWidth,
+        })
+        .draw();
+
       // Set ground for the notes.
       this.targetDiv = document.getElementById("noteBox");
       this.renderer = new this.VF.Renderer(
@@ -155,8 +188,8 @@ export default {
       this.tickContexts.push(new this.VF.TickContext());
       this.tickContexts.push(new this.VF.TickContext());
 
-      this.staves.push(new this.VF.Stave(30, 50, 20000));
-      this.staves.push(new this.VF.Stave(30, 150, 20000));
+      this.staves.push(new this.VF.Stave(30, 50, 10));
+      this.staves.push(new this.VF.Stave(30, 150, 10));
 
       this.context.setViewBox(this.viewX, 0, this.screenWidth, 300);
       this.staves[0]
@@ -622,6 +655,12 @@ export default {
 }
 #noteBox {
   z-index: 995;
+  position: absolute;
+  top: 0px;
+  left: 50px;
+}
+#staveBackground {
+  z-index: 993;
   position: absolute;
   top: 0px;
   left: 50px;
