@@ -157,7 +157,8 @@
             </div>
           </div>
           <p class="settingsSubtitle">MIDI</p>
-          <div class="MIDIInput">
+
+          <div class="MIDIInput" v-if="WebMIDISupport">
             <Dropdown
               :options="activeDevices"
               v-on:selected="onMIDIDeviceSelectedChange"
@@ -165,6 +166,7 @@
             >
             </Dropdown>
           </div>
+          <span v-else="WebMIDISupport"> Currently, Using MIDI devices in browser is only supported by Google Chrome v43+, Opera v30+ and Microsoft Edge v79+. Please update to one of those browsers if you want to use Web MIDI functionalities.</span>
           <p class="settingsSubtitle">Network</p>
           <div class="md-layout md-gutter md-alignment-center">
             <div
@@ -285,6 +287,7 @@ export default {
       metronomeStatus: true,
       lastNoteOnAi: "",
       reset: false,
+      WebMIDISupport: false,
       userDataID: null,
       userAgent: null,
       pageLoadTime: null,
@@ -317,15 +320,17 @@ export default {
     /*
      * Web MIDI logic
      */
-    navigator.requestMIDIAccess().then(function (access) {
-      access.onstatechange = vm.onEnabled;
-    });
 
-    // Enable WebMIDI, then call onEnabled method.
-    WebMidi.enable()
-      .then(vm.onEnabled)
-      .catch((err) => this.$toasted.show("WebMIDI Error: " + err));
-
+    if (navigator.requestMIDIAccess) {
+      navigator.requestMIDIAccess().then(function (access) {
+        vm.WebMIDISupport = true;
+        access.onstatechange = vm.onEnabled;
+      });
+      // Enable WebMIDI, then call onEnabled method.
+      WebMidi.enable()
+        .then(vm.onEnabled)
+        .catch((err) => this.$toasted.show("WebMIDI Error: " + err));
+    }
     /*
      * Initialize computer keyboard logic
      */
@@ -693,7 +698,7 @@ export default {
       this.reset = true;
     },
 
-        triggerAiSampler() {
+    triggerAiSampler() {
       // here, we check the note the AI predicted in the previous tick,
       // for the tick we are now. If the articulation of the predicted note
       // is 1 (hit), then we trigger the AI sampler to play the note.

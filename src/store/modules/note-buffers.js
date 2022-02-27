@@ -10,10 +10,6 @@ const notes = createRange("A0", "C8")
 // const midiNumbers = [...Array(88).keys()].map(i => i + 21);
 const measureTicks = [...Array(16).keys()];
 // Put all the notes into the notemap, then set all default values to false.
-// const noteMapforBuffer = notes.reduce((map, note) => {
-//     map[note.name] = false
-//     return map
-// }, {})
 
 const noteMapforPiano = notes.reduce((map, note) => {
     map[note.name] = false
@@ -28,10 +24,7 @@ const noteMapforHuman = measureTicks.reduce((map, tick) => {
     map[tick] = {"midi" : 0, "artic" : 1, "cpc" : 12, "midiArticInd" : 96, "name" : "R"}
     return map
 }, {})
-// const note2MidiMap = notes.reduce((map, note) => {
-//     map[note.name] = {"midi" : -1, "artic" : -1}
-//     return map
-// }, {})
+
 
 // note as observables
 const pianoStateMap = new Vue.observable(noteMapforPiano)

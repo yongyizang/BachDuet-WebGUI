@@ -2,7 +2,6 @@ import Vue from "vue";
 import store from "./store/index.js";
 import App from "./App.vue";
 import router from "./router";
-import "remixicon/fonts/remixicon.css";
 import Vue2TouchEvents from "vue2-touch-events";
 import ToggleButton from 'vue-js-toggle-button'
 import VModal from 'vue-js-modal'
