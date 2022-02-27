@@ -125,7 +125,7 @@
           <md-button
             @click="submitFeedback"
             class="md-raised"
-            style="width: 100%;margin:0;"
+            style="width: 100%"
           >
             Submit
           </md-button>
@@ -665,6 +665,7 @@ export default {
         temperature: this.$store.getters.getTemperature,
         reset: this.reset,
       };
+      this.neuralWorker.postMessage(aiInp);
       // try writing to firebase
       if (this.$store.getters.getDataCollectingState) {
         try {
@@ -682,9 +683,6 @@ export default {
           console.log("Firebase error:", e);
         }
       }
-      // when this.reset is 1, then for this tick only, the neural network will reset its memory.
-
-      this.neuralWorker.postMessage(aiInp);
     },
 
     async workerCallback(e) {
@@ -720,6 +718,16 @@ export default {
       } else {
         // If the worker is giving us ai prediction
         var aiPrediction = e.data;
+        // Misalignment Check
+        if (aiPrediction.tick !== this.$store.getters.getLocalTickDelayed) {
+          this.$toasted.show(
+            "Network tick misalignment: expecting " +
+              this.$store.getters.getLocalTickDelayed +
+              ", get " +
+              aiPrediction.tick
+          );
+        }
+        this.$store.dispatch("newAiPrediction", aiPrediction);
         // try writing to firebase, if there's user permission
         if (this.$store.getters.getDataCollectingState) {
           try {
@@ -737,17 +745,6 @@ export default {
             console.log("Firebase error:", e);
           }
         }
-
-        // Misalignment Check
-        if (aiPrediction.tick !== this.$store.getters.getLocalTickDelayed) {
-          this.$toasted.show(
-            "Network tick misalignment: expecting " +
-              this.$store.getters.getLocalTickDelayed +
-              ", get " +
-              aiPrediction.tick
-          );
-        }
-        this.$store.dispatch("newAiPrediction", aiPrediction);
       }
       this.reset = false; // for explanation see the comment about reset inside runTheWorker()
     },
@@ -885,6 +882,7 @@ export default {
         function tickBehavior() {
           if (vm.$store.getters.getClockStatus) {
             vm.$store.commit("incrementTick");
+
             vm.metronomeTrigger();
             vm.triggerAiSampler();
             setTimeout(function () {
@@ -915,9 +913,11 @@ export default {
     metronomeTrigger() {
       // This method would trigger the metronome sampler.
       if (
-        this.$store.getters.getLocalTick % this.$store.getters.getFrequency ==
+        // 4 here codes the frequency of metronome.
+        this.$store.getters.getLocalTick % 4 ==
         0
       ) {
+        console.log("Metronome");
         var currentNote =
           this.$store.getters.getLocalTick % 16 === 0 ? "G0" : "C0";
         const payload = {
@@ -925,6 +925,7 @@ export default {
           note: currentNote,
           time: Tone.now(),
         };
+
         this.$store.dispatch("samplerOn", payload);
       }
     },
@@ -1015,9 +1016,7 @@ export default {
       vm.feedbackRating = 5.0;
       vm.feedbackText = "";
       this.$modal.hide("feedbackModal");
-      this.$toasted.show(
-          "Your feedback is submitted! Thanks."
-        );
+      this.$toasted.show("Your feedback is submitted! Thanks.");
     },
   },
 };
