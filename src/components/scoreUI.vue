@@ -1,9 +1,10 @@
 <template>
   <div ref="score" id="pianoScores">
-    <div  v-touch:swipe.up="triggerCollapse" id="scoreWrapper">
+    <div v-touch:swipe.up="triggerCollapse" id="scoreWrapper">
       <div id="fadeBlockStart"></div>
       <div id="grandStaff"></div>
       <div id="noteBox"></div>
+      <div id="staffBackground"></div>
       <div id="fadeBlockEnd"></div>
     </div>
     <button type="button" @click="triggerCollapse" id="collapseBtn">
@@ -20,7 +21,7 @@ const CLEF_SEPARATE_AT = "B3"; // Here, we define the separate point between tre
 
 function NoteFormatter(note) {
   // Expecting input: "C#1" or "C3"
-  
+
   if (note.charAt(1) == "#") {
     return (
       note.charAt(0).toLowerCase() +
@@ -31,97 +32,6 @@ function NoteFormatter(note) {
   } else {
     return note.charAt(0).toLowerCase() + "/" + note.substring(1, note.length);
   }
-}
-function DurationFormatter(duration) {
-  // 1 --> 16
-  // 2 --> 8
-  // 3 --> 8.
-  // 4 --> 4 or q
-  // 5 --> 4 + need for extra tied sixteenth
-  // 6 --> 4.
-  // 7 --> 4. + need for extra tied sixteenth
-  // 8 --> 2 or h
-  // 9 --> 8 + need for extra tied sixteenth
-  // 10 --> 8 + need for extra tied eight
-  // 11 --> 8 + need for extra tied eigth dotted
-  // 12 --> 8.
-  // 13 --> 8. + need for extra tied sixteenth
-  // 14 --> 8. + need for extra tied eigth
-  // 15 --> 8. + need for extra tied eigth dotted
-  // 16 --> 1 or w
-  var durationTokens;
-  var newDurations;
-  switch (duration) {
-    case 1:
-      durationTokens = ["16"];
-      newDurations = [1];
-      break;
-    case 2:
-      durationTokens = ["8"];
-      newDurations = [2];
-      break;
-    case 3:
-      durationTokens = ["8d"];
-      newDurations = [3];
-      break;
-    case 4:
-      durationTokens = ["4"];
-      newDurations = [4];
-      break;
-    case 5:
-      durationTokens = ["4", "16"];
-      newDurations = [4, 1];
-      break;
-    case 6:
-      durationTokens = ["4d"];
-      newDurations = [6];
-      break;
-    case 7:
-      durationTokens = ["4d", "16"];
-      newDurations = [6, 1];
-      break;
-    case 8:
-      durationTokens = ["2"];
-      newDurations = [8];
-      break;
-    case 9:
-      durationTokens = ["2", "16"];
-      newDurations = [8, 1];
-      break;
-    case 10:
-      durationTokens = ["2", "8"];
-      newDurations = [8, 2];
-      break;
-    case 11:
-      durationTokens = ["2", "8d"];
-      newDurations = [8, 3];
-      break;
-    case 12:
-      durationTokens = ["2d"];
-      newDurations = [12];
-      break;
-    case 13:
-      durationTokens = ["2d", "16"];
-      newDurations = [12, 1];
-      break;
-    case 14:
-      durationTokens = ["2d", "8"];
-      newDurations = [12, 2];
-      break;
-    case 15:
-      durationTokens = ["2d", "8d"];
-      newDurations = [12, 3];
-      break;
-    case 16:
-      durationTokens = ["1"];
-      newDurations = [16];
-      break;
-
-    default:
-      this.$toasted.show("ScoreUI error: Invalid Duration.");
-      console.error("Invalid duration");
-  }
-  return [durationTokens, newDurations];
 }
 
 export default {
@@ -178,7 +88,7 @@ export default {
       // Scrolling starts once the x cursor has reached the desired latestNotePosition
       scrollEnabled: false,
       scrollsCounter: 0,
-      scrollsNumberPerMeasure : 400
+      scrollsNumberPerMeasure: 400,
     };
   },
 
@@ -227,7 +137,9 @@ export default {
       bassStave.setContext(grandStaffContext).draw();
 
       var brace = new this.VF.StaveConnector(trebleStave, bassStave).setType(3);
-      var lineLeft = new this.VF.StaveConnector(trebleStave, bassStave).setType(1);
+      var lineLeft = new this.VF.StaveConnector(trebleStave, bassStave).setType(
+        1
+      );
       brace.setContext(grandStaffContext).draw();
       lineLeft.setContext(grandStaffContext).draw();
 
@@ -243,7 +155,7 @@ export default {
       this.tickContexts.push(new this.VF.TickContext());
       this.tickContexts.push(new this.VF.TickContext());
 
-      this.staves.push(new this.VF.Stave(30, 50, 20000)); 
+      this.staves.push(new this.VF.Stave(30, 50, 20000));
       this.staves.push(new this.VF.Stave(30, 150, 20000));
 
       this.context.setViewBox(this.viewX, 0, this.screenWidth, 300);
@@ -266,16 +178,19 @@ export default {
 
       setInterval(() => {
         if (this.$store.getters.getClockStatus && this.scrollEnabled) {
-          this.scrollScore(1)
+          this.scrollScore(1);
           this.scrollsCounter += 1;
-          this.scrollsNumberPerMeasure = 60 / this.$store.getters.getBPM * 4 * 1000 / this.scrollStepTime       
+          this.scrollsNumberPerMeasure =
+            ((60 / this.$store.getters.getBPM) * 4 * 1000) /
+            this.scrollStepTime;
         }
       }, this.scrollStepTime);
     },
 
-    scrollScore(steps){
-      this.viewX += steps*(this.scrollStepTime * this.tickStepPixels) /
-                        ((1000 * 60) / this.$store.getters.getBPM / 4);     
+    scrollScore(steps) {
+      this.viewX +=
+        (steps * (this.scrollStepTime * this.tickStepPixels)) /
+        ((1000 * 60) / this.$store.getters.getBPM / 4);
       this.context.setViewBox(this.viewX, 0, this.screenWidth, 300);
     },
 
@@ -284,10 +199,10 @@ export default {
 
       var formName;
       var extraR = "";
-      
+
       // Get formatted name
       if (quantNoteDict.midi === 0) {
-        formName = (clef == "treble") ? "b/4" : "d/2";
+        formName = clef == "treble" ? "b/4" : "d/2";
         extraR = "r";
       } else {
         formName = NoteFormatter(Note.fromMidiSharps(quantNoteDict.midi));
@@ -296,7 +211,9 @@ export default {
       // get formatted duration
       var durationTokens;
       var durations;
-      [durationTokens, durations] = DurationFormatter(quantNoteDict.dur - afairetis);
+      [durationTokens, durations] = this.DurationFormatter(
+        quantNoteDict.dur - afairetis
+      );
       // console.log(formName, " ", durationTokens);
       var notes = [];
       for (let i = 0; i < durationTokens.length; i++) {
@@ -311,7 +228,7 @@ export default {
         if (durationTokens[i].includes("d")) {
           newNote.addDotToAll();
         }
-        if (formName.charAt(1) == "#"){
+        if (formName.charAt(1) == "#") {
           newNote.addAccidental(0, new vm.VF.Accidental("#"));
         }
         notes.push(newNote);
@@ -325,7 +242,11 @@ export default {
     drawTop(quantNoteDict) {
       var notesToDraw;
       var durations;
-      var processed = this.formatQuantizedNote(quantNoteDict, "treble", this.afairetisHuman);
+      var processed = this.formatQuantizedNote(
+        quantNoteDict,
+        "treble",
+        this.afairetisHuman
+      );
       notesToDraw = processed.notes;
       durations = processed.durations;
       this.tickContexts[0].setX(this.xTreble);
@@ -363,60 +284,57 @@ export default {
         this.lastSvgGroupTrebleXOffset_lastNote = this.xTreble;
         this.xTreble += this.tickStepPixels * durations[i];
         this.tickContexts[0].setX(this.xTreble);
-        if (i==0 && this.barTieHuman == true){
+        if (i == 0 && this.barTieHuman == true) {
           // let last_x = this.xTreble;
-          console.log("IN BAR CURVE")
-          var curve = new this.VF.Curve(this.lastDrawnNote_Human_prevBar,
-                                        notesToDraw[0],
-                                        
-                                        {
-                                              cps: [
-                                                { x: 0, y: 20 },
-                                                { x: 0, y: 20 },
-                                              ],
-                                              // invert: true,
-                                              // position_end: 'nearTop',
-                                              x_shift: 2*notesToDraw[0].getWidth(),
-                                              y_shift: 20,
-                                            },
-                                        );
+          console.log("IN BAR CURVE");
+          var curve = new this.VF.Curve(
+            this.lastDrawnNote_Human_prevBar,
+            notesToDraw[0],
+
+            {
+              cps: [
+                { x: 0, y: 20 },
+                { x: 0, y: 20 },
+              ],
+              // invert: true,
+              // position_end: 'nearTop',
+              x_shift: 2 * notesToDraw[0].getWidth(),
+              y_shift: 20,
+            }
+          );
           curve.setContext(this.context);
           // curve.draw()
           curve.renderCurve({
-            first_x:this.lastSvgGroupTrebleXOffset_lastNote_prevBar + 40,
-            last_x:this.xTreble + 40,
-            first_y:this.lastDrawnNote_Human_prevBar.getYs()[0],
-            last_y:notesToDraw[0].getYs()[0],
+            first_x: this.lastSvgGroupTrebleXOffset_lastNote_prevBar + 40,
+            last_x: this.xTreble + 40,
+            first_y: this.lastDrawnNote_Human_prevBar.getYs()[0],
+            last_y: notesToDraw[0].getYs()[0],
             direction: -1,
           });
-          this.barTieHuman = false
+          this.barTieHuman = false;
           // first_x = last_x;
-
         }
 
-        if (i>0){
+        if (i > 0) {
           let last_x = this.xTreble;
           // TODO : this indexing here is not generic, it works only if we have 2 notesToDraw
-          var curve = new this.VF.Curve(notesToDraw[0], 
-                                        notesToDraw[1],
-                                        {
-                                              cps: [
-                                                { x: 0, y: 20 },
-                                                { x: 0, y: 20 },
-                                              ],
-                                              // invert: true,
-                                              // position_end: 'nearTop',
-                                              x_shift: 2*notesToDraw[0].getWidth(),
-                                              y_shift: 20,
-                                            },
-                                        );
+          var curve = new this.VF.Curve(notesToDraw[0], notesToDraw[1], {
+            cps: [
+              { x: 0, y: 20 },
+              { x: 0, y: 20 },
+            ],
+            // invert: true,
+            // position_end: 'nearTop',
+            x_shift: 2 * notesToDraw[0].getWidth(),
+            y_shift: 20,
+          });
           curve.setContext(this.context);
           // curve.draw()
           curve.renderCurve({
-            first_x:first_x + 40,
-            last_x:last_x + 40,
-            first_y:notesToDraw[0].getYs()[0],
-            last_y:notesToDraw[1].getYs()[0],
+            first_x: first_x + 40,
+            last_x: last_x + 40,
+            first_y: notesToDraw[0].getYs()[0],
+            last_y: notesToDraw[1].getYs()[0],
             direction: -1,
           });
           first_x = last_x;
@@ -424,14 +342,18 @@ export default {
       }
       // TODO fix the names and maybe group all the Human and AI variables in one.
       // this.lastSvgGroupTrebleXOffset_lastNote = this.xTreble;
-      this.lastDrawnNote_Human = notesToDraw[notesToDraw.length-1];
+      this.lastDrawnNote_Human = notesToDraw[notesToDraw.length - 1];
       this.context.closeGroup();
     },
 
     drawBottom(quantNoteDict) {
       var notesToDraw;
       var durations;
-      var processed = this.formatQuantizedNote(quantNoteDict, "bass", this.afairetisAI);
+      var processed = this.formatQuantizedNote(
+        quantNoteDict,
+        "bass",
+        this.afairetisAI
+      );
       notesToDraw = processed.notes;
       durations = processed.durations;
       this.tickContexts[1].setX(this.xBass);
@@ -467,32 +389,30 @@ export default {
       var humanQuantNoteDict = this.$store.getters.getLastHumanNoteQuantized;
       var aiQuantNoteDict = this.$store.getters.getLastAINoteQuantized;
 
-      // TODO some if's are redudant. 
-      if (humanQuantNoteDict.dur == 1){
+      // TODO some if's are redudant.
+      if (humanQuantNoteDict.dur == 1) {
         this.afairetisHuman = 0;
         this.barTieHuman = false;
       }
-      if (aiQuantNoteDict.dur == 1){
+      if (aiQuantNoteDict.dur == 1) {
         this.afairetisAI = 0;
         this.barTieAI = false;
       }
       if (this.$store.getters.getLocalTickDelayed % 16 === 0) {
         // this.lastDrawnNote_Human_prevBar = this.lastDrawnNote_Human;
         // this.lastSvgGroupTrebleXOffset_lastNote_prevBar = this.lastSvgGroupTrebleXOffset_lastNote;
-        if (humanQuantNoteDict.dur == 1){
+        if (humanQuantNoteDict.dur == 1) {
           this.afairetisHuman = 0;
           this.barTieHuman = false;
-        }
-        else if (humanQuantNoteDict.dur > 1){
-          this.afairetisHuman = humanQuantNoteDict.dur -1;
+        } else if (humanQuantNoteDict.dur > 1) {
+          this.afairetisHuman = humanQuantNoteDict.dur - 1;
           this.barTieHuman = true;
         }
-        if (aiQuantNoteDict.dur == 1){
+        if (aiQuantNoteDict.dur == 1) {
           this.afairetisAI = 0;
           this.barTieAI = false;
-        }
-        else if (aiQuantNoteDict.dur > 1){
-          this.afairetisAI = aiQuantNoteDict.dur -1;
+        } else if (aiQuantNoteDict.dur > 1) {
+          this.afairetisAI = aiQuantNoteDict.dur - 1;
           this.barTieAI = true;
         }
       }
@@ -504,12 +424,12 @@ export default {
       // here we draw the barline and bar-number
       if (this.$store.getters.getLocalTickDelayed % 16 === 0) {
         // Draw Barnumber
-        // this.xCurrent += 
+        // this.xCurrent +=
         this.currentBarNumber += 1;
-        this.context.font="22px Georgia";
+        this.context.font = "22px Georgia";
         this.context.fillText(
           this.currentBarNumber,
-          this.xCurrent + Math.floor(this.tickStepPixels / 2) ,
+          this.xCurrent + Math.floor(this.tickStepPixels / 2),
           this.staves[0].getYForLine(0) - 20
         );
 
@@ -518,18 +438,19 @@ export default {
         let topY = this.staves[0].getYForLine(0);
         let botY = this.staves[1].getYForLine(this.staves[1].getNumLines() - 1);
         this.context.fillRect(
-          this.xCurrent + this.tickStepPixels/2,
+          this.xCurrent + this.tickStepPixels / 2,
           topY,
           thickness,
           botY - topY
         );
         // Scrolling problem. The setTimeout function doesn't behave accurately.
-        // At 60bpm and 10ms interval, it should run 400 (scrolls) per measure, however 
+        // At 60bpm and 10ms interval, it should run 400 (scrolls) per measure, however
         // it doesn't. Notice that in a previous version of the code we didn't have this problem
-        // The solution I implement here is that at the end of each bar, check how many scrolls are missing, 
-        // and srcoll accordingly. The problem is that this creates sudden "jumps". 
+        // The solution I implement here is that at the end of each bar, check how many scrolls are missing,
+        // and srcoll accordingly. The problem is that this creates sudden "jumps".
         // To fix that we can try to perform this check more often (i.e every beat)
-        if (this.scrollEnabled == true){
+
+        if (this.scrollEnabled == true) {
           let scrollsDiff = this.scrollsNumberPerMeasure - this.scrollsCounter;
           // console.log(scrollsDiff);
           this.scrollScore(scrollsDiff);
@@ -548,7 +469,8 @@ export default {
 
       if (this.$store.getters.getLocalTickDelayed % 16 === 15) {
         this.lastDrawnNote_Human_prevBar = this.lastDrawnNote_Human;
-        this.lastSvgGroupTrebleXOffset_lastNote_prevBar = this.lastSvgGroupTrebleXOffset_lastNote;
+        this.lastSvgGroupTrebleXOffset_lastNote_prevBar =
+          this.lastSvgGroupTrebleXOffset_lastNote;
       }
     },
 
@@ -556,17 +478,110 @@ export default {
       const btnSymbol = this.$refs.collapseBtnSymbol.classList;
       const score = this.$refs.score;
       const scoreClass = score.classList;
-      if (scoreClass.contains("slide-up")){
+      if (scoreClass.contains("slide-up")) {
         scoreClass.replace("slide-up", "slide-down");
-        btnSymbol.replace("ri-arrow-down-s-line","ri-arrow-up-s-line");
-      } else if (scoreClass.contains("slide-down")){
+        btnSymbol.replace("ri-arrow-down-s-line", "ri-arrow-up-s-line");
+      } else if (scoreClass.contains("slide-down")) {
         scoreClass.replace("slide-down", "slide-up");
-        btnSymbol.replace("ri-arrow-up-s-line","ri-arrow-down-s-line")
+        btnSymbol.replace("ri-arrow-up-s-line", "ri-arrow-down-s-line");
       } else {
         scoreClass.add("slide-up");
-        btnSymbol.replace("ri-arrow-up-s-line","ri-arrow-down-s-line")
+        btnSymbol.replace("ri-arrow-up-s-line", "ri-arrow-down-s-line");
       }
-    }
+    },
+
+    DurationFormatter(duration) {
+      // 1 --> 16
+      // 2 --> 8
+      // 3 --> 8.
+      // 4 --> 4 or q
+      // 5 --> 4 + need for extra tied sixteenth
+      // 6 --> 4.
+      // 7 --> 4. + need for extra tied sixteenth
+      // 8 --> 2 or h
+      // 9 --> 8 + need for extra tied sixteenth
+      // 10 --> 8 + need for extra tied eight
+      // 11 --> 8 + need for extra tied eigth dotted
+      // 12 --> 8.
+      // 13 --> 8. + need for extra tied sixteenth
+      // 14 --> 8. + need for extra tied eigth
+      // 15 --> 8. + need for extra tied eigth dotted
+      // 16 --> 1 or w
+      const vm = this;
+      var durationTokens;
+      var newDurations;
+      switch (duration) {
+        case 1:
+          durationTokens = ["16"];
+          newDurations = [1];
+          break;
+        case 2:
+          durationTokens = ["8"];
+          newDurations = [2];
+          break;
+        case 3:
+          durationTokens = ["8d"];
+          newDurations = [3];
+          break;
+        case 4:
+          durationTokens = ["4"];
+          newDurations = [4];
+          break;
+        case 5:
+          durationTokens = ["4", "16"];
+          newDurations = [4, 1];
+          break;
+        case 6:
+          durationTokens = ["4d"];
+          newDurations = [6];
+          break;
+        case 7:
+          durationTokens = ["4d", "16"];
+          newDurations = [6, 1];
+          break;
+        case 8:
+          durationTokens = ["2"];
+          newDurations = [8];
+          break;
+        case 9:
+          durationTokens = ["2", "16"];
+          newDurations = [8, 1];
+          break;
+        case 10:
+          durationTokens = ["2", "8"];
+          newDurations = [8, 2];
+          break;
+        case 11:
+          durationTokens = ["2", "8d"];
+          newDurations = [8, 3];
+          break;
+        case 12:
+          durationTokens = ["2d"];
+          newDurations = [12];
+          break;
+        case 13:
+          durationTokens = ["2d", "16"];
+          newDurations = [12, 1];
+          break;
+        case 14:
+          durationTokens = ["2d", "8"];
+          newDurations = [12, 2];
+          break;
+        case 15:
+          durationTokens = ["2d", "8d"];
+          newDurations = [12, 3];
+          break;
+        case 16:
+          durationTokens = ["1"];
+          newDurations = [16];
+          break;
+
+        default:
+          vm.$toasted.show("ScoreUI error: Invalid Duration.");
+          console.error("Invalid duration");
+      }
+      return [durationTokens, newDurations];
+    },
   },
 };
 </script>
@@ -577,26 +592,26 @@ export default {
   z-index: 1;
   width: calc(100% - 20px);
   height: 350px;
-  position:absolute;
-  left:10px;
-  top:0;
+  position: absolute;
+  left: 10px;
+  top: 0;
 }
 
 #scoreWrapper {
-  position:absolute;
-  height:300px;
-  width:100%;
-  overflow-x:hidden;
--webkit-box-shadow: -4px 6px 15px -9px #000000; 
-box-shadow: -4px 6px 15px -9px #000000;
+  position: absolute;
+  height: 300px;
+  width: 100%;
+  overflow-x: hidden;
+  -webkit-box-shadow: -4px 6px 15px -9px #000000;
+  box-shadow: -4px 6px 15px -9px #000000;
 
-  background-color:rgb(233,197,147);
-    -webkit-border-bottom-right-radius: 40px;
--webkit-border-bottom-left-radius: 40px;
--moz-border-radius-bottomright: 40px;
--moz-border-radius-bottomleft: 40px;
-border-bottom-right-radius: 40px;
-border-bottom-left-radius: 40px;
+  background-color: rgb(233, 197, 147);
+  -webkit-border-bottom-right-radius: 40px;
+  -webkit-border-bottom-left-radius: 40px;
+  -moz-border-radius-bottomright: 40px;
+  -moz-border-radius-bottomleft: 40px;
+  border-bottom-right-radius: 40px;
+  border-bottom-left-radius: 40px;
 }
 
 #grandStaff {
@@ -614,99 +629,104 @@ border-bottom-left-radius: 40px;
 
 #collapseBtn {
   z-index: 999;
-  width:60px;
-  height:40px;
-  position:absolute;
-  top:300px;
-  left:calc(50% - 30px);
--webkit-box-shadow: -4px 6px 15px -9px #000000; 
-box-shadow: -4px 6px 15px -9px #000000;
-  background-color:rgb(233,197,147);
-  color:white;
-  font-size:35px;
+  width: 60px;
+  height: 40px;
+  position: absolute;
+  top: 300px;
+  left: calc(50% - 30px);
+  -webkit-box-shadow: -4px 6px 15px -9px #000000;
+  box-shadow: -4px 6px 15px -9px #000000;
+  background-color: rgb(233, 197, 147);
+  color: white;
+  font-size: 35px;
   -webkit-border-bottom-right-radius: 20px;
--webkit-border-bottom-left-radius: 20px;
--moz-border-radius-bottomright: 20px;
--moz-border-radius-bottomleft: 20px;
-border-bottom-right-radius: 20px;
-border-bottom-left-radius: 20px;
-border-style: hidden;
+  -webkit-border-bottom-left-radius: 20px;
+  -moz-border-radius-bottomright: 20px;
+  -moz-border-radius-bottomleft: 20px;
+  border-bottom-right-radius: 20px;
+  border-bottom-left-radius: 20px;
+  border-style: hidden;
 }
 
-#fadeBlockStart{
-  z-index:996;
-  display:block;
-  width:150px;
-  height:300px;
-  position:absolute;
-  top:0;
-  left:0;
-  background:linear-gradient(270deg, rgba(233,197,147,0) 0%, rgba(233,197,147,1) 50%);
+#fadeBlockStart {
+  z-index: 996;
+  display: block;
+  width: 150px;
+  height: 300px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: linear-gradient(
+    270deg,
+    rgba(233, 197, 147, 0) 0%,
+    rgba(233, 197, 147, 1) 50%
+  );
 }
 
-#fadeBlockEnd{
-  z-index:999;
-  display:inline-block;
-  width:60px;
-  height:300px;
-  position:absolute;
-  top:0;
-  left:calc(100% - 60px);
-  background:linear-gradient(90deg, rgba(233,197,147,0) 0%, rgba(233,197,147,1) 70%);
+#fadeBlockEnd {
+  z-index: 999;
+  display: inline-block;
+  width: 60px;
+  height: 300px;
+  position: absolute;
+  top: 0;
+  left: calc(100% - 60px);
+  background: linear-gradient(
+    90deg,
+    rgba(233, 197, 147, 0) 0%,
+    rgba(233, 197, 147, 1) 70%
+  );
 }
 
 .slide-up {
-	-webkit-animation: slide-up 0.5s cubic-bezier(0.190, 1.000, 0.220, 1.000) both;
-	        animation: slide-up 0.5s cubic-bezier(0.190, 1.000, 0.220, 1.000) both;
+  -webkit-animation: slide-up 0.5s cubic-bezier(0.19, 1, 0.22, 1) both;
+  animation: slide-up 0.5s cubic-bezier(0.19, 1, 0.22, 1) both;
 }
 
 .slide-down {
-	-webkit-animation: slide-down 0.5s cubic-bezier(0.190, 1.000, 0.220, 1.000) both;
-	        animation: slide-down 0.5s cubic-bezier(0.190, 1.000, 0.220, 1.000) both;
+  -webkit-animation: slide-down 0.5s cubic-bezier(0.19, 1, 0.22, 1) both;
+  animation: slide-down 0.5s cubic-bezier(0.19, 1, 0.22, 1) both;
 }
-
 
 @-webkit-keyframes slide-up {
   0% {
     -webkit-transform: translateY(0);
-            transform: translateY(0);
-            
+    transform: translateY(0);
   }
   100% {
     -webkit-transform: translateY(-300px);
-            transform: translateY(-300px);
+    transform: translateY(-300px);
   }
 }
 @keyframes slide-up {
   0% {
     -webkit-transform: translateY(0);
-            transform: translateY(0);
+    transform: translateY(0);
   }
   100% {
     -webkit-transform: translateY(-300px);
-            transform: translateY(-300px);
+    transform: translateY(-300px);
   }
 }
 
 @-webkit-keyframes slide-down {
   0% {
     -webkit-transform: translateY(-300px);
-            transform: translateY(-300px);
+    transform: translateY(-300px);
   }
   100% {
     -webkit-transform: translateY(0);
-            transform: translateY(0);
+    transform: translateY(0);
   }
 }
 @keyframes slide-down {
   0% {
     -webkit-transform: translateY(-300px);
-            transform: translateY(-300px);
+    transform: translateY(-300px);
   }
   100% {
     -webkit-transform: translateY(0);
-            transform: translateY(0);
+    transform: translateY(0);
   }
 }
-
 </style>
