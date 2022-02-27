@@ -2,7 +2,7 @@
 ### App Settings
     [ ] Metronome Frequency Implementation with Buttons (After some thought, Maybe we shouldn't do this?)
     [x] Temperature slider. Linear scale. (TODO) Don't display number to user; Less Random - More Random
-    [ ] Reset button on the main UI. Manual control to reset the network. (look for this.reset in main.vue and check the comments I added)
+    [x] Reset button on the main UI. Manual control to reset the network. (look for this.reset in main.vue and check the comments I added)
     [ ] Predifined hidden states for the neural net
 
 ### MIDI Device
@@ -17,10 +17,10 @@
 
 ### Reverb & Mixing Console
     [ ] Implement some reverb choices
-    [ ] Design and create Mixing console Modal
+    [x] Design and create Mixing console Modal
     [ ] Reverb amount control
     [ ] Reverb choice control (Small? Large? etc.)
-    [ ] Volume controls
+    [x] Volume controls (Incorporated into main modal)
 
 ### Feedback Modal
     [ ] Christo: Waiting for Christo to design feedback questions
@@ -33,9 +33,9 @@
 
 # Data Collection
     - Send data to firestore at every tick
-    [ ] Gather neural network response at each tick
-    [ ] Gather user response at each tick
-    [ ] Send them to the same document
+    [x] Gather neural network response at each tick
+    [x] Gather user response at each tick
+    [x] Send them to the same document
 
 # Before Launch
     [ ] Deploy to Netlify at a beta testing url (bachduet.com/beta)
