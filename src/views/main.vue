@@ -233,7 +233,7 @@ import scoreUI from "@/components/scoreUI.vue";
 import Instruments from "@/library/instruments";
 import * as TokensDict from "@/../public/globalTokenIndexDict.json";
 import { WebMidi } from "webmidi";
-import Toasted from 'vue-toasted';
+import Toasted from "vue-toasted";
 import Dropdown from "vue-simple-search-dropdown";
 import AudioKeys from "audiokeys";
 
@@ -512,17 +512,45 @@ export default {
         this.messageListener();
       }
     },
-
+    // listens for midi message
     messageListener() {
       var vm = this;
       const inputDevice = WebMidi.getInputById(this.selectedMIDIDevice);
+
       inputDevice.addListener("noteon", (message) => {
-        vm.$root.$refs.keyboardUI.toggleAttack(message.note.identifier);
+        if (this.$store.getters.getClockStatus) {
+          // Trigger the sampler.
+          // console.log("The CURRENT note IS ", currentNote)
+          // set the second parameter here to False for human.
+          var currentNote = message.note.identifier;
+          this.$root.$refs.gameUI.keyDown(currentNote, true);
+          this.$store.dispatch("noteOn", currentNote);
+          const payload = {
+            name: "user",
+            note: currentNote,
+            time: Tone.now(),
+          };
+          this.$store.dispatch("samplerOn", payload);
+          // pianoSampler.triggerAttack(currentNote, Tone.now());
+        }
       });
+
       inputDevice.addListener("noteoff", (message) => {
-        vm.$root.$refs.keyboardUI.toggleRelease(message.note.identifier);
+        var currentNote = message.note.identifier;
+        this.$root.$refs.gameUI.keyUp(currentNote, true);
+        this.$store.dispatch("noteOff", currentNote);
+        const payload = {
+          name: "user",
+          note: currentNote,
+          time: Tone.now(),
+        };
+        this.$store.dispatch("samplerOff", payload);
       });
-      inputDevice.addListener("disconnected", vm.onEnabled);
+
+      inputDevice.addListener("disconnected", (message) => {
+        vm.onEnabled;
+        vm.$toasted.show("MIDI Device Disconnected: " + message);
+      });
     },
 
     // To fade between loading screen and main content.
@@ -556,12 +584,15 @@ export default {
             vm.userDataID = docRef.id;
             vm.$store.commit("writeSessionID", docRef.id);
           } catch (e) {
-          this.$toasted.show("Error adding doc to firebase. Error Message in console.");
-          console.log("Firebase error:", e)
+            this.$toasted.show(
+              "Error adding doc to firebase. Error Message in console."
+            );
+            console.log("Firebase error:", e);
           }
         }
         workerStatus.innerHTML = e.data;
-      } else { // If the worker is giving us ai prediction
+      } else {
+        // If the worker is giving us ai prediction
         var aiPrediction = e.data;
         // try writing to firebase
         try {
@@ -573,13 +604,20 @@ export default {
             }),
           });
         } catch (e) {
-          this.$toasted.show("Error updating to firebase. Error Message in console.");
-          console.log("Firebase error:", e)
+          this.$toasted.show(
+            "Error updating to firebase. Error Message in console."
+          );
+          console.log("Firebase error:", e);
         }
         // Misalignment Check
-        if (aiPrediction.tick !== (this.$store.getters.getLocalTickDelayed)){
-          this.$toasted.show("Network tick misalignment: expecting " + (this.$store.getters.getLocalTickDelayed) +", get "+ aiPrediction.tick);
-        };
+        if (aiPrediction.tick !== this.$store.getters.getLocalTickDelayed) {
+          this.$toasted.show(
+            "Network tick misalignment: expecting " +
+              this.$store.getters.getLocalTickDelayed +
+              ", get " +
+              aiPrediction.tick
+          );
+        }
         this.$store.dispatch("newAiPrediction", aiPrediction);
       }
       this.reset = false; // for explanation see the comment about reset inside runTheWorker()
@@ -669,12 +707,12 @@ export default {
       try {
         await deleteDoc(doc(db, "data", vm.$store.getters.getSessionID));
       } catch (e) {
-          this.$toasted.show("Error deleting doc from firebase. Error Message in console.");
-          console.log("Firebase error:", e)
-      };
+        this.$toasted.show(
+          "Error deleting doc from firebase. Error Message in console."
+        );
+        console.log("Firebase error:", e);
+      }
       window.location.reload(true);
-
-      
     },
 
     // The clock behavior is defined here.
@@ -896,8 +934,10 @@ export default {
           }),
         });
       } catch (e) {
-          this.$toasted.show("Error writing AI note to firebase. Error Message in console.");
-          console.log("Firebase error:", e)
+        this.$toasted.show(
+          "Error writing AI note to firebase. Error Message in console."
+        );
+        console.log("Firebase error:", e);
       }
       // when this.reset is 1, then for this tick only, the neural network will reset its memory.
       // after that we ll have to set this.reset = 0 again (in the workerCallback), because if not,
