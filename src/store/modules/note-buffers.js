@@ -160,7 +160,9 @@ const actions = {
                 // it should always be
                 // if not, it's because the AI generates notes with artic=0
                 // without previously generating the same note with artic=1
-                console.assert(midi === state.lastAINote.midi)
+
+                // Yongyi: after network reset, this assert would fail.
+                console.assert(midi === state.lastAINote.midi);
                 state.lastAINote.dur += 1
             }
         }

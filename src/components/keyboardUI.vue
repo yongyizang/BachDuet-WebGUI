@@ -50,13 +50,8 @@ const MIN_OCTAVE = 0;
 const MAX_OCTAVE = 8;
 const MIN_NOTE = 0;
 const MAX_NOTE = 6;
-const SAMPLER_RELEASE = 2;
 
 // Initialize the pianoSampler.
-const pianoSampler = new Instruments().createSampler("piano", (piano) => {
-  piano.release = SAMPLER_RELEASE;
-  piano.toDestination();
-});
 
 export default {
   props: {
@@ -196,7 +191,14 @@ export default {
       // set the second parameter here to False for human.
       this.$root.$refs.gameUI.keyDown(currentNote, true);
       this.$store.dispatch("noteOn", currentNote);
-      pianoSampler.triggerAttack(currentNote, Tone.now());
+      console.log(currentNote);
+      const payload = {
+        name: "user",
+        note: currentNote,
+        time: Tone.now()
+      }
+      this.$store.dispatch("samplerOn", payload);
+      // pianoSampler.triggerAttack(currentNote, Tone.now());
       }
     },
 
@@ -205,7 +207,13 @@ export default {
       // console.log("The RELEASED note IS ", currentNote)
       this.$root.$refs.gameUI.keyUp(currentNote, true);
       this.$store.dispatch("noteOff", currentNote);
-      pianoSampler.triggerRelease(currentNote, Tone.now());
+      const payload = {
+        name: "user",
+        note: currentNote,
+        time: Tone.now()
+      }
+      this.$store.dispatch("samplerOff", payload);
+      // pianoSampler.triggerRelease(currentNote, Tone.now());
       // Also change the global piano-state.
     },
 

@@ -150,8 +150,10 @@
               class="md-layout-item md-medium-size-33 md-small-size-50 md-xsmall-size-100"
             >
               <div class="settingsDiv">
-                <p class="settingsOptionTitle"> Randomness </p>
-                <p>{{this.number2RandomnessDescription(temperature)}}</p>
+                <p class="settingsOptionTitle">Randomness</p>
+                <p style="margin: 0; padding-bottom: 5px">
+                  {{ this.number2RandomnessDescription(temperature) }}
+                </p>
                 <vue-slider
                   v-model="temperature"
                   :lazy="true"
@@ -163,7 +165,12 @@
             </div>
             <div
               class="md-layout-item md-medium-size-33 md-small-size-50 md-xsmall-size-100"
-            ></div>
+            >
+              <md-button @click="resetNetwork">
+                <md-icon>close</md-icon>
+                <span>Reset Network</span>
+              </md-button>
+            </div>
           </div>
         </div>
       </modal>
@@ -210,47 +217,6 @@ window.onclick = () => {
   Tone.context.lookAhead = 0;
 };
 
-/*
-  Initialization Process.
-  Here we initialize all necessary samplers, buses, functions, etc.
-*/
-
-// Initialize Piano Sampler 1. This is for User.
-// C: where is the User piano sampler 1 ? ???
-
-// Initialize is done within the UI Component. See components/keyboardUI.vue
-
-// For every user in userMap, we create a sampler, which sends to a separate bus.
-// Then, for each user, we create another "AI" piano sampler, which also, sends to a separate bus.
-// This is done by changing the "piano.toDestination()" code, which should determine which bus it got send to.
-
-const AISampler = new Instruments().createSampler("piano", (piano) => {
-  piano.release = 2;
-  piano.toDestination();
-});
-
-// initalize the worker that runs the neural network
-// const neuralWorker = new Worker('neuralWorker.js');//, { type: "module" })
-
-// this function is called when the neuralWorker returns the AI's prediction
-// how can I put this function inside methods
-// neuralWorker.onmessage = function(e) {
-//   var aiOutput = e.data;
-//   console.log('Message received from worker' + e.data);
-// }
-// Initialize Metronome Sampler.
-const metronomeSampler = new Instruments().createSampler(
-  "metronome",
-  (metronome) => {
-    metronome.release = 2;
-  }
-);
-
-// This is the metronome Bus. We would need this for mixing purposes.
-const metronomeBus = new Tone.Channel().toDestination();
-metronomeSampler.connect(metronomeBus);
-//C: how about user and ai bus ?
-
 export default {
   name: "mainScreen",
 
@@ -268,7 +234,7 @@ export default {
       metronomeStatus: true,
       // tokensDict: TokensDict,
       lastNoteOnAi: "",
-      reset: 0,
+      reset: false,
       // Userdata
       userDataID: null,
       userAgent: null,
@@ -531,7 +497,7 @@ export default {
         this.$store.dispatch("newAiPrediction", aiPrediction);
       }
 
-      this.reset = 0; // for explanation see the comment about reset inside runTheWorker()
+      this.reset = false; // for explanation see the comment about reset inside runTheWorker()
     },
     // moved the metronomeTrigger function inside methods
     // it doesn't take any input argument
@@ -543,9 +509,14 @@ export default {
         this.$store.getters.getLocalTick % this.$store.getters.getFrequency ==
         0
       ) {
-        var note = this.$store.getters.getLocalTick % 16 === 0 ? "G0" : "C0";
-        metronomeSampler.triggerAttackRelease(note, 0.2, Tone.now());
-      }
+        var currentNote = this.$store.getters.getLocalTick % 16 === 0 ? "G0" : "C0";
+        const payload = {
+          name: "metronome",
+          note: currentNote,
+          time: Tone.now()
+        }
+        this.$store.dispatch("samplerOn", payload);
+              }
     },
 
     onPrivacyAgreeBtn(event) {
@@ -561,8 +532,8 @@ export default {
 
     // when Metronome is toggled.
     toggleMetronome() {
-      metronomeBus.mute = this.metronomeStatus;
-      this.metronomeStatus = !this.metronomeStatus;
+      this.$store.dispatch("toggleMetronome");
+      this.metronomeStatus = this.$store.getters.getMetronomeStatus;
     },
 
     transposeOctUp() {
@@ -576,30 +547,34 @@ export default {
     },
 
     // Check this function! You could change the prompt if you would like.
-    number2RandomnessDescription(num){
-      if (num < 10){
+    number2RandomnessDescription(num) {
+      if (num < 10) {
         return "Not-So-Random";
-      } else if (num < 20){
+      } else if (num < 20) {
         return "Getting a bit HOT in here";
-      } else if (num < 30){
+      } else if (num < 30) {
         return "Some randomness";
-      } else if (num < 40){
-        return "Good balance"
-      } else if (num < 50){
-        return "Getting a bit messy..."
-      } else if (num < 60){
-        return "A bit on the messy side"
-      } else if (num < 70){
-        return "Messy! but not too messy."
-      } else if (num < 80){
-        return "So random!"
-      } else if (num < 90){
-        return "A bit too random"
-      } else if (num < 100){
-        return "Careful! So much randomness"
+      } else if (num < 40) {
+        return "Good balance";
+      } else if (num < 50) {
+        return "Getting a bit messy...";
+      } else if (num < 60) {
+        return "A bit on the messy side";
+      } else if (num < 70) {
+        return "Messy! but not too messy.";
+      } else if (num < 80) {
+        return "So random!";
+      } else if (num < 90) {
+        return "A bit too random";
+      } else if (num < 100) {
+        return "Careful! So much randomness";
       } else {
-        return "OMG Maximum RANDOMNESS"
+        return "OMG Maximum RANDOMNESS";
       }
+    },
+
+    resetNetwork(){
+      this.reset = true;
     },
 
     // The clock behavior is defined here.
@@ -675,18 +650,33 @@ export default {
       if (aiPrediction.artic == 1) {
         if (aiPrediction.midi != 0) {
           if (!(this.lastNoteOnAi === "")) {
-            AISampler.triggerRelease(this.lastNoteOnAi, Tone.now());
+            var payload = {
+              name: "AI",
+              note: this.lastNoteOnAi,
+              time: Tone.now(),
+            }
+            this.$store.dispatch("samplerOff", payload);
             this.$root.$refs.gameUI.keyUp(this.lastNoteOnAi, false);
           }
           let currentNote = Midi.midiToNoteName(aiPrediction.midi, {
             sharps: true,
           });
-          AISampler.triggerAttack(currentNote, Tone.now());
+          var payload = {
+              name: "AI",
+              note: currentNote,
+              time: Tone.now(),
+            }
+            this.$store.dispatch("samplerOn", payload);
           this.$root.$refs.gameUI.keyDown(currentNote, false);
           this.lastNoteOnAi = currentNote;
         } else {
           if (!(this.lastNoteOnAi === "")) {
-            AISampler.triggerRelease(this.lastNoteOnAi, Tone.now());
+            var payload = {
+              name: "AI",
+              note: this.lastNoteOnAi,
+              time: Tone.now(),
+            }
+            this.$store.dispatch("samplerOff", payload);
             this.$root.$refs.gameUI.keyUp(this.lastNoteOnAi, false);
             this.lastNoteOnAi = "";
           }

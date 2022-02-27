@@ -52,12 +52,15 @@ onmessage = function(e) {
 
     // console.assert(self.lastAiPrediction['aiInpMidi']==data['aiInp'].midiArticInd)
 
-    if (data["reset"] == 1){
+    // If reset is true
+    if (data["reset"]){
+        console.log("network reset.");
         self.states1A = tf.randomNormal([1,600]);
         self.states1B = tf.randomNormal([1,600]);
         self.states2A = tf.randomNormal([1,600]);
         self.states2B = tf.randomNormal([1,600]);
     }
+
     var midiInp = tf.tensor2d([[data['aiInp'].midiArticInd, data['humanInp'].midiArticInd]]);//data['humanInpMidi']]]);
     var cpcInp = tf.tensor2d([[data['aiInp'].cpc, data['humanInp'].cpc]]); //data['humanInpCpc']]]); 
     var rhyInp = tf.tensor2d([[data['rhythmInd']]]);

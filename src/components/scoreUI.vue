@@ -418,9 +418,7 @@ export default {
             last_y:notesToDraw[1].getYs()[0],
             direction: -1,
           });
-
           first_x = last_x;
-
         }
       }
       // TODO fix the names and maybe group all the Human and AI variables in one.

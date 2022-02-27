@@ -4,6 +4,7 @@ import Vuex from 'vuex'
 import noteBuffers from './modules/note-buffers'
 import tickNumber from './modules/tick-number'
 import globalSettings from './modules/global-settings'
+import samplers from './modules/samplers'
 // import newmodule from './modules/newmodule'
 
 Vue.use(Vuex);
@@ -22,10 +23,10 @@ export default new Vuex.Store({
 
   },
   modules: {
-    // pianobufferstate,
     noteBuffers,
     tickNumber,
-    globalSettings
+    globalSettings,
+    samplers
     // add new modules here in this manner:
     // newmodule,
   },
