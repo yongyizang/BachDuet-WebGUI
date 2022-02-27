@@ -11,6 +11,7 @@ import 'vue-slider-component/theme/default.css'
 import { MdButton, MdIcon, MdField} from 'vue-material/dist/components'
 import 'vue-material/dist/vue-material.min.css'
 import 'vue-material/dist/theme/default.css'
+import "remixicon/fonts/remixicon.css";
 import Dropdown from 'vue-simple-search-dropdown';
 
 Vue.use(MdButton);
