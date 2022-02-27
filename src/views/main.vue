@@ -365,6 +365,12 @@ export default {
 
   mounted() {
     var vm = this;
+    // Prevent spacebar trigger any button
+    document.querySelectorAll("button").forEach(function (item) {
+      item.addEventListener("focus", function () {
+        this.blur();
+      });
+    });
     /*
      * Initialize page load data collections
      */
