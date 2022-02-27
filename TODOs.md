@@ -1,19 +1,18 @@
 # Settings Modal
 ### App Settings
-    [ ] Metronome Frequency Implementation with Buttons (After some thought, Maybe we shouldn't do this?)
     [x] Temperature slider. Linear scale. (TODO) Don't display number to user; Less Random - More Random
     [x] Reset button on the main UI. Manual control to reset the network. (look for this.reset in main.vue and check the comments I added)
     [ ] Predifined hidden states for the neural net
 
 ### MIDI Device
     [x] Integrate MIDI module to settings modal
-    [ ] Integrate MIDI alert into global alert system
+    [x] Integrate MIDI alert into global alert system
     [ ] If user browser doesn't support Web MIDI, then just display an error message.
 
 # External Logic
     [x] Before user click play, nothing in the UI should respond
     [x] GameUI and Sampler should all work with clock status
-    [ ] Misalignment. If the neural network is outputting a different tick than current tick, send out warning.    
+    [x] Misalignment. If the neural network is outputting a different tick than current tick, send out warning.    
 
 ### Reverb & Mixing Console
     [x] Design and create Mixing console Modal
