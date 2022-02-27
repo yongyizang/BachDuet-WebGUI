@@ -308,9 +308,9 @@ export default {
     Dropdown,
   },
 
-  created() {
-    this.$root.$refs.main = this;
-  },
+  // created() {
+  //   this.$root.$refs.main = this;
+  // },
 
   mounted() {
     var vm = this;
