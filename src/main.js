@@ -6,7 +6,7 @@ import "remixicon/fonts/remixicon.css";
 import Vue2TouchEvents from "vue2-touch-events";
 import ToggleButton from 'vue-js-toggle-button'
 import VModal from 'vue-js-modal'
-
+import Toasted from 'vue-toasted';
 import VueSlider from 'vue-slider-component'
 import 'vue-slider-component/theme/default.css'
 import { MdButton, MdIcon } from 'vue-material/dist/components'
@@ -19,6 +19,9 @@ Vue.use(MdIcon);
 Vue.use(Dropdown);
 Vue.component('VueSlider', VueSlider);
 Vue.use(VModal);
+Vue.use(Toasted, {
+  duration: 500
+});
 Vue.use(ToggleButton);
 Vue.use(Vue2TouchEvents, {
   disableClick: true,

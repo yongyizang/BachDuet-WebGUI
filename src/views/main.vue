@@ -233,7 +233,7 @@ import scoreUI from "@/components/scoreUI.vue";
 import Instruments from "@/library/instruments";
 import * as TokensDict from "@/../public/globalTokenIndexDict.json";
 import { WebMidi } from "webmidi";
-var midiAccess;
+import Toasted from 'vue-toasted';
 import Dropdown from "vue-simple-search-dropdown";
 import AudioKeys from "audiokeys";
 
@@ -306,6 +306,7 @@ export default {
     scoreUI,
     gameUI,
     Dropdown,
+    Toasted,
   },
 
   // created() {
@@ -321,7 +322,7 @@ export default {
     // Enable WebMIDI, then call onEnabled method.
     WebMidi.enable()
       .then(vm.onEnabled)
-      .catch((err) => console.log(err));
+      .catch((err) => this.$toasted.show("WebMIDI Error: " + err));
 
     this.userAgent = navigator.userAgent;
     // get loading time.
@@ -508,7 +509,6 @@ export default {
     onMIDIDeviceSelectedChange(state) {
       if (state.id) {
         this.selectedMIDIDevice = state.id;
-        console.log("MIDI Device Changed to " + this.selectedMIDIDevice);
         this.messageListener();
       }
     },
@@ -537,6 +537,7 @@ export default {
     async workerCallback(e) {
       const vm = this;
       const workerStatus = vm.$refs.workerStatus;
+      // If the worker is giving us only string
       if (typeof e.data === "string" || e.data instanceof String) {
         if (e.data == "Neural Network is ready to play with you!") {
           vm.$refs.entryBtn.classList.add("fade-in");
@@ -555,12 +556,12 @@ export default {
             vm.userDataID = docRef.id;
             vm.$store.commit("writeSessionID", docRef.id);
           } catch (e) {
-            console.error("Error writing to firebase. ", e);
+          this.$toasted.show("Error adding doc to firebase. Error Message in console.");
+          console.log("Firebase error:", e)
           }
         }
         workerStatus.innerHTML = e.data;
-      } else {
-        // HERE
+      } else { // If the worker is giving us ai prediction
         var aiPrediction = e.data;
         // try writing to firebase
         try {
@@ -572,8 +573,13 @@ export default {
             }),
           });
         } catch (e) {
-          console.error("Error writing to firebase. ", e);
+          this.$toasted.show("Error updating to firebase. Error Message in console.");
+          console.log("Firebase error:", e)
         }
+        // Misalignment Check
+        if (aiPrediction.tick !== (this.$store.getters.getLocalTickDelayed)){
+          this.$toasted.show("Network tick misalignment: expecting " + (this.$store.getters.getLocalTickDelayed) +", get "+ aiPrediction.tick);
+        };
         this.$store.dispatch("newAiPrediction", aiPrediction);
       }
       this.reset = false; // for explanation see the comment about reset inside runTheWorker()
@@ -663,9 +669,12 @@ export default {
       try {
         await deleteDoc(doc(db, "data", vm.$store.getters.getSessionID));
       } catch (e) {
-        console.error("Error deleting doc from firebase. ", e);
+          this.$toasted.show("Error deleting doc from firebase. Error Message in console.");
+          console.log("Firebase error:", e)
       };
       window.location.reload(true);
+
+      
     },
 
     // The clock behavior is defined here.
@@ -887,7 +896,8 @@ export default {
           }),
         });
       } catch (e) {
-        console.error("Error writing to firebase. ", e);
+          this.$toasted.show("Error writing AI note to firebase. Error Message in console.");
+          console.log("Firebase error:", e)
       }
       // when this.reset is 1, then for this tick only, the neural network will reset its memory.
       // after that we ll have to set this.reset = 0 again (in the workerCallback), because if not,

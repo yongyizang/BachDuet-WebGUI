@@ -118,7 +118,8 @@ function DurationFormatter(duration) {
       break;
 
     default:
-      console.log("Invalid duration");
+      this.$toasted.show("ScoreUI error: Invalid Duration.");
+      console.error("Invalid duration");
   }
   return [durationTokens, newDurations];
 }
