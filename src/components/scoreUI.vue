@@ -155,8 +155,8 @@ export default {
       this.tickContexts.push(new this.VF.TickContext());
       this.tickContexts.push(new this.VF.TickContext());
 
-      this.staves.push(new this.VF.Stave(30, 50, 4000));
-      this.staves.push(new this.VF.Stave(30, 150, 4000));
+      this.staves.push(new this.VF.Stave(30, 50, this.screenWidth));
+      this.staves.push(new this.VF.Stave(30, 150, this.screenWidth));
 
       this.context.setViewBox(this.viewX, 0, this.screenWidth, 300);
       this.staves[0]
@@ -191,7 +191,6 @@ export default {
       this.staves.push(new this.VF.Stave(30, 50, 0));
       this.staves.push(new this.VF.Stave(30, 150, 0));
 
-      this.context.setViewBox(this.viewX, 0, this.screenWidth, 300);
       this.staves[0].setContext(this.context);
       this.staves[1].setContext(this.context);
 
