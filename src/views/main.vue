@@ -639,7 +639,7 @@ export default {
      * Web MIDI
      */
     onEnabled() {
-      var vm = this;
+      const vm = this;
       if (WebMidi.inputs.length < 1) {
         vm.activeDevices = [];
       } else {
@@ -652,16 +652,18 @@ export default {
     },
 
     onMIDIDeviceSelectedChange(state) {
+      const vm = this;
       if (state.id) {
-        this.selectedMIDIDevice = state.id;
-        this.messageListener();
+        if (vm.selectedMIDIDevice !== state.id) {
+          vm.selectedMIDIDevice = state.id;
+          vm.messageListener();
+        }
       }
     },
     // listens for midi message
     messageListener() {
-      var vm = this;
+      const vm = this;
       const inputDevice = WebMidi.getInputById(this.selectedMIDIDevice);
-
       inputDevice.addListener("noteon", (message) => {
         if (this.$store.getters.getClockStatus) {
           var currentNote = message.note.identifier;
