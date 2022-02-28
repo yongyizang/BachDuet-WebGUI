@@ -168,9 +168,19 @@
           </p>
           <hr style="border-top: 1px solid #000; opacity: 12%" />
           <p>
-            By <a href="http://www2.ece.rochester.edu/projects/air/index.html">AIRLab</a>, University of Rochester.<br />
-            Based on original work of Christodoulos Benetatos. <a href="http://www2.ece.rochester.edu/projects/air/publications/benetatos20bachduet.pdf">PDF</a><br />
-            Website developed by <a href="https://github.com/mrmrmrfinch">Yongyi Zang</a>, <a href="https://github.com/xribene">Christodoulos Benetatos</a> and Tianyu Huang.<br />
+            By
+            <a href="http://www2.ece.rochester.edu/projects/air/index.html"
+              >AIRLab</a
+            >, University of Rochester.<br />
+            Based on original work of Christodoulos Benetatos.
+            <a
+              href="http://www2.ece.rochester.edu/projects/air/publications/benetatos20bachduet.pdf"
+              >PDF</a
+            ><br />
+            Website developed by
+            <a href="https://github.com/mrmrmrfinch">Yongyi Zang</a>,
+            <a href="https://github.com/xribene">Christodoulos Benetatos</a> and
+            Tianyu Huang.<br />
           </p>
         </div>
       </modal>
@@ -401,6 +411,8 @@ export default {
       AIPianoVolume: 10,
       feedbackRating: 5.0,
       feedbackText: "",
+      userNoteBuffer2Firebase: [],
+      AINoteBuffer2Firebase: [],
     };
   },
 
@@ -723,20 +735,11 @@ export default {
       this.neuralWorker.postMessage(aiInp);
       // try writing to firebase
       if (this.$store.getters.getDataCollectingState) {
-        try {
-          updateDoc(doc(db, "data", vm.$store.getters.getSessionID), {
-            playData: arrayUnion({
-              tick: aiInp.tick,
-              type: "User",
-              midiArticInd: aiInp.humanInp.midiArticInd,
-            }),
-          });
-        } catch (e) {
-          this.$toasted.show(
-            "Error writing AI note to firebase. Error Message in console."
-          );
-          console.log("Firebase error:", e);
-        }
+        vm.userNoteBuffer2Firebase.push({
+          tick: vm.$store.getters.getGlobalTick,
+          type: "User",
+          midiArticInd: aiInp.humanInp.midiArticInd,
+        });
       }
     },
 
@@ -785,20 +788,12 @@ export default {
         this.$store.dispatch("newAiPrediction", aiPrediction);
         // try writing to firebase, if there's user permission
         if (this.$store.getters.getDataCollectingState) {
-          try {
-            await updateDoc(doc(db, "data", vm.$store.getters.getSessionID), {
-              playData: arrayUnion({
-                tick: e.data.tick,
-                type: "AI",
-                midiArticInd: e.data.midiArticInd,
-              }),
-            });
-          } catch (e) {
-            this.$toasted.show(
-              "Error updating to firebase. Error Message in console."
-            );
-            console.log("Firebase error:", e);
-          }
+          vm.AINoteBuffer2Firebase.push({
+            tick: e.data.tick,
+            barNum: vm.$store.getters.getBarNumber,
+            type: "AI",
+            midiArticInd: e.data.midiArticInd,
+          });
         }
       }
       this.reset = false; // for explanation see the comment about reset inside runTheWorker()
@@ -921,7 +916,7 @@ export default {
 
     // Initialize clock recursive function.
     // At each clock tick, this method would wait for a tick's time to call next tick.
-    toggleClock() {
+    async toggleClock() {
       var vm = this;
       vm.localSyncClockStatus = !vm.localSyncClockStatus;
       // Allowing tickNumber to add to itself.
@@ -934,7 +929,7 @@ export default {
         // And intialized it.
 
         // Clock behavior function.
-        function tickBehavior() {
+        async function tickBehavior() {
           if (vm.$store.getters.getClockStatus) {
             vm.$store.commit("incrementTick");
 
@@ -943,6 +938,25 @@ export default {
             setTimeout(function () {
               vm.runTheWorker();
             }, ((60 / vm.$store.getters.getBPM / 4) * 1000) / 5);
+
+            if (vm.$store.getters.getLocalTick % 16 === 0) {
+              try {
+                const updateBuffer = vm.userNoteBuffer2Firebase.concat(vm.AINoteBuffer2Firebase);
+                await updateDoc(
+                  doc(db, "data", vm.$store.getters.getSessionID),
+                  {
+                    playData: arrayUnion.apply(this, updateBuffer),
+                  }
+                );
+                vm.userNoteBuffer2Firebase = [];
+                vm.AINoteBuffer2Firebase = [];
+              } catch (e) {
+                vm.$toasted.show(
+                  "Error updating to firebase. Error Message in console."
+                );
+                console.log("Firebase error:", e);
+              }
+            }
 
             vm.$store.commit("clearNotesBuffer");
           }
@@ -972,7 +986,6 @@ export default {
         this.$store.getters.getLocalTick % 4 ==
         0
       ) {
-        console.log("Metronome");
         var currentNote =
           this.$store.getters.getLocalTick % 16 === 0 ? "G0" : "C0";
         const payload = {
