@@ -17,6 +17,7 @@ const state = {
     localTickDelayed: -1,
     globalTickDelayed: -1,
     barTick: -1,
+    barNumber: 0,
 }
 
 //Getters for globalTick, localTick, barTick
@@ -42,6 +43,9 @@ const getters = {
     },
     getBarTick (state){
         return state.barTick;
+    },
+    getBarNumber (state){
+        return state.barNumber;
     },
     isNewBar (state){
         return state.localTick % 16 === 0;
@@ -69,7 +73,9 @@ const mutations = {
         state.localTick += 1;
         state.barTick += 1;
         state.localTick = state.localTick % 16;
-        // ? Christos : we want integer division here ?
+        if (state.localTick == 0){
+            state.barNumber += 1;
+        };
         state.barTick = Math.floor(state.globalTick / 16); 
     },
     incrementTickDelayed (state) {
