@@ -60,6 +60,10 @@
           <md-icon>chat</md-icon>
           <span> Feedback </span>
         </md-button>
+        <md-button @click="showAboutModal" class="md-raised">
+          <md-icon>groups</md-icon>
+          <span> About </span>
+        </md-button>
       </div>
       <md-button
         v-if="keyboardUIoctaveEnd !== 8"
@@ -85,7 +89,13 @@
         :octave-start="keyboardUIoctaveStart"
         :octave-end="keyboardUIoctaveEnd"
       />
-      <modal name="feedbackModal" :minHeight="500" :adaptive="true" @opened="modalCallback" @closed="modalCallback">
+      <modal
+        name="feedbackModal"
+        :minHeight="500"
+        :adaptive="true"
+        @opened="modalCallback"
+        @closed="modalCallback"
+      >
         <div
           style="
             padding: 20px;
@@ -131,7 +141,46 @@
           </md-button>
         </div>
       </modal>
-      <modal name="settingsModal" :minHeight="600" :adaptive="true" @opened="modalCallback" @closed="modalCallback">
+      <modal
+        name="aboutModal"
+        :minHeight="300"
+        :adaptive="true"
+        @opened="modalCallback"
+        @closed="modalCallback"
+      >
+        <div
+          style="
+            padding: 20px;
+            height: 100%;
+            background-color: rgb(243, 225, 190);
+          "
+        >
+          <p
+            style="
+              font-weight: 800;
+              font-size: 2rem;
+              margin: 0;
+              padding-top: 20px;
+              padding-bottom: 10px;
+            "
+          >
+            About
+          </p>
+          <hr style="border-top: 1px solid #000; opacity: 12%" />
+          <p>
+            By <a href="http://www2.ece.rochester.edu/projects/air/index.html">AIRLab</a>, University of Rochester.<br />
+            Based on original work of Christodoulos Benetatos. <a href="http://www2.ece.rochester.edu/projects/air/publications/benetatos20bachduet.pdf">PDF</a><br />
+            Website developed by <a href="https://github.com/mrmrmrfinch">Yongyi Zang</a>, <a href="https://github.com/xribene">Christodoulos Benetatos</a> and Tianyu Huang.<br />
+          </p>
+        </div>
+      </modal>
+      <modal
+        name="settingsModal"
+        :minHeight="600"
+        :adaptive="true"
+        @opened="modalCallback"
+        @closed="modalCallback"
+      >
         <div
           style="
             padding: 20px;
@@ -946,6 +995,10 @@ export default {
 
     showFeedbackModal() {
       this.$modal.show("feedbackModal");
+    },
+
+    showAboutModal() {
+      this.$modal.show("aboutModal");
     },
 
     hideSettingsModal() {
