@@ -39,7 +39,7 @@ async function loadModels(){
         var totalInp = tf.concat([embMidiC, embCpcC, embRhy],2);
         var out = self.modelLstm.predict([totalInp, self.states1A, self.states1B, self.states2A, self.states2B]);
     }
-    console.log(self.states1A.dataSync())
+    // console.log(self.states1A.dataSync())
     postMessage("Neural Network is ready to play with you!");
 }
 
@@ -74,7 +74,7 @@ onmessage = function(e) {
     var midiInp = tf.tensor2d([[data['aiInp'].midiArticInd, data['humanInp'].midiArticInd]]);//data['humanInpMidi']]]);
     var cpcInp = tf.tensor2d([[data['aiInp'].cpc, data['humanInp'].cpc]]); //data['humanInpCpc']]]); 
     var rhyInp = tf.tensor2d([[data['rhythmInd']]]);
-
+    // console.log(midiInp.dataSync())
     // console.log( " COUNTER is ", self.counter, "midiInp" + midiInp.arraySync() + "cpcInp" + cpcInp.arraySync() + "rhyInp" + rhyInp.arraySync())
 
     var exodos = self.modelEmb.predict([midiInp, cpcInp, rhyInp]);

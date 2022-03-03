@@ -978,9 +978,10 @@ export default {
 
             vm.metronomeTrigger();
             vm.triggerAiSampler();
+
             setTimeout(function () {
               vm.runTheWorker();
-            }, ((60 / vm.$store.getters.getBPM / 4) * 1000) / 5);
+            }, parseInt(((60 / vm.$store.getters.getBPM / 4) * 1000) / 4)); // 
 
             if (vm.$store.getters.getLocalTick % 16 === 0) {
               try {
