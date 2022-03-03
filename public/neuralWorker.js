@@ -96,7 +96,7 @@ onmessage = function(e) {
     
     var logits_temp = logits.div(data["temperature"]);
     var predictedNote = tf.multinomial(logits_temp, 2);
-    console.log(data["temperature"]);
+    // console.log(data["temperature"]);
     // console.log('counter is ', self.counter, ' pred is ', predictedNote.dataSync()[0], ' mean logit ', logits.mean().dataSync()[0]);
     // var t2 = performance.now();
     // console.log("neuralNet: " + (t2`-t1) + " tick " + tick);

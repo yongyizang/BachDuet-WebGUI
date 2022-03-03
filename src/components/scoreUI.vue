@@ -311,7 +311,7 @@ export default {
         this.tickContexts[0].setX(this.xTreble);
         if (i == 0 && this.barTieHuman == true) {
           // let last_x = this.xTreble;
-          console.log("IN BAR CURVE");
+          // console.log("IN BAR CURVE");
           var curve = new this.VF.Curve(
             this.lastDrawnNote_Human_prevBar,
             notesToDraw[0],
