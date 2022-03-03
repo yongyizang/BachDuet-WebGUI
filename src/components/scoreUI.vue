@@ -239,6 +239,7 @@ export default {
         quantNoteDict.dur - afairetis
       );
       // console.log(formName, " ", durationTokens);
+      // stem_direction vm.VF.StaveNote.STEM_UP
       var notes = [];
       for (let i = 0; i < durationTokens.length; i++) {
         let newNote = new vm.VF.StaveNote({
@@ -399,6 +400,7 @@ export default {
         let currentNote = notesToDraw[i];
         currentNote.setStave(this.staves[1]);
         currentNote.setContext(this.context);
+        currentNote.setStemDirection(this.VF.StaveNote.STEM_DOWN)
         this.tickContexts[1].addTickable(currentNote);
         currentNote.preFormat();
 
