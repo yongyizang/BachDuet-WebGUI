@@ -438,10 +438,13 @@ export default {
       });
     });
 
-    // Block lower resolutions than 1080x720.
+    vm.screenWidth = document.body.clientWidth;
+    vm.screenHeight = document.body.clientHeight;
+
+    // Block lower resolutions than 400x900.
     const loadingScreen = document.getElementById("loadingScreenInjection");
-    if (vm.screenWidth < 720 || vm.screenHeight < 1080){
-      loadingScreen.innerHTML = "<p style='font-size:20px;line-height:35px;padding:40px;'>We are sorry, but BachDuet Web only support up to 1080 x 720 screens for now.<br />Please visit us on desktop or tablets larger than 1080 x 720.</p>"
+    if ((vm.screenWidth < 400) || (vm.screenHeight < 900)){
+      loadingScreen.innerHTML = "<p style='font-size:20px;line-height:35px;padding:40px;'>We are sorry, but BachDuet Web only support larger screens for now.<br />Please visit us on desktop or larger tablets.</p>"
     };
 
     /*
