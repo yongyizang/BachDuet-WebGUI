@@ -26,7 +26,7 @@
         ]"
         :ref="key.name"
       >
-        <p v-if="key.name in audioKeysMap" style="font-family: roboto;line-height:15px;margin-bottom:0px"><span style="font-size:20px;padding:30px;">{{ audioKeysMap[key.name] }}</span> </n> <span style="opacity: 0.5;font-size:5px">{{ key.name }}</span></p>
+        <p v-if="key.name in audioKeysMap" style="font-family: roboto;line-height:15px;margin-bottom:0px"><span style="font-size:20px;">{{ audioKeysMap[key.name] }}</span> <br /> <span style="opacity: 0.5;font-size:12px">{{ key.name }}</span></p>
         <span style="opacity: 0.5; font-family: roboto" v-else="key.name in audioKeysMap" >{{ key.name }}</span>
       </li>
     </ul>
