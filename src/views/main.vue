@@ -294,7 +294,7 @@
                   :lazy="true"
                   :tooltip="'none'"
                   :min="1"
-                  :max="100"
+                  :max="200"
                 ></vue-slider>
               </div>
             </div>
@@ -305,6 +305,10 @@
                 <md-icon>close</md-icon>
                 <span>Reset Network</span>
               </md-button>
+              <!-- <md-button @click="writeStates" style="width: 100%">
+                <md-icon>close</md-icon>
+                <span>Write States</span>
+              </md-button> -->
             </div>
           </div>
           <p class="settingsSubtitle">Privacy</p>
@@ -388,9 +392,9 @@ export default {
 
   data() {
     return {
-      BPM: 60,
+      BPM: 90,
       FREQ: 4,
-      temperature: 50,
+      temperature: 25,
       localSyncClockStatus: false, // used to trigger local UI change
       screenWidth: document.body.clientWidth,
       screenHeight: document.body.clientHeight,
@@ -400,6 +404,7 @@ export default {
       metronomeStatus: true,
       lastNoteOnAi: "",
       reset: false,
+      write: false,
       WebMIDISupport: false,
       userDataID: null,
       userAgent: null,
@@ -512,6 +517,8 @@ export default {
         window.screenWidth = document.body.clientWidth;
         vm.screenWidth = window.screenWidth;
       })();
+
+    
     };
 
     /*
@@ -635,6 +642,27 @@ export default {
   },
 
   methods: {
+    // downloadToFile = (content, filename, contentType) => {
+    //     const a = document.createElement('a');
+    //     const file = new Blob([content], {type: contentType});
+        
+    //     a.href= URL.createObjectURL(file);
+    //     a.download = filename;
+    //     a.click();
+        
+    //     URL.revokeObjectURL(a.href);
+    // },
+    downloadToFile (content, filename, contentType) {
+        const a = document.createElement('a');
+        const file = new Blob([content], {type: contentType});
+        
+        a.href= URL.createObjectURL(file);
+        a.download = filename;
+        a.click();
+        
+        URL.revokeObjectURL(a.href);
+    },
+    
     /*
      * Web MIDI
      */
@@ -733,6 +761,7 @@ export default {
         ),
         temperature: this.$store.getters.getTemperature,
         reset: this.reset,
+        write: this.write,
       };
       this.neuralWorker.postMessage(aiInp);
       // try writing to firebase
@@ -778,6 +807,14 @@ export default {
       } else {
         // If the worker is giving us ai prediction
         var aiPrediction = e.data;
+        // to delete
+        if (aiPrediction.toWrite1A){
+          // console.log("toWrite ")
+          this.downloadToFile(aiPrediction.toWrite1A.toString(), 'my-new-file1A.txt', 'text/plain');
+          this.downloadToFile(aiPrediction.toWrite1B.toString(), 'my-new-file1B.txt', 'text/plain');
+          this.downloadToFile(aiPrediction.toWrite2A.toString(), 'my-new-file2A.txt', 'text/plain');
+          this.downloadToFile(aiPrediction.toWrite2B.toString(), 'my-new-file2B.txt', 'text/plain');
+        }
         // Misalignment Check
         if (aiPrediction.tick !== this.$store.getters.getLocalTickDelayed) {
           this.$toasted.show(
@@ -799,10 +836,14 @@ export default {
         }
       }
       this.reset = false; // for explanation see the comment about reset inside runTheWorker()
+      this.write = false;
     },
 
     resetNetwork() {
       this.reset = true;
+    },
+    writeStates() {
+      this.write = true;
     },
 
     triggerAiSampler() {
@@ -937,9 +978,10 @@ export default {
 
             vm.metronomeTrigger();
             vm.triggerAiSampler();
+
             setTimeout(function () {
               vm.runTheWorker();
-            }, ((60 / vm.$store.getters.getBPM / 4) * 1000) / 5);
+            }, parseInt(((60 / vm.$store.getters.getBPM / 4) * 1000) / 4)); // 
 
             if (vm.$store.getters.getLocalTick % 16 === 0) {
               try {
@@ -1048,9 +1090,9 @@ export default {
         return "Messy! but not too messy.";
       } else if (num < 80) {
         return "So random!";
-      } else if (num < 90) {
-        return "A bit too random";
       } else if (num < 100) {
+        return "A bit too random";
+      } else if (num < 150) {
         return "Careful! So much randomness";
       } else {
         return "OMG Maximum RANDOMNESS";

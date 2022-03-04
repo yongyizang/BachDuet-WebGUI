@@ -10,9 +10,9 @@ const state = {
   sessionID: null,
   clockStatus: false,
   clockInitialized: false,
-  bpm: 60,
+  bpm: 90,
   frequency: 4,
-  temperature: 0.5,
+  temperature: 0.25,
   modalStatus: false,
 };
 
