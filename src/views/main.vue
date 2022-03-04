@@ -441,9 +441,9 @@ export default {
     vm.screenWidth = document.body.clientWidth;
     vm.screenHeight = document.body.clientHeight;
 
-    // Block lower resolutions than 400x900.
+    // Block lower resolutions.
     const loadingScreen = document.getElementById("loadingScreenInjection");
-    if ((vm.screenWidth < 400) || (vm.screenHeight < 900)){
+    if ((vm.screenWidth < 450) || (vm.screenHeight < 450)){
       loadingScreen.innerHTML = "<p style='font-size:20px;line-height:35px;padding:40px;'>We are sorry, but BachDuet Web only support larger screens for now.<br />Please visit us on desktop or larger tablets.</p>"
     };
 
