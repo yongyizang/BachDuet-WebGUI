@@ -1,7 +1,9 @@
 importScripts("/tf.min.js")
 
 const CHECKPOINT_BASE_URL = "/checkpoints/"
- 
+
+// var fs = require('fs');
+
 async function loadModels(){
     self.modelLstm = await tf.loadLayersModel('checkpoints/modelsFinal_Lstm/model.json');
     self.modelEmb =  await tf.loadLayersModel('checkpoints/modelsFinal_Emb/model_cleaned.json');
@@ -17,10 +19,14 @@ async function loadModels(){
     var midiInp = tf.tensor2d([[96, 96]]);
     var cpcInp = tf.tensor2d([[12, 12]]); 
     var rhyInp = tf.tensor2d([[4]]);
-    self.states1A = tf.randomNormal([1,600]);
-    self.states1B = tf.randomNormal([1,600]);
-    self.states2A = tf.randomNormal([1,600]);
-    self.states2B = tf.randomNormal([1,600]);
+    self.states1A = tf.zeros([1,600]);
+    self.states1B = tf.zeros([1,600]);
+    self.states2A = tf.zeros([1,600]);
+    self.states2B = tf.zeros([1,600]);
+    self.first1A = self.states1A;
+    self.first1B = self.states1B;
+    self.first2A = self.states2A;
+    self.first2B = self.states2B;
 
     for (let i = 0; i < warmupRounds; i++) {
         postMessage("Network is warming up. Current round: " + (i+1) + "/" + warmupRounds);
@@ -33,7 +39,7 @@ async function loadModels(){
         var totalInp = tf.concat([embMidiC, embCpcC, embRhy],2);
         var out = self.modelLstm.predict([totalInp, self.states1A, self.states1B, self.states2A, self.states2B]);
     }
-
+    // console.log(self.states1A.dataSync())
     postMessage("Neural Network is ready to play with you!");
 }
 
@@ -55,16 +61,20 @@ onmessage = function(e) {
     // If reset is true
     if (data["reset"]){
         console.log("network reset.");
-        self.states1A = tf.randomNormal([1,600]);
-        self.states1B = tf.randomNormal([1,600]);
-        self.states2A = tf.randomNormal([1,600]);
-        self.states2B = tf.randomNormal([1,600]);
+        self.states1A = tf.zeros([1,600]);
+        self.states1B = tf.zeros([1,600]);
+        self.states2A = tf.zeros([1,600]);
+        self.states2B = tf.zeros([1,600]);
+        self.first1A = self.states1A;
+        self.first1B = self.states1B;
+        self.first2A = self.states2A;
+        self.first2B = self.states2B;
     }
 
     var midiInp = tf.tensor2d([[data['aiInp'].midiArticInd, data['humanInp'].midiArticInd]]);//data['humanInpMidi']]]);
     var cpcInp = tf.tensor2d([[data['aiInp'].cpc, data['humanInp'].cpc]]); //data['humanInpCpc']]]); 
     var rhyInp = tf.tensor2d([[data['rhythmInd']]]);
-
+    // console.log(midiInp.dataSync())
     // console.log( " COUNTER is ", self.counter, "midiInp" + midiInp.arraySync() + "cpcInp" + cpcInp.arraySync() + "rhyInp" + rhyInp.arraySync())
 
     var exodos = self.modelEmb.predict([midiInp, cpcInp, rhyInp]);
@@ -86,14 +96,30 @@ onmessage = function(e) {
     
     var logits_temp = logits.div(data["temperature"]);
     var predictedNote = tf.multinomial(logits_temp, 2);
-
+    // console.log(data["temperature"]);
     // console.log('counter is ', self.counter, ' pred is ', predictedNote.dataSync()[0], ' mean logit ', logits.mean().dataSync()[0]);
     // var t2 = performance.now();
     // console.log("neuralNet: " + (t2`-t1) + " tick " + tick);
     // console.log("temperature is ", data["temperature"])
+
+    // TODO anything related with "toWrite" is to be deleted. Ignore that for now
+    // toWrite1A = null;
+    // toWrite1B = null;
+    // toWrite2A = null;
+    // toWrite2B = null;
+    // if (data["write"]){
+    //     toWrite1A=self.states1A.dataSync();
+    //     toWrite1B=self.states1B.dataSync();
+    //     toWrite2A=self.states2A.dataSync();
+    //     toWrite2B=self.states2B.dataSync();
+    // }
     var output = {
         'tick' : data['tick'],
-        'midiArticInd' : predictedNote.dataSync()[0]
+        'midiArticInd' : predictedNote.dataSync()[0],
+        // 'toWrite1A' : toWrite1A,
+        // 'toWrite1B' : toWrite2A,
+        // 'toWrite2A' : toWrite1B,
+        // 'toWrite2B' : toWrite2B,
     }
     self.counter = self.counter + 1
     postMessage(output);

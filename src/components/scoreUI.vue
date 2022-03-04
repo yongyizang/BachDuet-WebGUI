@@ -239,6 +239,7 @@ export default {
         quantNoteDict.dur - afairetis
       );
       // console.log(formName, " ", durationTokens);
+      // stem_direction vm.VF.StaveNote.STEM_UP
       var notes = [];
       for (let i = 0; i < durationTokens.length; i++) {
         let newNote = new vm.VF.StaveNote({
@@ -310,7 +311,7 @@ export default {
         this.tickContexts[0].setX(this.xTreble);
         if (i == 0 && this.barTieHuman == true) {
           // let last_x = this.xTreble;
-          console.log("IN BAR CURVE");
+          // console.log("IN BAR CURVE");
           var curve = new this.VF.Curve(
             this.lastDrawnNote_Human_prevBar,
             notesToDraw[0],
@@ -399,6 +400,7 @@ export default {
         let currentNote = notesToDraw[i];
         currentNote.setStave(this.staves[1]);
         currentNote.setContext(this.context);
+        currentNote.setStemDirection(this.VF.StaveNote.STEM_DOWN)
         this.tickContexts[1].addTickable(currentNote);
         currentNote.preFormat();
 
