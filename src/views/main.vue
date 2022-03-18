@@ -338,6 +338,46 @@
           </div>
         </div>
       </modal>
+      <modal
+        name="introModal"
+        :minHeight="400"
+        :adaptive="true"
+        @opened="modalCallback"
+        @closed="modalCallback"
+      >
+        <div
+          style="
+            padding: 20px;
+            height: 100%;
+            background-color: rgb(243, 225, 190);
+          "
+        >
+          <p
+            style="
+              font-weight: 800;
+              font-size: 2rem;
+              margin: 0;
+              padding-top: 20px;
+              padding-bottom: 10px;
+            "
+          >
+            Introduction
+          </p>
+          <p>
+            Hi! This is BachDuet. You could play with our model in real time, which is trained on baroque chorales.
+            <br />
+            You could play with computer keyboard, on-screen keyboard or MIDI keyboard. MIDI keyboard support depends on whether your browser supports Web MIDI; We recommend using Chrome for best support.
+            <br />
+            You could see the real-time interaction being shown in both a musical-game style and a traditional, score-based style. They are both in real-time.
+            <br />
+            You could change volume and delete all your data from our server using the settings panel. Hit play to start playing.
+            <br />
+            If you encounter any problem during playing, feel free to leave us some feedback. We would greatly appreciate your input!
+            <br />
+            Click outside this modal to close this modal.
+          </p>
+        </div>
+      </modal>
     </div>
   </div>
 </template>
@@ -371,13 +411,13 @@ import {
 
 // Firebase Configurations.
 const firebaseApp = initializeApp({
-  apiKey: "AIzaSyCVFIcL_nokMdYVET7lvxnuIbLLoUi5YSs",
-  authDomain: "bachduet-b9d02.firebaseapp.com",
-  projectId: "bachduet-b9d02",
-  storageBucket: "bachduet-b9d02.appspot.com",
-  messagingSenderId: "668363580240",
-  appId: "1:668363580240:web:f301aa62ecf8310caa8255",
-  measurementId: "G-Z0DKQ7L50N",
+  apiKey: "",
+  authDomain: "",
+  projectId: "",
+  storageBucket: "",
+  messagingSenderId: "",
+  appId: "",
+  measurementId: "",
 });
 // Use this variable to reference firestore.
 const db = getFirestore();
@@ -738,6 +778,7 @@ export default {
       vm.$refs.mainLoadingScreen.classList.add("fade-out");
       vm.$refs.mainLoadingScreen.style.display = "none";
       vm.$refs.mainContent.style.display = "block";
+      vm.$modal.show("introModal");
     },
 
     /*

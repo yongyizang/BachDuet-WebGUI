@@ -169,3 +169,8 @@ We used serif and sans-serif fonts. The serif font is used to emphasize the Baro
 We also used CDNs for web fonts. You could find the reference for these web fonts under `index.html`.
 
 A more in-depth typography introduction could be found [here](https://material.io/design/typography/understanding-typography.html) provided by Material Design.
+
+## Citation
+If you use this codebase in your work, please consider citing BachDuet's paper and this repository.
+
+`https://github.com/mrmrmrfinch/BachDuet-Web-GUI`
