@@ -368,6 +368,7 @@ import {
   deleteDoc,
   arrayUnion,
 } from "firebase/firestore";
+
 // Firebase Configurations.
 const firebaseApp = initializeApp({
   apiKey: "AIzaSyCVFIcL_nokMdYVET7lvxnuIbLLoUi5YSs",
