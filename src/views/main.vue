@@ -340,7 +340,7 @@
       </modal>
       <modal
         name="introModal"
-        :minHeight="400"
+        :minHeight="600"
         :adaptive="true"
         @opened="modalCallback"
         @closed="modalCallback"
@@ -365,15 +365,17 @@
           </p>
           <p>
             Hi! This is BachDuet. You could play with our model in real time, which is trained on baroque chorales.
-            <br />
-            You could play with computer keyboard, on-screen keyboard or MIDI keyboard. MIDI keyboard support depends on whether your browser supports Web MIDI; We recommend using Chrome for best support.
-            <br />
+            <br /><br />
+            You could play with computer keyboard, on-screen keyboard or MIDI keyboard. MIDI keyboard support depends on whether your browser supports Web MIDI.
+            <br /><br />
+            We recommend using <span style="font-weight:600">Chrome</span> for best support.
+            <br /><br />
             You could see the real-time interaction being shown in both a musical-game style and a traditional, score-based style. They are both in real-time.
-            <br />
+            <br /><br />
             You could change volume and delete all your data from our server using the settings panel. Hit play to start playing.
-            <br />
+            <br /><br />
             If you encounter any problem during playing, feel free to leave us some feedback. We would greatly appreciate your input!
-            <br />
+            <br /><br />
             Click outside this modal to close this modal.
           </p>
         </div>
