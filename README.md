@@ -1,5 +1,6 @@
 # 🎵 BachDuet Web GUI
 ![BachDuet Web GUI Demo](demo.gif)
+
 Check it out in action [here](https://bachduet.com)!
 
 A Web GUI for BachDuet, a real-time network for human & machine collabration. This repository could serve as a template for any other real-time collabration network. The project is based on Web Audio & Web MIDI, Using Tone.js, Three.js and Tensorflow.js. The frontend is based on Vue.js.
