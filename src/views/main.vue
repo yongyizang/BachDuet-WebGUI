@@ -30,6 +30,7 @@
         <button @click="entryProgram" ref="entryBtn" class="entryBtn">
           Play with Neural Network
         </button>
+        <p v-if="isNotChrome">We highly recommend using Chrome for better user experience.</p>
       </div>
     </div>
 
@@ -413,14 +414,15 @@ import {
 
 // Firebase Configurations.
 const firebaseApp = initializeApp({
-  apiKey: "",
-  authDomain: "",
-  projectId: "",
-  storageBucket: "",
-  messagingSenderId: "",
-  appId: "",
-  measurementId: "",
+  apiKey: "AIzaSyCVFIcL_nokMdYVET7lvxnuIbLLoUi5YSs",
+  authDomain: "bachduet-b9d02.firebaseapp.com",
+  projectId: "bachduet-b9d02",
+  storageBucket: "bachduet-b9d02.appspot.com",
+  messagingSenderId: "668363580240",
+  appId: "1:668363580240:web:f301aa62ecf8310caa8255",
+  measurementId: "G-Z0DKQ7L50N",
 });
+
 // Use this variable to reference firestore.
 const db = getFirestore();
 
@@ -461,6 +463,7 @@ export default {
       feedbackText: "",
       userNoteBuffer2Firebase: [],
       AINoteBuffer2Firebase: [],
+      isNotChrome: navigator.userAgent.indexOf("Chrome") <= -1,
     };
   },
 
