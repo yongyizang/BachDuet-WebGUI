@@ -3,7 +3,7 @@
 
 Check it out in action [here](https://bachduet.com)!
 
-A Web GUI for BachDuet, a real-time network for human & machine collabration. This repository could serve as a template for any other real-time collabration network. The project is based on Web Audio & Web MIDI, Using Tone.js, Three.js and Tensorflow.js. The frontend is based on Vue.js.
+A Web GUI for [**BachDuet**](http://www2.ece.rochester.edu/projects/air/projects/BachDuet.html), a system for real-time human & machine collabration. This repository could serve as a template for any other real-time collabration network. The project is based on Web Audio & Web MIDI, Using Tone.js, Three.js and Tensorflow.js. The frontend is based on Vue.js.
 
 This repository could be deployed without a server.
 
@@ -33,7 +33,7 @@ npm run build
 
 ## 😰 Current Problems
 - Web MIDI is not supported on all browsers. For this purpose, we would recommend using Chrome.
-- We noticed that in many mobile devices, tensorflow.js is having trouble making inferences in time. We would recommend using this web application on desktop computers.
+- We noticed that in many mobile devices, tensorflow.js is having trouble making inferences in time. We would recommend using this web application on desktop/laptop computers and not tablets/smartphones.
 
 ---
 
@@ -171,6 +171,12 @@ We also used CDNs for web fonts. You could find the reference for these web font
 A more in-depth typography introduction could be found [here](https://material.io/design/typography/understanding-typography.html) provided by Material Design.
 
 ## Citation
-If you use this codebase in your work, please consider citing BachDuet's paper and this repository.
+If you use this codebase in your work, please cite BachDuet's paper and this repository.
 
-`https://github.com/mrmrmrfinch/BachDuet-Web-GUI`
+@inproceedings{bachduet,
+  title={BachDuet: A Deep Learning System for Human-Machine Counterpoint Improvisation},
+  author={Benetatos, Christodoulos and VanderStel, Joseph and Duan, Zhiyao},
+  booktitle={Proceedings of the International Conference on New Interfaces for Musical Expression},
+  pages={635–640},
+  year={2020}
+}
