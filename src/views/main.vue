@@ -30,7 +30,9 @@
         <button @click="entryProgram" ref="entryBtn" class="entryBtn">
           Play with Neural Network
         </button>
-        <p v-if="isNotChrome">We highly recommend using Chrome for better user experience.</p>
+        <p v-if="isNotChrome">
+          We highly recommend using Chrome for better user experience.
+        </p>
       </div>
     </div>
 
@@ -365,17 +367,24 @@
             Introduction
           </p>
           <p>
-            Hi! This is BachDuet. You could play with our model in real time, which is trained on baroque chorales.
+            Hi! This is BachDuet. You could play with our model in real time,
+            which is trained on baroque chorales.
             <br /><br />
-            You could play with computer keyboard, on-screen keyboard or MIDI keyboard. MIDI keyboard support depends on whether your browser supports Web MIDI.
+            You could play with computer keyboard, on-screen keyboard or MIDI
+            keyboard. MIDI keyboard support depends on whether your browser
+            supports Web MIDI.
             <br /><br />
-            We recommend using <span style="font-weight:600">Chrome</span> for best support.
+            We recommend using <span style="font-weight: 600">Chrome</span> for
+            best support. <br /><br />
+            You could see the real-time interaction being shown in both a
+            musical-game style and a traditional, score-based style. They are
+            both in real-time.
             <br /><br />
-            You could see the real-time interaction being shown in both a musical-game style and a traditional, score-based style. They are both in real-time.
+            You could change volume and delete all your data from our server
+            using the settings panel. Hit play to start playing.
             <br /><br />
-            You could change volume and delete all your data from our server using the settings panel. Hit play to start playing.
-            <br /><br />
-            If you encounter any problem during playing, feel free to leave us some feedback. We would greatly appreciate your input!
+            If you encounter any problem during playing, feel free to leave us
+            some feedback. We would greatly appreciate your input!
             <br /><br />
             Click outside this modal to close this modal.
           </p>
@@ -411,6 +420,7 @@ import {
   deleteDoc,
   arrayUnion,
 } from "firebase/firestore";
+import { getAuth, signInAnonymously } from "firebase/auth";
 
 // Firebase Configurations.
 const firebaseApp = initializeApp({
@@ -477,6 +487,20 @@ export default {
 
   mounted() {
     var vm = this;
+
+    // auth for firebase,  security purposes
+    // The way for firebase to allow access only through certain domains is
+    // (and only is, for now) to use authentication module, then only allowing
+    // those modules to sign in.
+    const auth = getAuth();
+    signInAnonymously(auth)
+      .then()
+      .catch((error) => {
+        const errorCode = error.code;
+        const errorMessage = error.message;
+        // ...
+      });
+
     // Prevent spacebar trigger any button
     document.querySelectorAll("button").forEach(function (item) {
       item.addEventListener("focus", function () {
@@ -489,9 +513,10 @@ export default {
 
     // Block lower resolutions.
     const loadingScreen = document.getElementById("loadingScreenInjection");
-    if ((vm.screenWidth < 450) || (vm.screenHeight < 450)){
-      loadingScreen.innerHTML = "<p style='font-size:20px;line-height:35px;padding:40px;'>We are sorry, but BachDuet Web only support larger screens for now.<br />Please visit us on desktop or larger tablets.</p>"
-    };
+    if (vm.screenWidth < 450 || vm.screenHeight < 450) {
+      loadingScreen.innerHTML =
+        "<p style='font-size:20px;line-height:35px;padding:40px;'>We are sorry, but BachDuet Web only support larger screens for now.<br />Please visit us on desktop or larger tablets.</p>";
+    }
 
     /*
      * Initialize page load data collections
@@ -573,8 +598,6 @@ export default {
         window.screenWidth = document.body.clientWidth;
         vm.screenWidth = window.screenWidth;
       })();
-
-    
     };
 
     /*
@@ -701,24 +724,24 @@ export default {
     // downloadToFile = (content, filename, contentType) => {
     //     const a = document.createElement('a');
     //     const file = new Blob([content], {type: contentType});
-        
+
     //     a.href= URL.createObjectURL(file);
     //     a.download = filename;
     //     a.click();
-        
+
     //     URL.revokeObjectURL(a.href);
     // },
-    downloadToFile (content, filename, contentType) {
-        const a = document.createElement('a');
-        const file = new Blob([content], {type: contentType});
-        
-        a.href= URL.createObjectURL(file);
-        a.download = filename;
-        a.click();
-        
-        URL.revokeObjectURL(a.href);
+    downloadToFile(content, filename, contentType) {
+      const a = document.createElement("a");
+      const file = new Blob([content], { type: contentType });
+
+      a.href = URL.createObjectURL(file);
+      a.download = filename;
+      a.click();
+
+      URL.revokeObjectURL(a.href);
     },
-    
+
     /*
      * Web MIDI
      */
@@ -865,12 +888,28 @@ export default {
         // If the worker is giving us ai prediction
         var aiPrediction = e.data;
         // to delete
-        if (aiPrediction.toWrite1A){
+        if (aiPrediction.toWrite1A) {
           // console.log("toWrite ")
-          this.downloadToFile(aiPrediction.toWrite1A.toString(), 'my-new-file1A.txt', 'text/plain');
-          this.downloadToFile(aiPrediction.toWrite1B.toString(), 'my-new-file1B.txt', 'text/plain');
-          this.downloadToFile(aiPrediction.toWrite2A.toString(), 'my-new-file2A.txt', 'text/plain');
-          this.downloadToFile(aiPrediction.toWrite2B.toString(), 'my-new-file2B.txt', 'text/plain');
+          this.downloadToFile(
+            aiPrediction.toWrite1A.toString(),
+            "my-new-file1A.txt",
+            "text/plain"
+          );
+          this.downloadToFile(
+            aiPrediction.toWrite1B.toString(),
+            "my-new-file1B.txt",
+            "text/plain"
+          );
+          this.downloadToFile(
+            aiPrediction.toWrite2A.toString(),
+            "my-new-file2A.txt",
+            "text/plain"
+          );
+          this.downloadToFile(
+            aiPrediction.toWrite2B.toString(),
+            "my-new-file2B.txt",
+            "text/plain"
+          );
         }
         // Misalignment Check
         if (aiPrediction.tick !== this.$store.getters.getLocalTickDelayed) {
@@ -1038,11 +1077,13 @@ export default {
 
             setTimeout(function () {
               vm.runTheWorker();
-            }, parseInt(((60 / vm.$store.getters.getBPM / 4) * 1000) / 4)); // 
+            }, parseInt(((60 / vm.$store.getters.getBPM / 4) * 1000) / 4)); //
 
             if (vm.$store.getters.getLocalTick % 16 === 0) {
               try {
-                const updateBuffer = vm.userNoteBuffer2Firebase.concat(vm.AINoteBuffer2Firebase);
+                const updateBuffer = vm.userNoteBuffer2Firebase.concat(
+                  vm.AINoteBuffer2Firebase
+                );
                 await updateDoc(
                   doc(db, "data", vm.$store.getters.getSessionID),
                   {
