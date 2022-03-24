@@ -172,7 +172,7 @@ A more in-depth typography introduction could be found [here](https://material.i
 
 ## Citation
 If you use this codebase in your work, please cite BachDuet's paper and this repository.
-
+```
 @inproceedings{bachduet,
   title={BachDuet: A Deep Learning System for Human-Machine Counterpoint Improvisation},
   author={Benetatos, Christodoulos and VanderStel, Joseph and Duan, Zhiyao},
@@ -180,3 +180,4 @@ If you use this codebase in your work, please cite BachDuet's paper and this rep
   pages={635–640},
   year={2020}
 }
+```
