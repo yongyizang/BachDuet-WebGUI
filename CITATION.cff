@@ -1,0 +1,29 @@
+cff-version: 1.2.0
+message: "If you use this code, please cite it as below."
+authors:
+- family-names: "Zang"
+  given-names: "Yongyi"
+- family-names: "Benetatos"
+  given-names: "Christodoulos"
+title: "BachDuet-WebGUI"
+version: 0.0.0
+date-released: 2022-03-20
+url: "https://github.com/mrmrmrfinch/BachDuet-WebGUI"
+preferred-citation:
+  type: article
+  authors:
+  - family-names: "Benetatos"
+    given-names: "Christodoulos"
+  - family-names: "VanderStel"
+    given-names: "Joseph"
+  - family-names: "Duan"
+    given-names: "Zhiyao"
+  doi: "10.5281/zenodo.4813234"
+  journal: "Proceedings of the International Conference on New Interfaces for Musical Expression"
+  month: 7
+  start: 635 # First page number
+  end: 640 # Last page number
+  title: "BachDuet: A Deep Learning System for Human-Machine Counterpoint Improvisation"
+  issue: 1
+  volume: 1
+  year: 2020
