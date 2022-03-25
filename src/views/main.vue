@@ -33,6 +33,9 @@
         <p v-if="isNotChrome">
           We highly recommend using Chrome for better user experience.
         </p>
+        <p v-if="isMobile">
+          The model may not perform normally on mobile devices. We recommend using Desktop computers.
+        </p>
       </div>
     </div>
 
@@ -474,6 +477,9 @@ export default {
       userNoteBuffer2Firebase: [],
       AINoteBuffer2Firebase: [],
       isNotChrome: navigator.userAgent.indexOf("Chrome") <= -1,
+      isMobile: navigator.userAgentData.mobile,
+      firebaseErrCount = 0,
+      misalignErrCount = 0,
     };
   },
 
@@ -687,6 +693,26 @@ export default {
         this.keyboardUIKey += 1;
       },
     },
+    firebaseErrCount: {
+      immediate: true,
+      handler(newValue){
+        if (newValue == 10){
+          this.$toasted.show(
+              "We cannot collect data from your session. Don't worry, your application will still run smoothly!"
+            );
+        }
+      }
+    },
+    misalignErrCount: {
+      immediate: true,
+      handler(newValue){
+        if (newValue == 10){
+          this.$toasted.show(
+              "Your local machine cannot run inference at this speed. Try lowering the BPM."
+            );
+        }
+      }
+    },
     keyboardUIoctaveStart: {
       immediate: true,
       handler(newValue) {
@@ -877,10 +903,13 @@ export default {
             vm.userDataID = docRef.id;
             vm.$store.commit("writeSessionID", docRef.id);
           } catch (e) {
-            this.$toasted.show(
+            if (vm.firebaseErrCount < 10){
+              this.$toasted.show(
               "Error adding doc to firebase. Error Message in console."
             );
-            console.log("Firebase error:", e);
+              console.log("Firebase error:", e);
+              vm.firebaseErrCount += 1;
+            }
           }
         }
         workerStatus.innerHTML = e.data;
@@ -919,6 +948,7 @@ export default {
               ", get " +
               aiPrediction.tick
           );
+          this.misalignErrCount += 1;
         }
         this.$store.dispatch("newAiPrediction", aiPrediction);
         // try writing to firebase, if there's user permission
@@ -1093,10 +1123,13 @@ export default {
                 vm.userNoteBuffer2Firebase = [];
                 vm.AINoteBuffer2Firebase = [];
               } catch (e) {
-                vm.$toasted.show(
-                  "Error updating to firebase. Error Message in console."
-                );
-                console.log("Firebase error:", e);
+            if (vm.firebaseErrCount < 10){
+              this.$toasted.show(
+              "Error adding doc to firebase. Error Message in console."
+            );
+              console.log("Firebase error:", e);
+              vm.firebaseErrCount += 1;
+            }
               }
             }
 
@@ -1207,10 +1240,13 @@ export default {
       try {
         await deleteDoc(doc(db, "data", vm.$store.getters.getSessionID));
       } catch (e) {
-        this.$toasted.show(
-          "Error deleting doc from firebase. Error Message in console."
-        );
-        console.error("Firebase error:", e);
+            if (vm.firebaseErrCount < 10){
+              this.$toasted.show(
+              "Error adding doc to firebase. Error Message in console."
+            );
+              console.log("Firebase error:", e);
+              vm.firebaseErrCount += 1;
+            }
       }
       window.location.reload(true);
     },
@@ -1226,10 +1262,13 @@ export default {
           }),
         });
       } catch (e) {
-        this.$toasted.show(
-          "Error submitting feedback to firebase. Error Message in console."
-        );
-        console.log("Firebase error:", e);
+            if (vm.firebaseErrCount < 10){
+              this.$toasted.show(
+              "Error adding doc to firebase. Error Message in console."
+            );
+              console.log("Firebase error:", e);
+              vm.firebaseErrCount += 1;
+            }
       }
       vm.feedbackRating = 5.0;
       vm.feedbackText = "";
