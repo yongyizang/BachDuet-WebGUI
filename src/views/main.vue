@@ -478,8 +478,8 @@ export default {
       AINoteBuffer2Firebase: [],
       isNotChrome: navigator.userAgent.indexOf("Chrome") <= -1,
       isMobile: navigator.userAgentData.mobile,
-      firebaseErrCount = 0,
-      misalignErrCount = 0,
+      firebaseErrCount: 0,
+      misalignErrCount: 0,
     };
   },
 
