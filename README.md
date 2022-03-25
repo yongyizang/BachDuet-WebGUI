@@ -52,12 +52,28 @@ The model is abstracted as a service worker. Service workers are specialized Jav
 - How should the front-end process the message that neuralworker has posted? You could customize that in `main.vue`, under methods `runTheWorker()` and `workerCallback()`.
 - After these two steps, you should be all set in using your model.
 
-### Data gathering
+### Google Firebase Configuration
 Currently, we use Google Firebase to gather data on performance, playing information and more. The benefit of using something like Firebase is that it saves you the hassle of setting up a server, making it more fast and secure to use. For most demoing purposes, the free tier should suffice.
-- Register an application using Google Firebase. Be sure to set up correct rules under Cloud Firestore!
+- Register an application using Google Firebase. Be sure to set up correct security rules under Cloud Firestore! If you would also like to use domain-based security rules, set Firestore's security rules as this:
+```
+rules_version = '2'; // tweak this as you like
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}
+```
+This means that user could only modify database if they past authentication.
+Then, go to authentication, turn on anonymous sign-in, and modify the domain list under `Sign-in method`.
 - Check `main.vue`, under `const firebaseApp = initializeApp()`. Change these information to match your firebase app. It's safe to expose these as long as you have the correct security rules setted up under Cloud Firestore.
 - You need to create a new collection called `data`. This is hard-coded into `main.vue`.
+
+
+### Data gathering
 - If you would like to change the types of data you gather, you could take a further look at the firestore usage, and modify based on code snippets here.
+- Our current data collection scheme is detailed in `PrivacyStatement.md`.
 
 ### Deploying
 This repository has nothing to do with deploying! You could deploy it to web using any way you would like. However, we would recommend using services like Netlify, since they don't require a server as well. Here's just an example approach of deploying.
