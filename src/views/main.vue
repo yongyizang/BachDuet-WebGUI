@@ -362,22 +362,31 @@
               padding-bottom: 10px;
             "
           >
-            Introduction
+          Introduction
           </p>
           <p>
-            Hi! This is BachDuet. You could play with our model in real time, which is trained on baroque chorales.
+            Hi! This is BachDuet, your AI partner for collaborative improvisation in the style of Bach chorales.
             <br /><br />
-            You could play with computer keyboard, on-screen keyboard or MIDI keyboard. MIDI keyboard support depends on whether your browser supports Web MIDI.
+            We recommend using <span style="font-weight: 600">Chrome</span> and desktop/laptop computers for best support. 
             <br /><br />
-            We recommend using <span style="font-weight:600">Chrome</span> for best support.
+            Simply click on the “Play” button and start playing. You could use your computer keyboard, the on-screen keyboard or an external MIDI keyboard.
             <br /><br />
-            You could see the real-time interaction being shown in both a musical-game style and a traditional, score-based style. They are both in real-time.
+            In “Settings”, you can reset or change the randomness of the AI model, and choose to delete all of your data after playing.
             <br /><br />
-            You could change volume and delete all your data from our server using the settings panel. Hit play to start playing.
+            For better results:
+            <ul>
+              <li>Try to play <i>legato</i></li>
+              <li>Try to play in sync with the metronome</li>
+              <li>Try to interact with Bachduet. BachDuet aims to be an equal improvisation partner and not a passive accompaniment system</li>
+              <li>Feel free to change keys. The more naturally you modulate (i.e using a cadence) the better BachDuet will follow.
+            </ul>
             <br /><br />
-            If you encounter any problem during playing, feel free to leave us some feedback. We would greatly appreciate your input!
+            If you encounter many pop up "bug" messages, it might be because the neural network is not running fast enough on your device. 
+            <br />
+            You can try decreasing the metronome's BPM or using a more powerful device. 
+            <br />
+            If you encounter any problem, please let us know. We would greatly appreciate your input!
             <br /><br />
-            Click outside this modal to close this modal.
           </p>
         </div>
       </modal>
