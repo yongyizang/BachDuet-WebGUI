@@ -378,11 +378,9 @@
               <li>Try to play <i>legato</i></li>
               <li>Try to play in sync with the metronome</li>
               <li>Try to interact with Bachduet. BachDuet aims to be an equal improvisation partner and not a passive accompaniment system</li>
-              <li>Feel free to change keys. The more naturally you modulate (i.e using a cadence) the better BachDuet will follow.
+              <li>Feel free to change keys. The more naturally you modulate (i.e using a cadence) the better BachDuet will follow.</li>
             </ul>
-            <br /><br />
             If you encounter many pop up "bug" messages, it might be because the neural network is not running fast enough on your device. 
-            <br />
             You can try decreasing the metronome's BPM or using a more powerful device. 
             <br />
             If you encounter any problem, please let us know. We would greatly appreciate your input!
