@@ -859,7 +859,7 @@ export default {
      * neural network web worker's callback and worker call methods.
      * Called every tick, and processes the AI's output.
      */
-    
+
     runTheWorker() {
       const vm = this;
       this.estimateHumanQuantizedNote();
@@ -1225,29 +1225,32 @@ export default {
 
     // Check this function! You could change the prompt if you would like.
     number2RandomnessDescription(num) {
-      if (num < 10) {
-        return "Not-So-Random";
+      if (num < 2) {
+        return "0" //"Not-So-Random";
       } else if (num < 20) {
-        return "Getting a bit HOT in here";
-      } else if (num < 30) {
-        return "Some randomness";
+        return "1" //"Not-So-Random";
       } else if (num < 40) {
-        return "Good balance";
-      } else if (num < 50) {
-        return "Getting a bit messy...";
+        return "2" //"Getting a bit HOT in here";
       } else if (num < 60) {
-        return "A bit on the messy side";
-      } else if (num < 70) {
-        return "Messy! but not too messy.";
+        return "3"//"Some randomness";
       } else if (num < 80) {
-        return "So random!";
+        return "4"//"Good balance";
       } else if (num < 100) {
-        return "A bit too random";
-      } else if (num < 150) {
-        return "Careful! So much randomness";
-      } else {
-        return "OMG Maximum RANDOMNESS";
-      }
+        return "5"//"Getting a bit messy...";
+      } else if (num < 120) {
+        return "6"//"A bit on the messy side";
+      } else if (num < 140) {
+        return "7"//"Messy! but not too messy.";
+      } else if (num < 160) {
+        return "8"//"So random!";
+      } else if (num < 180) {
+        return "9"//"A bit too random";
+      } else if (num <= 200) {
+        return "10"//"Careful! So much randomness";
+      } 
+      // else {
+      //   return //"OMG Maximum RANDOMNESS";
+      // }
     },
 
     modalCallback() {
