@@ -7,8 +7,6 @@ A Web GUI for [**BachDuet**](http://www2.ece.rochester.edu/projects/air/projects
 
 This repository could be deployed without a server.
 
----
-
 ## 🤩 How to run (for the first time)?
 
 ### Project setup
@@ -29,13 +27,11 @@ You may need Vue DevTools, available in Google Chrome Store.
 npm run build
 ```
 
----
 
 ## 😰 Current Problems
 - Web MIDI is not supported on all browsers. For this purpose, we would recommend using Chrome.
 - We noticed that in many mobile devices, tensorflow.js is having trouble making inferences in time. We would recommend using this web application on desktop/laptop computers and not tablets/smartphones.
 
----
 
 ## 🔨 Configurations
 If you have experience with JavaScript, configuring this repository to fit your current model is easy.
@@ -52,12 +48,28 @@ The model is abstracted as a service worker. Service workers are specialized Jav
 - How should the front-end process the message that neuralworker has posted? You could customize that in `main.vue`, under methods `runTheWorker()` and `workerCallback()`.
 - After these two steps, you should be all set in using your model.
 
-### Data gathering
+### Google Firebase Configuration
 Currently, we use Google Firebase to gather data on performance, playing information and more. The benefit of using something like Firebase is that it saves you the hassle of setting up a server, making it more fast and secure to use. For most demoing purposes, the free tier should suffice.
-- Register an application using Google Firebase. Be sure to set up correct rules under Cloud Firestore!
+- Register an application using Google Firebase. Be sure to set up correct security rules under Cloud Firestore! If you would also like to use domain-based security rules, set Firestore's security rules as this:
+```
+rules_version = '2'; // tweak this as you like
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}
+```
+This means that user could only modify database if they pass authentication.
+Then, go to authentication, turn on anonymous sign-in, and modify the domain list under `Sign-in method`.
 - Check `main.vue`, under `const firebaseApp = initializeApp()`. Change these information to match your firebase app. It's safe to expose these as long as you have the correct security rules setted up under Cloud Firestore.
 - You need to create a new collection called `data`. This is hard-coded into `main.vue`.
+
+
+### Data gathering
 - If you would like to change the types of data you gather, you could take a further look at the firestore usage, and modify based on code snippets here.
+- Our current data collection scheme is detailed in `PrivacyStatement.md`.
 
 ### Deploying
 This repository has nothing to do with deploying! You could deploy it to web using any way you would like. However, we would recommend using services like Netlify, since they don't require a server as well. Here's just an example approach of deploying.
@@ -66,17 +78,14 @@ This repository has nothing to do with deploying! You could deploy it to web usi
 - First setup would take longer. After a while, netlify should have already automatically taken care of everything.
 - You could further customize your site under netlify.
 
----
 
 ## 🖇 How's the project organized?
 The project is built using vue.js, so it follows a standard vue.js application structure. If you are familiar with Vue, feel free to skip this part.
 
----
 
 ### Routing
 This project is built using `Vue-cli`, so I used the `Vue-router` module. It's at `/src/router/index.js` right now.
 
----
 
 ### Static files
 Static files, as their names suggest, are static. They are stored in `/public`. 
@@ -87,7 +96,6 @@ Static files, as their names suggest, are static. They are stored in `/public`.
 
 `robots.txt` as the name suggest, is the default robots.txt that search engines use to determine how their spider should work.
 
----
 
 ### src/main.js, src/App.vue and router
 `.vue` files are Vue Single File Componment (SFC). You could check [here](https://vuejs.org/v2/guide/single-file-components.html) for more information on that.
@@ -104,7 +112,6 @@ Then, `<router-view>`, which belongs in `/src/router/index.js`, looks at the bro
 
 Why is understanding this important? By understanding this, we could gain insight on how to alter the process. For example, if we need to introduce new libraries earlier on the way, we could introduce them in `main.js`. If we need to alter the CSS properties on `body` and `html` element, we could change `App.vue`. If we need to change the router rules (e.g. add a new view), we could just alter the `/src/router/index.js` file.
 
----
 
 ### library
 
@@ -113,7 +120,6 @@ All files in `/src/library` are independent. They are only dependent on a few li
 - `math.js` provides helpful math utilities.
 - `music.js` is essentially a function, `createRange()`, that's used by both `instruments.js` and `piano-state.js`.  It takes in the start and end notes, and return a range of notes.
 
----
 
 
 ### UI Components
@@ -126,7 +132,6 @@ The UI is made up of 3 parts: a keyboard, a musical-game-style note indicator an
   
 All three UIs would communicate with Vuex store to trigger samplers.
 
----
 
 ### Vuex Store
 
@@ -144,7 +149,6 @@ Take a look under `/store`.
   - `samplers.js` is where the samplers are located.
   - `tick-number.js` is where all tick numbers are calculated.
 
----
 
 ## 🪄 Design
 The current design is centered around BachDuet's core concept, which is a Baroque style music interaction web application. Here, we provide a few steps of our designing process, hoping if they could also be of help to you in thintking about your application's design.

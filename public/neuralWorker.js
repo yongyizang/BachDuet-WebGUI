@@ -48,15 +48,11 @@ loadModels()
 // self.lastAiPrediction = {'aiInpMidi':96, 'aiInpCpc':12};
 
 // self.temperature = 0.9;
-// self.counter = 0;
+self.counter = 0;
 
 onmessage = function(e) {
     var data = e.data
-    // console.log("just entered", " counter is ", self.counter, " tick is ", data['tick'])
     // var t1 = performance.now();
-    // console.log("counter is ", self.counter, " tick is ", data['tick'], "\n", data['aiInp'],  "\n", data['humanInpMidi']);
-
-    // console.assert(self.lastAiPrediction['aiInpMidi']==data['aiInp'].midiArticInd)
 
     // If reset is true
     if (data["reset"]){
@@ -102,25 +98,11 @@ onmessage = function(e) {
     // console.log("neuralNet: " + (t2`-t1) + " tick " + tick);
     // console.log("temperature is ", data["temperature"])
 
-    // TODO anything related with "toWrite" is to be deleted. Ignore that for now
-    // toWrite1A = null;
-    // toWrite1B = null;
-    // toWrite2A = null;
-    // toWrite2B = null;
-    // if (data["write"]){
-    //     toWrite1A=self.states1A.dataSync();
-    //     toWrite1B=self.states1B.dataSync();
-    //     toWrite2A=self.states2A.dataSync();
-    //     toWrite2B=self.states2B.dataSync();
-    // }
     var output = {
         'tick' : data['tick'],
         'midiArticInd' : predictedNote.dataSync()[0],
-        // 'toWrite1A' : toWrite1A,
-        // 'toWrite1B' : toWrite2A,
-        // 'toWrite2A' : toWrite1B,
-        // 'toWrite2B' : toWrite2B,
     }
+    
     self.counter = self.counter + 1
     postMessage(output);
 }
