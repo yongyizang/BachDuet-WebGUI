@@ -163,7 +163,15 @@ const actions = {
     newHumanInputQuantized ({ commit, state, getters }, args) {
         
         // console.log(args)
-        var midiArtic = args.midi.toString() + '_' + args.artic.toString()
+        // bring midi to the correct range for the AI (ignore 0 which is used for rest)
+        var clipedMidi = args.midi
+        while (clipedMidi < 28 && clipedMidi > 0){
+            clipedMidi += 12
+        }
+        while (clipedMidi > 94){
+            clipedMidi -= 12
+        }
+        var midiArtic = clipedMidi.toString() + '_' + args.artic.toString()
         var midiArticInd = getters.getTokensDict.midiArtic.token2index[midiArtic]
         state.humanQuantizedInput[getters.getLocalTick] = { "midi" : args.midi, 
                                                             "artic" : args.artic, 

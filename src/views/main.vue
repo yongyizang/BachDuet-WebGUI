@@ -859,7 +859,7 @@ export default {
      * neural network web worker's callback and worker call methods.
      * Called every tick, and processes the AI's output.
      */
-
+    
     runTheWorker() {
       const vm = this;
       this.estimateHumanQuantizedNote();
