@@ -866,10 +866,6 @@ export default {
 
       this.$store.commit("incrementTickDelayed");
       this.$root.$refs.scoreUI.draw();
-      console.assert(
-        this.$store.getters.getLocalTick ===
-          this.$store.getters.getLocalTickDelayed
-      );
 
       var rhythmToken = this.$store.getters.getRhythmToken;
       var rhythmTokenInd =
@@ -901,6 +897,7 @@ export default {
     },
 
     async workerCallback(e) {
+      
       const vm = this;
       const workerStatus = vm.$refs.workerStatus;
       // If the worker is giving us only string
@@ -936,30 +933,6 @@ export default {
       } else {
         // If the worker is giving us ai prediction
         var aiPrediction = e.data;
-        // to delete
-        if (aiPrediction.toWrite1A) {
-          // console.log("toWrite ")
-          this.downloadToFile(
-            aiPrediction.toWrite1A.toString(),
-            "my-new-file1A.txt",
-            "text/plain"
-          );
-          this.downloadToFile(
-            aiPrediction.toWrite1B.toString(),
-            "my-new-file1B.txt",
-            "text/plain"
-          );
-          this.downloadToFile(
-            aiPrediction.toWrite2A.toString(),
-            "my-new-file2A.txt",
-            "text/plain"
-          );
-          this.downloadToFile(
-            aiPrediction.toWrite2B.toString(),
-            "my-new-file2B.txt",
-            "text/plain"
-          );
-        }
         // Misalignment Check
         if (aiPrediction.tick !== this.$store.getters.getLocalTickDelayed) {
           this.$toasted.show(

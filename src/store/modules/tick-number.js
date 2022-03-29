@@ -77,11 +77,13 @@ const mutations = {
             state.barNumber += 1;
         };
         state.barTick = Math.floor(state.globalTick / 16); 
+        // console.log('incrementTick to ', state.localTick)
     },
     incrementTickDelayed (state) {
         state.localTickDelayed += 1;
         state.localTickDelayed = state.localTickDelayed % 16;
         state.globalTickDelayed += 1;
+        // console.log('incrementDelayedTick to ', state.localTickDelayed)
     }
 }
 
