@@ -89,7 +89,6 @@ export default {
       scrollEnabled: false,
       scrollsCounter: 0,
       scrollsNumberPerMeasure: 400,
-      preDur: 1,
     };
   },
 
@@ -104,11 +103,6 @@ export default {
 
   mounted() {
     const vm = this;
-    document.addEventListener("keypress", function (event) {
-      if (event.keyCode == 32 && !vm.$store.getters.getModalStatus) {
-        vm.triggerCollapse();
-      }
-    });
     this.init();
     this.resize();
   },
@@ -415,11 +409,6 @@ export default {
     draw() {
       var humanQuantNoteDict = this.$store.getters.getLastHumanNoteQuantized;
       var aiQuantNoteDict = this.$store.getters.getLastAINoteQuantized;
-      
-      if (aiQuantNoteDict.startTick == -1){
-        aiQuantNoteDict.dur = this.preDur
-        this.preDur += 1
-      }
 
       // TODO some if's are redudant.
       if (humanQuantNoteDict.dur == 1) {
