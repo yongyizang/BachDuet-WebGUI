@@ -439,15 +439,15 @@ import {
 import { getAuth, signInAnonymously } from "firebase/auth";
 
 // Firebase Configurations.
-const firebaseApp = initializeApp({
-  apiKey: "AIzaSyCVFIcL_nokMdYVET7lvxnuIbLLoUi5YSs",
-  authDomain: "bachduet-b9d02.firebaseapp.com",
-  projectId: "bachduet-b9d02",
-  storageBucket: "bachduet-b9d02.appspot.com",
-  messagingSenderId: "668363580240",
-  appId: "1:668363580240:web:f301aa62ecf8310caa8255",
-  measurementId: "G-Z0DKQ7L50N",
-});
+const firebaseConfig = {
+  apiKey: "AIzaSyDzY6lKHN69A8xFVljbJeDP75RL3Yz8Zfo",
+  authDomain: "bachduet-d6ca6.firebaseapp.com",
+  projectId: "bachduet-d6ca6",
+  storageBucket: "bachduet-d6ca6.appspot.com",
+  messagingSenderId: "630968840698",
+  appId: "1:630968840698:web:12c4589bb03536ec857443",
+  measurementId: "G-NGJWHLYCS3"
+};
 
 // Use this variable to reference firestore.
 const db = getFirestore();
