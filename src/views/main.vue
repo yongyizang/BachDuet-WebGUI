@@ -449,6 +449,8 @@ const firebaseConfig = {
   measurementId: "G-NGJWHLYCS3"
 };
 
+const app = initializeApp(firebaseConfig);
+
 // Use this variable to reference firestore.
 const db = getFirestore();
 
