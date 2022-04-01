@@ -222,15 +222,15 @@
             <div class="md-layout-item md-small-size-50 md-xsmall-size-100">
               <div class="settingsDiv">
                 <p class="settingsOptionTitle">BPM</p>
-                <div style="padding-top:14px">
-                <p class="settingsValue">{{ BPM }}</p>
-                <vue-slider
-                  v-model="BPM"
-                  :lazy="true"
-                  :min="60"
-                  :max="120"
-                  class="settingsSlider"
-                ></vue-slider>
+                <div style="padding-top: 14px">
+                  <p class="settingsValue">{{ BPM }}</p>
+                  <vue-slider
+                    v-model="BPM"
+                    :lazy="true"
+                    :min="60"
+                    :max="120"
+                    class="settingsSlider"
+                  ></vue-slider>
                 </div>
               </div>
             </div>
@@ -326,11 +326,11 @@
               class="md-layout-item md-medium-size-33 md-small-size-50 md-xsmall-size-100"
             >
               <span>
-                If you chose to send us your data, all your data is gathered anonymously, and would only be
-                used for research purposes.<br />
-                If you want to delete all data sent to our
-                server, click the big red button. It would destroy all your play data and all app performance
-                data.
+                If you chose to send us your data, all your data is gathered
+                anonymously, and would only be used for research purposes.<br />
+                If you want to delete all data sent to our server, click the big
+                red button. It would destroy all your play data and all app
+                performance data.
               </span>
             </div>
             <div
@@ -377,8 +377,7 @@
             Hi! This is BachDuet, your AI partner for collaborative
             improvisation in the style of Bach chorales. We recommend using
             <span style="font-weight: 600">Chrome</span> and desktop/laptop
-            computers for best support.
-            <br /><br />
+            computers for best support. <br /><br />
 
             Simply click on the “Play” button and start playing. You could use
             your computer keyboard, the on-screen keyboard or an external MIDI
@@ -514,6 +513,21 @@ export default {
   mounted() {
     var vm = this;
 
+    // Prevent spacebar trigger any button
+    document.querySelectorAll("button").forEach(function (item) {
+      item.addEventListener("focus", function () {
+        this.blur();
+      });
+    });
+
+    // spacebar trigger play btn
+    document.addEventListener("keypress", function (event) {
+      if (event.keyCode == 32 && !vm.$store.getters.getModalStatus) {
+        // spacebar could toggle clock
+        vm.toggleClock();
+      }
+    });
+
     // auth for firebase,  security purposes
     // The way for firebase to allow access only through certain domains is
     // (and only is, for now) to use authentication module, then only allowing
@@ -526,13 +540,6 @@ export default {
         const errorMessage = error.message;
         // ...
       });
-
-    // Prevent spacebar trigger any button
-    document.querySelectorAll("button").forEach(function (item) {
-      item.addEventListener("focus", function () {
-        this.blur();
-      });
-    });
 
     vm.screenWidth = document.body.clientWidth;
     vm.screenHeight = document.body.clientHeight;
@@ -934,7 +941,8 @@ export default {
         // If the worker is giving us ai prediction
         var aiPrediction = e.data;
         // Misalignment Check
-        if (aiPrediction.tick !== this.$store.getters.getLocalTickDelayed) {
+        // Will block first 2 ticks' misalignment error msg
+        if ((aiPrediction.tick !== this.$store.getters.getLocalTickDelayed) && (this.$store.getters.getGlobalTick > 2)) {
           this.$toasted.show(
             "Network tick misalignment: expecting " +
               this.$store.getters.getLocalTickDelayed +
