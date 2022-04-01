@@ -89,6 +89,7 @@ export default {
       scrollEnabled: false,
       scrollsCounter: 0,
       scrollsNumberPerMeasure: 400,
+      preDur: 1
     };
   },
 
@@ -410,6 +411,10 @@ export default {
       var humanQuantNoteDict = this.$store.getters.getLastHumanNoteQuantized;
       var aiQuantNoteDict = this.$store.getters.getLastAINoteQuantized;
 
+      if (aiQuantNoteDict.startTick == -1){
+        aiQuantNoteDict.dur = this.preDur
+        this.preDur += 1
+      }
       // TODO some if's are redudant.
       if (humanQuantNoteDict.dur == 1) {
         this.afairetisHuman = 0;
