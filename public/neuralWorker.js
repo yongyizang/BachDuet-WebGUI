@@ -51,12 +51,9 @@ loadModels()
 self.counter = 0;
 
 onmessage = function(e) {
-    var data = e.data
-    // var t1 = performance.now();
+    var data = e.data;
 
-    // If reset is true
     if (data["reset"]){
-        console.log("network reset.");
         self.states1A = tf.zeros([1,600]);
         self.states1B = tf.zeros([1,600]);
         self.states2A = tf.zeros([1,600]);
@@ -67,11 +64,9 @@ onmessage = function(e) {
         self.first2B = self.states2B;
     }
 
-    var midiInp = tf.tensor2d([[data['aiInp'].midiArticInd, data['humanInp'].midiArticInd]]);//data['humanInpMidi']]]);
-    var cpcInp = tf.tensor2d([[data['aiInp'].cpc, data['humanInp'].cpc]]); //data['humanInpCpc']]]); 
+    var midiInp = tf.tensor2d([[data['aiInp'].midiArticInd, data['humanInp'].midiArticInd]]);
+    var cpcInp = tf.tensor2d([[data['aiInp'].cpc, data['humanInp'].cpc]]); 
     var rhyInp = tf.tensor2d([[data['rhythmInd']]]);
-    // console.log(midiInp.dataSync())
-    // console.log( " COUNTER is ", self.counter, "midiInp" + midiInp.arraySync() + "cpcInp" + cpcInp.arraySync() + "rhyInp" + rhyInp.arraySync())
 
     var exodos = self.modelEmb.predict([midiInp, cpcInp, rhyInp]);
     var embMidi = exodos[0];
@@ -81,7 +76,10 @@ onmessage = function(e) {
     var embCpcC = tf.concat([embCpc.slice([0,0,0],[1,1,150]),embCpc.slice([0,1,0],[1,1,150])], 2);
     var totalInp = tf.concat([embMidiC, embCpcC, embRhy],2);
 
+    var predictTime = performance.now();
     var out = self.modelLstm.predict([totalInp, self.states1A, self.states1B, self.states2A, self.states2B]);
+    predictTime = performance.now() - predictTime;
+    postMessage({'predictTime': predictTime});
 
     self.states1A = out[1];
     self.states1B = out[2];
@@ -92,13 +90,9 @@ onmessage = function(e) {
     
     var logits_temp = logits.div(data["temperature"]);
     var predictedNote = tf.multinomial(logits_temp, 2);
-    // console.log(data["temperature"]);
-    // console.log('counter is ', self.counter, ' pred is ', predictedNote.dataSync()[0], ' mean logit ', logits.mean().dataSync()[0]);
-    // var t2 = performance.now();
-    // console.log("neuralNet: " + (t2`-t1) + " tick " + tick);
-    // console.log("temperature is ", data["temperature"])
 
     var output = {
+        'predictTime': -1,
         'tick' : data['tick'],
         'midiArticInd' : predictedNote.dataSync()[0],
     }
