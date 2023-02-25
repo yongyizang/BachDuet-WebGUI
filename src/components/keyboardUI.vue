@@ -141,6 +141,7 @@ export default {
         noteStart: 0,
         noteEnd: 0,
       },
+      // TODO : audioKeysMap is unused
       audioKeysMap: {
         C4: "Z",
         "C#4": "S",

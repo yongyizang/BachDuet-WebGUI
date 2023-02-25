@@ -195,6 +195,14 @@
             Chrome v43+, Opera v30+ and Microsoft Edge v79+. Please update to
             one of those browsers if you want to use Web MIDI
             functionalities.</span>
+
+          <div class="md-layout-item md-medium-size-33 md-small-size-50 md-xsmall-size-100">
+            <md-button @click="exportMidi" style="width: 100%">
+              <!-- <md-icon>close</md-icon> -->
+              <span>Export MIDI</span>
+            </md-button>
+          </div>
+
           <p class="settingsSubtitle">Network</p>
           <div class="md-layout md-gutter md-alignment-center">
             <div class="md-layout-item md-medium-size-33 md-small-size-50 md-xsmall-size-100">
@@ -302,6 +310,7 @@ import { WebMidi } from "webmidi";
 import Dropdown from "vue-simple-search-dropdown";
 import AudioKeys from "audiokeys";
 import StarRating from "vue-star-rating";
+import MidiWriter from 'midi-writer-js';
 
 /*
  * Use Google Firebase and Analytics for data gathering.
@@ -395,8 +404,22 @@ export default {
     StarRating,
   },
 
+  created() {
+      // Start with a new track
+      // this.track_human = new MidiWriter.Track();
+      // this.track_AI = new MidiWriter.Track();
+
+      // Define an instrument (optional):
+      // this.track_human.addEvent(new MidiWriter.ProgramChangeEvent({instrument: 1}));
+      // this.track_AI.addEvent(new MidiWriter.ProgramChangeEvent({instrument: 1}));
+      
+      
+  },
   mounted() {
     var vm = this;
+
+    // initialize the midi tracks (vuex states)
+    this.$store.commit("initializeMidiTracks")
 
     // Prevent spacebar trigger any button
     document.querySelectorAll("button").forEach(function (item) {
@@ -846,7 +869,30 @@ export default {
 
     resetNetwork() {
       this.reset = true;
+      this.$store.commit("initializeMidiTracks");
     },
+
+    exportMidi() {
+
+      // Add some notes:
+      // const note = new MidiWriter.NoteEvent({pitch: ['C4', 'D4', 'E4'], duration: '1'});
+      // const note2 = new MidiWriter.NoteEvent({pitch: ['C4', 'D4', 'E4'], duration: '4'});
+      // this.track_human.addEvent(note);
+      // this.track_AI.addEvent(note2);
+
+      // Generate a data URI
+      const writer = new MidiWriter.Writer([this.$store.getters.getMidiTrackHuman, this.$store.getters.getMidiTrackAI]);
+      // console.log(writer.dataUri());
+
+      var downloadLink = document.createElement("a");
+      downloadLink.href = writer.dataUri();
+      downloadLink.download = "export_bachDuet.mid";
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+
+    },
+
     writeStates() {
       this.write = true;
     },

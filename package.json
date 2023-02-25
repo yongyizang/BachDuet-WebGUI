@@ -16,6 +16,7 @@
     "core-js": "^3.16.2",
     "firebase": "^9.6.6",
     "fs": "^0.0.1-security",
+    "midi-writer-js": "^2.1.4",
     "pixi-piano-roll": "^1.2.3",
     "postprocessing": "^6.23.3",
     "register-service-worker": "^1.7.1",
