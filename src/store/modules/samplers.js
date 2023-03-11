@@ -7,12 +7,12 @@ window.onclick = () => {
     Tone.context.lookAhead = 0;
   };
 
-const userSampler = new Instruments().createSampler("piano", (piano) => {
-    piano.toDestination();
+const userSampler = new Instruments().createSampler("harpischord", (harpischord) => {
+    harpischord.toDestination();
 });
 
-const AISampler = new Instruments().createSampler("piano", (piano) => {
-    piano.toDestination();
+const AISampler = new Instruments().createSampler("harpischord", (harpischord) => {
+    harpischord.toDestination();
 });
 
 const metronomeSampler = new Instruments().createSampler(

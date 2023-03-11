@@ -1,5 +1,5 @@
 import Vue from "vue";
-import { createRange } from "../../library/music"
+import { createRange } from "../../library/instruments"
 
 // TODO the names of most of the buffers/arrays/maps are not representative of 
 // their actual functionality

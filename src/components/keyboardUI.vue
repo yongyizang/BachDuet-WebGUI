@@ -35,7 +35,6 @@
 
 <script>
 import * as Tone from "tone";
-import Instruments from "@/library/instruments";
 import { clamp } from "@/library/math";
 
 // Here, a set of constants are defined.
