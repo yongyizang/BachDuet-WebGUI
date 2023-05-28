@@ -1,5 +1,5 @@
 <template>
-  <div ref="score" id="pianoScores">
+  <div @wheel="onWheel" ref="score" id="pianoScores">
     <div v-touch:swipe.up="triggerCollapse" id="scoreWrapper">
       <div id="fadeBlockStart"></div>
       <div id="grandStaff"></div>
@@ -75,6 +75,7 @@ export default {
       durations: null,
       lastXOffsetOnBar: null, // TODO delete that after I'm done
       viewX: 30,
+      lastviewX: 30,
       xTreble: 30,
       xBass: 30,
       xCurrent: 30,
@@ -208,9 +209,16 @@ export default {
     },
 
     scrollScore(steps) {
+      this.viewX = this.lastviewX;
       this.viewX +=
         (steps * (this.scrollStepTime * this.tickStepPixels)) /
         ((1000 * 60) / this.$store.getters.getBPM / 4);
+      this.context.setViewBox(this.viewX, 0, this.screenWidth, 300);
+      this.lastviewX = this.viewX;
+    },
+
+    onWheel(event) {
+      this.viewX -= event.deltaX;
       this.context.setViewBox(this.viewX, 0, this.screenWidth, 300);
     },
 
