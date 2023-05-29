@@ -218,7 +218,7 @@ export default {
     },
 
     onWheel(event) {
-      this.viewX -= event.deltaX;
+      this.viewX -= (event.deltaX + event.deltaY);
       this.context.setViewBox(this.viewX, 0, this.screenWidth, 300);
     },
 
