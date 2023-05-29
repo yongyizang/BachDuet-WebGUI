@@ -1,46 +1,39 @@
-import { createRange } from "./music"
+/*
+ * Instruments.js defines the sampler instrument class that are later exposed to the main vue.
+*/
 import { Sampler } from "tone"
-
-// Define the set of notes.
-const NOTES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
-
+import { note, transpose } from "@tonaljs/tonal"
+import { enharmonic } from "@tonaljs/note"
 // Define the instrument samples' base URL. this should be where all samples are stored.
-export const INSTRUMENT_BASE_URL = "/audio/samples/"
+export const INSTRUMENT_BASE_URL = "/samples/"
 
 // Define the ranges of each instrument (as samples provided)
 export const SAMPLE_RANGES = {
   metronome: ["C0", "C#0"], // C0 for high_woodblock, C#0 for low_woodblock;
-  bassElectric: ["A#2", "G5"],
-  bassoon: ["A1", "G3"],
-  cello: ["A2", "G#4"],
-  clarinet: ["A#2", "F#5"],
-  contrabass: ["A1", "G#2"],
-  flute: ["A3", "E5"],
-  frenchHorn: ["A0", "G1"],
-  guitarAcoustic: ["A1", "G#3"],
-  guitarElectric: ["A2", "F#5"],
-  guitarNylon: ["A2", "G#5"],
-  harmonium: ["A2", "G#4"],
-  harp: ["A2", "G5"],
-  organ: ["A1", "F#5"],
-  piano: ["A0", "C7"], // TODO: Find alternate samples with full piano range.
-  saxophone: ["A3", "G#4"],
-  trombone: ["A#0", "G#2"],
-  trumpet: ["A2", "G3"],
-  tuba: ["A#0", "F2"],
-  violin: ["A3", "G6"]
-  // xylophone: [] // TODO: Find out why samples are missing or find alternatives.
+  harpischord: ["C2", "B6"], // TODO: Find alternate samples with full piano range.
 }
 
-export const INSTRUMENT_NAMES = Object.keys(SAMPLE_RANGES)
+export function createRange(from, to) {
+  let fromNote = note(from)
+  const toNote = note(to)
 
-export const AVAILABLE_FORMATS = ["mp3", "ogg", "wav"]
-
+  if (fromNote.height >= toNote.height) {
+    throw new Error("Reverse ranges are not yet implemented.")
+  }
+  if (fromNote.acc === "b") {
+    fromNote = note(enharmonic(fromNote))
+  }
+  let range = []
+  for (let i = 0, l = toNote.height - fromNote.height, currNote = fromNote; i < l; i++) {
+    range.push(currNote)
+    currNote = note(enharmonic(transpose(currNote, "m2")))
+  }
+  return range
+}
 export default class Instruments {
   constructor() {
     this.samplers = {}
     this.sampleMaps = {}
-
     this.generateSampleMaps()
   }
 
@@ -71,7 +64,7 @@ export default class Instruments {
   }
 
   createSampler(instrument, callback) {
-    if (!INSTRUMENT_NAMES.includes(instrument)) {
+    if (!Object.keys(SAMPLE_RANGES).includes(instrument)) {
       throw new Error(`Invalid instrument - ${instrument}. We don't currently support this instrument.`)
       return
     }

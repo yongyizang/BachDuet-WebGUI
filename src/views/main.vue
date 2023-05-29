@@ -6,11 +6,8 @@
     <div ref="mainLoadingScreen" id="mainLoadingScreen">
       <div id="loadingScreenInjection" class="center">
         <h1 class="loadingTitle">
-          <p
-            class="loadingTypewriter"
-            data-period="300"
-            data-type='[ "Hello!", "This is BachDuet.", "A Musical Genius.", "Well... Sort of.", "Studied from Bach.", "That Bach.", "No, Really.", "Wanna Try me?"]'
-          >
+          <p class="loadingTypewriter" data-period="300"
+            data-type='[ "Hello!", "This is BachDuet.", "A Musical Genius.", "Well... Sort of.", "Studied from Bach.", "That Bach.", "No, Really.", "Wanna Try me?"]'>
             <span class="wrap"></span>
           </p>
         </h1>
@@ -18,14 +15,9 @@
           Loading in The Neural Network...
         </p>
         <div style="padding-bottom: 20px">
-          <toggle-button
-            color="#74601c"
-            :value="true"
-            @change="onPrivacyAgreeBtn($event)"
-          />
+          <toggle-button color="#74601c" :value="true" @change="onPrivacyAgreeBtn($event)" />
           <span>
-            Send us data of your interaction with BachDuet anonymously.</span
-          >
+            Send us data of your interaction with BachDuet anonymously.</span>
         </div>
         <button @click="entryProgram" ref="entryBtn" class="entryBtn">
           Play with Neural Network
@@ -41,23 +33,21 @@
     </div>
 
     <div ref="mainContent" id="mainContent" class="fade-in">
-      <div
-        style="
+      <div style="
           background-color: black;
           opacity: 0.5;
           display: fixed;
           top: 0;
           right: 0;
           z-index: 999;
-        "
-      ></div>
+        "></div>
       <scoreUI />
       <gameUI />
       <!-- <neuralNet /> -->
       <div style="position: absolute; bottom: 230px; right: 20px">
         <md-button @click="toggleClock" class="md-raised" style="width: 40px">
-          <md-icon>{{ localSyncClockStatus ? "pause" : "play_arrow" }}</md-icon>
-          <span> {{ localSyncClockStatus ? "Pause" : "Play" }}</span>
+          <md-icon>{{ localSyncClockStatus? "pause": "play_arrow" }}</md-icon>
+          <span> {{ localSyncClockStatus? "Pause": "Play" }}</span>
         </md-button>
         <md-button @click="showSettingsModal" class="md-raised">
           <md-icon>settings</md-icon>
@@ -72,66 +62,37 @@
           <span> About </span>
         </md-button>
       </div>
-      <md-button
-        v-if="keyboardUIoctaveEnd !== 8"
-        @click="transposeOctUp"
-        class="md-icon-button md-raised"
-        style="position: absolute; right: 20px; bottom: 100px"
-      >
+      <md-button v-if="keyboardUIoctaveEnd !== 8" @click="transposeOctUp" class="md-icon-button md-raised"
+        style="position: absolute; right: 20px; bottom: 100px">
         <md-icon>arrow_forward</md-icon>
       </md-button>
-      <md-button
-        v-if="keyboardUIoctaveStart !== 0"
-        @click="transposeOctDown"
-        class="md-icon-button md-raised"
-        style="position: absolute; left: 20px; bottom: 100px"
-      >
+      <md-button v-if="keyboardUIoctaveStart !== 0" @click="transposeOctDown" class="md-icon-button md-raised"
+        style="position: absolute; left: 20px; bottom: 100px">
         <md-icon>arrow_back</md-icon>
       </md-button>
-      <keyboardUI
-        id="pianoKeyboard"
-        class="pianoKeyboard"
-        ref="usersKeyboardUIref"
-        :key="keyboardUIKey"
-        :octave-start="keyboardUIoctaveStart"
-        :octave-end="keyboardUIoctaveEnd"
-      />
-      <modal
-        name="feedbackModal"
-        :minHeight="500"
-        :adaptive="true"
-        @opened="modalCallback"
-        @closed="modalCallback"
-      >
-        <div
-          style="
+      <keyboardUI id="pianoKeyboard" class="pianoKeyboard" ref="usersKeyboardUIref" :key="keyboardUIKey"
+        :octave-start="keyboardUIoctaveStart" :octave-end="keyboardUIoctaveEnd" />
+      <modal name="feedbackModal" :minHeight="500" :adaptive="true" @opened="modalCallback" @closed="modalCallback">
+        <div style="
             padding: 20px;
             height: 100%;
             background-color: rgb(243, 225, 190);
-          "
-        >
-          <p
-            style="
+          ">
+          <p style="
               font-weight: 800;
               font-size: 2rem;
               margin: 0;
               padding-top: 20px;
               padding-bottom: 10px;
-            "
-          >
+            ">
             Feedback
           </p>
           <hr style="border-top: 1px solid #000; opacity: 12%" />
           <p class="settingsSubtitle">
             How would you rate your experience using BachDuet?
           </p>
-          <star-rating
-            v-model="feedbackRating"
-            inactive-color="#e1bad9"
-            active-color="#cc1166"
-            :increment="0.01"
-            :fixed-points="2"
-          ></star-rating>
+          <star-rating v-model="feedbackRating" inactive-color="#e1bad9" active-color="#cc1166" :increment="0.01"
+            :fixed-points="2"></star-rating>
           <p class="settingsSubtitle">
             Please tell us more about your experience.
           </p>
@@ -139,51 +100,32 @@
             <label>What's your experience using BachDuet?</label>
             <md-textarea v-model="feedbackText"></md-textarea>
           </md-field>
-          <md-button
-            @click="submitFeedback"
-            class="md-raised"
-            style="width: 100%"
-          >
+          <md-button @click="submitFeedback" class="md-raised" style="width: 100%">
             Submit
           </md-button>
         </div>
       </modal>
-      <modal
-        name="aboutModal"
-        :minHeight="300"
-        :adaptive="true"
-        @opened="modalCallback"
-        @closed="modalCallback"
-      >
-        <div
-          style="
+      <modal name="aboutModal" :minHeight="300" :adaptive="true" @opened="modalCallback" @closed="modalCallback">
+        <div style="
             padding: 20px;
             height: 100%;
             background-color: rgb(243, 225, 190);
-          "
-        >
-          <p
-            style="
+          ">
+          <p style="
               font-weight: 800;
               font-size: 2rem;
               margin: 0;
               padding-top: 20px;
               padding-bottom: 10px;
-            "
-          >
+            ">
             About
           </p>
           <hr style="border-top: 1px solid #000; opacity: 12%" />
           <p>
             By
-            <a href="http://www2.ece.rochester.edu/projects/air/index.html"
-              >AIRLab</a
-            >, University of Rochester.<br />
+            <a href="http://www2.ece.rochester.edu/projects/air/index.html">AIRLab</a>, University of Rochester.<br />
             Based on original work of Christodoulos Benetatos.
-            <a
-              href="http://www2.ece.rochester.edu/projects/air/publications/benetatos20bachduet.pdf"
-              >PDF</a
-            ><br />
+            <a href="http://www2.ece.rochester.edu/projects/air/publications/benetatos20bachduet.pdf">PDF</a><br />
             Website developed by
             <a href="https://github.com/mrmrmrfinch">Yongyi Zang</a>,
             <a href="https://github.com/xribene">Christodoulos Benetatos</a> and
@@ -191,29 +133,19 @@
           </p>
         </div>
       </modal>
-      <modal
-        name="settingsModal"
-        :minHeight="600"
-        :adaptive="true"
-        @opened="modalCallback"
-        @closed="modalCallback"
-      >
-        <div
-          style="
+      <modal name="settingsModal" :minHeight="600" :adaptive="true" @opened="modalCallback" @closed="modalCallback">
+        <div style="
             padding: 20px;
             height: 100%;
             background-color: rgb(243, 225, 190);
-          "
-        >
-          <p
-            style="
+          ">
+          <p style="
               font-weight: 800;
               font-size: 2rem;
               margin: 0;
               padding-top: 20px;
               padding-bottom: 10px;
-            "
-          >
+            ">
             Settings
           </p>
           <hr style="border-top: 1px solid #000; opacity: 12%" />
@@ -221,95 +153,60 @@
           <div class="md-layout md-gutter md-alignment-center">
             <div class="md-layout-item md-small-size-50 md-xsmall-size-100">
               <div class="settingsDiv">
-                <p class="settingsOptionTitle">BPM</p>
+                <p class="settingsOptionTitle">BPM (Max: {{ optimalBPM }})</p>
                 <div style="padding-top: 14px">
                   <p class="settingsValue">{{ BPM }}</p>
-                  <vue-slider
-                    v-model="BPM"
-                    :lazy="true"
-                    :min="60"
-                    :max="120"
-                    class="settingsSlider"
-                  ></vue-slider>
+                  <vue-slider v-model="BPM" :lazy="true" :min="60" :max="120" class="settingsSlider"></vue-slider>
                 </div>
               </div>
             </div>
             <div class="md-layout-item md-small-size-50 md-xsmall-size-100">
               <div class="settingsDiv">
                 <span class="settingsOptionTitle">Metronome</span>
-                <toggle-button
-                  color="#74601c"
-                  :value="true"
-                  @change="toggleMetronome"
-                  style="transform: scale(0.9); padding-top: 17px"
-                />
+                <toggle-button color="#74601c" :value="true" @change="toggleMetronome"
+                  style="transform: scale(0.9); padding-top: 17px" />
               </div>
             </div>
             <div class="md-layout-item md-small-size-50 md-xsmall-size-100">
               <div class="settingsDiv">
                 <p class="settingsOptionTitle">Your Piano Volume</p>
                 <p class="settingsValue">{{ userPianoVolume }}</p>
-                <vue-slider
-                  v-model="userPianoVolume"
-                  :lazy="true"
-                  :min="1"
-                  :max="10"
-                  class="settingsSlider"
-                ></vue-slider>
+                <vue-slider v-model="userPianoVolume" :lazy="true" :min="1" :max="10"
+                  class="settingsSlider"></vue-slider>
               </div>
             </div>
             <div class="md-layout-item md-small-size-50 md-xsmall-size-100">
               <div class="settingsDiv">
                 <p class="settingsOptionTitle">Network Piano Volume</p>
                 <p class="settingsValue">{{ AIPianoVolume }}</p>
-                <vue-slider
-                  v-model="AIPianoVolume"
-                  :lazy="true"
-                  :min="1"
-                  :max="10"
-                  class="settingsSlider"
-                ></vue-slider>
+                <vue-slider v-model="AIPianoVolume" :lazy="true" :min="1" :max="10" class="settingsSlider"></vue-slider>
               </div>
             </div>
           </div>
           <p class="settingsSubtitle">MIDI</p>
 
           <div class="MIDIInput" v-if="WebMIDISupport">
-            <Dropdown
-              :options="activeDevices"
-              v-on:selected="onMIDIDeviceSelectedChange"
-              placeholder="Type here to search for MIDI device"
-            >
+            <Dropdown :options="activeDevices" v-on:selected="onMIDIDeviceSelectedChange"
+              placeholder="Type here to search for MIDI device">
             </Dropdown>
           </div>
           <span v-else="WebMIDISupport">
             Currently, Using MIDI devices in browser is only supported by Google
             Chrome v43+, Opera v30+ and Microsoft Edge v79+. Please update to
             one of those browsers if you want to use Web MIDI
-            functionalities.</span
-          >
+            functionalities.</span>
           <p class="settingsSubtitle">Network</p>
           <div class="md-layout md-gutter md-alignment-center">
-            <div
-              class="md-layout-item md-medium-size-33 md-small-size-50 md-xsmall-size-100"
-            >
+            <div class="md-layout-item md-medium-size-33 md-small-size-50 md-xsmall-size-100">
               <div class="settingsDiv">
                 <p class="settingsOptionTitle">Randomness</p>
                 <p style="margin: 0; padding-bottom: 5px">
                   {{ this.number2RandomnessDescription(temperature) }}
                 </p>
-                <vue-slider
-                  v-model="temperature"
-                  :lazy="true"
-                  :tooltip="'none'"
-                  :min="1"
-                  :max="200"
-                ></vue-slider>
+                <vue-slider v-model="temperature" :lazy="true" :tooltip="'none'" :min="1" :max="200"></vue-slider>
               </div>
             </div>
-            <div
-              class="md-layout-item md-medium-size-33 md-small-size-50 md-xsmall-size-100"
-            >
+            <div class="md-layout-item md-medium-size-33 md-small-size-50 md-xsmall-size-100">
               <md-button @click="resetNetwork" style="width: 100%">
                 <md-icon>close</md-icon>
                 <span>Reset Network</span>
@@ -322,9 +219,7 @@
           </div>
           <p class="settingsSubtitle">Privacy</p>
           <div class="md-layout md-gutter md-alignment-center">
-            <div
-              class="md-layout-item md-medium-size-33 md-small-size-50 md-xsmall-size-100"
-            >
+            <div class="md-layout-item md-medium-size-33 md-small-size-50 md-xsmall-size-100">
               <span>
                 If you chose to send us your data, all your data is gathered
                 anonymously, and would only be used for research purposes.<br />
@@ -333,45 +228,29 @@
                 performance data.
               </span>
             </div>
-            <div
-              class="md-layout-item md-medium-size-33 md-small-size-50 md-xsmall-size-100"
-            >
-              <md-button
-                @click="killData"
-                class="md-raised md-accent"
-                style="height: 100%; width: 100%"
-                >Kill Your Data<br /><br />Session ID:<br />{{
+            <div class="md-layout-item md-medium-size-33 md-small-size-50 md-xsmall-size-100">
+              <md-button @click="killData" class="md-raised md-accent" style="height: 100%; width: 100%">Kill Your
+                Data<br /><br />Session ID:<br />{{
                   this.$store.getters.getSessionID
-                }}</md-button
-              >
+                }}</md-button>
             </div>
           </div>
         </div>
       </modal>
-      <modal
-        name="introModal"
-        :minHeight="600"
-        :adaptive="true"
-        @opened="modalCallback"
-        @closed="modalCallback"
-      >
-        <div
-          style="
+      <modal name="introModal" :minHeight="600" :adaptive="true" @opened="modalCallback" @closed="modalCallback">
+        <div style="
             padding: 20px;
             height: 100%;
             background-color: rgb(243, 225, 190);
-          "
-        >
-          <p
-            style="
+          ">
+          <p style="
               font-weight: 800;
               font-size: 2rem;
               margin: 0;
               padding-top: 20px;
               padding-bottom: 10px;
-            "
-          >
-          Introduction
+            ">
+            Introduction
           </p>
           <p>
             Hi! This is BachDuet, your AI partner for collaborative
@@ -385,24 +264,26 @@
             <br /><br />
 
             In “Settings”, you can reset or change the randomness of the AI model,
-            you can change the metronome, the volume, or choose to delete all of 
+            you can change the metronome, the volume, or choose to delete all of
             your data after playing.
             <br /><br />
             For better results:
-            <ul>
-              <li>Try to play <i>legato</i></li>
-              <li>Try to play in sync with the metronome</li>
-              <li>Try to interact with Bachduet. BachDuet aims to be an equal improvisation partner and not a passive accompaniment system</li>
-              <li>Feel free to change keys. The more naturally you modulate (i.e using a cadence) the better BachDuet will follow.</li>
-            </ul>
-            If you encounter many pop up "bug" messages, it might be because the
-            neural network is not running fast enough on your device. You can
-            try decreasing the metronome's BPM or using a more powerful device.
-            <br /><br />
+          <ul>
+            <li>Try to play <i>legato</i></li>
+            <li>Try to play in sync with the metronome</li>
+            <li>Try to interact with Bachduet. BachDuet aims to be an equal improvisation partner and not a passive
+              accompaniment system</li>
+            <li>Feel free to change keys. The more naturally you modulate (i.e using a cadence) the better BachDuet will
+              follow.</li>
+          </ul>
+          If you encounter many pop up "bug" messages, it might be because the
+          neural network is not running fast enough on your device. You can
+          try decreasing the metronome's BPM or using a more powerful device.
+          <br /><br />
 
-            If you encounter any problem, please let us know. We would greatly
-            appreciate your input!
-            <br /><br />
+          If you encounter any problem, please let us know. We would greatly
+          appreciate your input!
+          <br /><br />
           </p>
         </div>
       </modal>
@@ -491,6 +372,8 @@ export default {
       feedbackText: "",
       userNoteBuffer2Firebase: [],
       AINoteBuffer2Firebase: [],
+      modelInferenceTimes: [],
+      optimalBPM: 0,
       isNotChrome: navigator.userAgent.indexOf("Chrome") <= -1,
       isMobile:
         /(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|ipad|iris|kindle|Android|Silk|lge |maemo|midp|mmp|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows (ce|phone)|xda|xiino/i.test(
@@ -776,16 +659,6 @@ export default {
   },
 
   methods: {
-    // downloadToFile = (content, filename, contentType) => {
-    //     const a = document.createElement('a');
-    //     const file = new Blob([content], {type: contentType});
-
-    //     a.href= URL.createObjectURL(file);
-    //     a.download = filename;
-    //     a.click();
-
-    //     URL.revokeObjectURL(a.href);
-    // },
     downloadToFile(content, filename, contentType) {
       const a = document.createElement("a");
       const file = new Blob([content], { type: contentType });
@@ -903,10 +776,10 @@ export default {
           midiArticInd: aiInp.humanInp.midiArticInd,
         });
       }
+      vm.calculateOptimalBPM();
     },
 
     async workerCallback(e) {
-      
       const vm = this;
       const workerStatus = vm.$refs.workerStatus;
       // If the worker is giving us only string
@@ -915,7 +788,6 @@ export default {
           vm.$refs.entryBtn.classList.add("fade-in");
           vm.$refs.entryBtn.style.visibility = "visible";
           vm.modelLoadTime = Date.now() - vm.modelLoadTime;
-
           // try writing to firebase
           try {
             const docRef = await addDoc(collection(db, "data"), {
@@ -942,26 +814,30 @@ export default {
       } else {
         // If the worker is giving us ai prediction
         var aiPrediction = e.data;
-        // Misalignment Check
-        // Will block first 2 ticks' misalignment error msg
-        if ((aiPrediction.tick !== this.$store.getters.getLocalTickDelayed) && (this.$store.getters.getGlobalTick > 2)) {
-          this.$toasted.show(
-            "Network tick misalignment: expecting " +
+        if (aiPrediction.predictTime >= 0) {
+          vm.modelInferenceTimes.push(aiPrediction.predictTime);
+        } else {
+          // Misalignment Check
+          // Will block first 2 ticks' misalignment error msg
+          if ((aiPrediction.tick !== this.$store.getters.getLocalTickDelayed) && (this.$store.getters.getGlobalTick > 2)) {
+            this.$toasted.show(
+              "Network tick misalignment: expecting " +
               this.$store.getters.getLocalTickDelayed +
               ", get " +
               aiPrediction.tick
-          );
-          this.misalignErrCount += 1;
-        }
-        this.$store.dispatch("newAiPrediction", aiPrediction);
-        // try writing to firebase, if there's user permission
-        if (this.$store.getters.getDataCollectingState) {
-          vm.AINoteBuffer2Firebase.push({
-            tick: e.data.tick,
-            barNum: vm.$store.getters.getBarNumber,
-            type: "AI",
-            midiArticInd: e.data.midiArticInd,
-          });
+            );
+            this.misalignErrCount += 1;
+          }
+          this.$store.dispatch("newAiPrediction", aiPrediction);
+          // try writing to firebase, if there's user permission
+          if (this.$store.getters.getDataCollectingState) {
+            vm.AINoteBuffer2Firebase.push({
+              tick: e.data.tick,
+              barNum: vm.$store.getters.getBarNumber,
+              type: "AI",
+              midiArticInd: e.data.midiArticInd,
+            });
+          }
         }
       }
       this.reset = false; // for explanation see the comment about reset inside runTheWorker()
@@ -1060,7 +936,7 @@ export default {
           name = lastNote;
           if (
             this.$store.getters.getGlobalTick -
-              this.$store.getters.getLastNotePlayedOnTick >
+            this.$store.getters.getLastNotePlayedOnTick >
             1
           ) {
             // if the note is active for more than 1 tick
@@ -1110,7 +986,7 @@ export default {
 
             setTimeout(function () {
               vm.runTheWorker();
-            }, parseInt(((60 / vm.$store.getters.getBPM / 4) * 1000) / 4)); //
+            }, parseInt(((60 / vm.$store.getters.getBPM / 4) * 1000) / 4));
 
             if (vm.$store.getters.getLocalTick % 16 === 0) {
               try {
@@ -1230,14 +1106,17 @@ export default {
         return "9"//"A bit too random";
       } else if (num <= 200) {
         return "10"//"Careful! So much randomness";
-      } 
-      // else {
-      //   return //"OMG Maximum RANDOMNESS";
-      // }
+      }
     },
 
     modalCallback() {
       this.$store.commit("changeModalStatus");
+    },
+
+    calculateOptimalBPM(){
+      const vm = this;
+      vm.optimalBPM = vm.modelInferenceTimes.sort(function(a, b){return a-b})[Math.floor(vm.modelInferenceTimes.length * 0.95)];
+      vm.optimalBPM = Math.round(60 / vm.optimalBPM * 1000);
     },
 
     // For data kill switch in modal.
@@ -1341,16 +1220,19 @@ export default {
     opacity: 0;
     visibility: hidden;
   }
+
   100% {
     opacity: 1;
   }
 }
+
 @keyframes fade-in {
   0% {
     display: none;
     opacity: 0;
     visibility: hidden;
   }
+
   100% {
     opacity: 1;
   }
@@ -1365,15 +1247,18 @@ export default {
   0% {
     opacity: 1;
   }
+
   100% {
     opacity: 0;
     display: none;
   }
 }
+
 @keyframes fade-out {
   0% {
     opacity: 1;
   }
+
   100% {
     opacity: 0;
     display: none;
@@ -1422,8 +1307,7 @@ export default {
 }
 
 .entryBtn:active {
-  -webkit-animation: scale-down-center 0.05s
-    cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+  -webkit-animation: scale-down-center 0.05s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
   animation: scale-down-center 0.05s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
 }
 
@@ -1442,21 +1326,25 @@ export default {
     -webkit-transform: scale(1);
     transform: scale(1);
   }
+
   100% {
     -webkit-transform: scale(0.95);
     transform: scale(0.95);
   }
 }
+
 @keyframes scale-down-center {
   0% {
     -webkit-transform: scale(1);
     transform: scale(1);
   }
+
   100% {
     -webkit-transform: scale(0.95);
     transform: scale(0.95);
   }
 }
+
 .settingsSubtitle {
   margin: 0;
   font-weight: 800;
@@ -1464,18 +1352,22 @@ export default {
   padding-top: 30px;
   padding-bottom: 5px;
 }
+
 .settingsDiv {
   height: 50px;
   padding-top: 5px;
 }
+
 .settingsOptionTitle {
   margin: 0;
   font-weight: 800;
 }
+
 .settingsValue {
   margin: 0;
   font-size: 20px;
 }
+
 .settingsSlider {
   margin-top: -18px;
   margin-left: 50px;
