@@ -629,6 +629,7 @@ export default {
   position: absolute;
   left: 10px;
   top: 0;
+  overflow: hidden;
 }
 
 #scoreWrapper {
