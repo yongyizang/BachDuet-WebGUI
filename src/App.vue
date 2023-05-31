@@ -3,7 +3,7 @@
     <div ref="LoadingScreen" id="LoadingScreen">
       <div class="center">
         <p ref="workerStatus" class="loadingStatus">
-          Loading Static Files for BachDuet...
+          正在加载 AI 巴赫的静态文件...
         </p>
         <div class="loader">
   <div class="loaderBar"></div>

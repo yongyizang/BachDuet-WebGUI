@@ -7,27 +7,26 @@
       <div id="loadingScreenInjection" class="center">
         <h1 class="loadingTitle">
           <p class="loadingTypewriter" data-period="300"
-            data-type='[ "Hello!", "This is BachDuet.", "A Musical Genius.", "Well... Sort of.", "Studied from Bach.", "That Bach.", "No, Really.", "Wanna Try me?"]'>
+            data-type='[ "你好呀～", "我是 AI 巴赫。", "他们说我是个音乐天才。", "啊...也可以这么说吧。", "我师从巴赫他老人家", "对，就是那个巴赫", "想跟我演奏一下吗？"]'>
             <span class="wrap"></span>
           </p>
         </h1>
         <p ref="workerStatus" class="loadingStatus">
-          Loading in The Neural Network...
+          正在加载神经网络...
         </p>
         <div style="padding-bottom: 20px">
           <toggle-button color="#74601c" :value="true" @change="onPrivacyAgreeBtn($event)" />
           <span>
-            Send us data of your interaction with BachDuet anonymously.</span>
+            匿名发送给研究者你的演奏数据</span>
         </div>
         <button @click="entryProgram" ref="entryBtn" class="entryBtn">
-          Play with Neural Network
+          和 AI 巴赫一起演奏
         </button>
         <p v-if="isNotChrome">
-          We highly recommend using Chrome for better user experience.
+          我们目前只支持 Chrome 浏览器。请使用 Chrome 浏览器打开。
         </p>
         <p v-if="isMobile">
-          The model may not perform normally on mobile devices. We recommend
-          using Desktop computers.
+          这个 demo 目前只支持电脑端。请使用电脑打开。
         </p>
       </div>
     </div>
@@ -47,19 +46,19 @@
       <div style="position: absolute; bottom: 230px; right: 20px">
         <md-button @click="toggleClock" class="md-raised" style="width: 40px">
           <md-icon>{{ localSyncClockStatus? "pause": "play_arrow" }}</md-icon>
-          <span> {{ localSyncClockStatus? "Pause": "Play" }}</span>
+          <span> {{ localSyncClockStatus? "暂停": "开始" }}</span>
         </md-button>
         <md-button @click="showSettingsModal" class="md-raised">
           <md-icon>settings</md-icon>
-          <span> Settings </span>
+          <span> 设置 </span>
         </md-button>
         <md-button @click="showFeedbackModal" class="md-raised">
           <md-icon>chat</md-icon>
-          <span> Feedback </span>
+          <span> 反馈 </span>
         </md-button>
         <md-button @click="showAboutModal" class="md-raised">
           <md-icon>groups</md-icon>
-          <span> About </span>
+          <span> 关于我们 </span>
         </md-button>
       </div>
       <md-button v-if="keyboardUIoctaveEnd !== 8" @click="transposeOctUp" class="md-icon-button md-raised"
@@ -85,7 +84,7 @@
               padding-top: 20px;
               padding-bottom: 10px;
             ">
-            Feedback
+            反馈
           </p>
           <hr style="border-top: 1px solid #000; opacity: 12%" />
           <p class="settingsSubtitle">
@@ -118,18 +117,18 @@
               padding-top: 20px;
               padding-bottom: 10px;
             ">
-            About
+            关于我们
           </p>
           <hr style="border-top: 1px solid #000; opacity: 12%" />
           <p>
-            By
-            <a href="http://www2.ece.rochester.edu/projects/air/index.html">AIRLab</a>, University of Rochester.<br />
-            Based on original work of Christodoulos Benetatos.
+            来自罗切斯特大学的
+            <a href="http://www2.ece.rochester.edu/projects/air/index.html">AIR Lab</a><br />;
+            基于 Christodoulos Benetatos 的工作。
             <a href="http://www2.ece.rochester.edu/projects/air/publications/benetatos20bachduet.pdf">PDF</a><br />
-            Website developed by
-            <a href="https://github.com/mrmrmrfinch">Yongyi Zang</a>,
-            <a href="https://github.com/xribene">Christodoulos Benetatos</a> and
-            Tianyu Huang.<br />
+            这个网站是由
+            <a href="https://github.com/mrmrmrfinch">臧永宜</a>,
+            <a href="https://github.com/xribene">Christodoulos Benetatos</a> 和
+            黄天宇共同开发的。<br />
           </p>
         </div>
       </modal>
@@ -146,14 +145,14 @@
               padding-top: 20px;
               padding-bottom: 10px;
             ">
-            Settings
+            设置
           </p>
           <hr style="border-top: 1px solid #000; opacity: 12%" />
-          <p class="settingsSubtitle">Audio</p>
+          <p class="settingsSubtitle">音频设置</p>
           <div class="md-layout md-gutter md-alignment-center">
             <div class="md-layout-item md-small-size-50 md-xsmall-size-100">
               <div class="settingsDiv">
-                <p class="settingsOptionTitle">BPM (Max: {{ optimalBPM }})</p>
+                <p class="settingsOptionTitle">BPM (最大允许: {{ optimalBPM }})</p>
                 <div style="padding-top: 14px">
                   <p class="settingsValue">{{ BPM }}</p>
                   <vue-slider v-model="BPM" :lazy="true" :min="60" :max="120" class="settingsSlider"></vue-slider>
@@ -162,14 +161,14 @@
             </div>
             <div class="md-layout-item md-small-size-50 md-xsmall-size-100">
               <div class="settingsDiv">
-                <span class="settingsOptionTitle">Metronome</span>
+                <span class="settingsOptionTitle">节拍器</span>
                 <toggle-button color="#74601c" :value="true" @change="toggleMetronome"
                   style="transform: scale(0.9); padding-top: 17px" />
               </div>
             </div>
             <div class="md-layout-item md-small-size-50 md-xsmall-size-100">
               <div class="settingsDiv">
-                <p class="settingsOptionTitle">Your Piano Volume</p>
+                <p class="settingsOptionTitle">你的琴键音量</p>
                 <p class="settingsValue">{{ userPianoVolume }}</p>
                 <vue-slider v-model="userPianoVolume" :lazy="true" :min="1" :max="10"
                   class="settingsSlider"></vue-slider>
@@ -177,7 +176,8 @@
             </div>
             <div class="md-layout-item md-small-size-50 md-xsmall-size-100">
               <div class="settingsDiv">
-                <p class="settingsOptionTitle">Network Piano Volume</p>
+                <p class="settingsOptionTitle">AI 巴赫的琴键音量
+                </p>
                 <p class="settingsValue">{{ AIPianoVolume }}</p>
                 <vue-slider v-model="AIPianoVolume" :lazy="true" :min="1" :max="10" class="settingsSlider"></vue-slider>
               </div>
@@ -187,29 +187,27 @@
 
           <div class="MIDIInput" v-if="WebMIDISupport">
             <Dropdown :options="activeDevices" v-on:selected="onMIDIDeviceSelectedChange"
-              placeholder="Type here to search for MIDI device">
+              placeholder="在这里打字查找你的 MIDI 设备">
             </Dropdown>
           </div>
           <span v-else="WebMIDISupport">
-            Currently, Using MIDI devices in browser is only supported by Google
-            Chrome v43+, Opera v30+ and Microsoft Edge v79+. Please update to
-            one of those browsers if you want to use Web MIDI
-            functionalities.</span>
-          <p class="settingsSubtitle">Network</p>
+            目前，仅支持使用Google Chrome v43+，Opera v30+和Microsoft Edge v79+浏览器中的MIDI设备。如果您想使用Web MIDI功能，请更新到其中一个浏览器。
+          </span>
+          <p class="settingsSubtitle">神经网络</p>
           <div class="md-layout md-gutter md-alignment-center">
             <div class="md-layout-item md-medium-size-33 md-small-size-50 md-xsmall-size-100">
               <div class="settingsDiv">
-                <p class="settingsOptionTitle">Randomness</p>
+                <p class="settingsOptionTitle">随机性</p>
                 <p style="margin: 0; padding-bottom: 5px">
                   {{ this.number2RandomnessDescription(temperature) }}
                 </p>
-                <vue-slider v-model="temperature" :lazy="true" :tooltip="'none'" :min="1" :max="200"></vue-slider>
+                <vue-slider v-model="temperature" :lazy="true" :tooltip="'none'" :min="1" :max="200"></vue-slider>s
               </div>
             </div>
             <div class="md-layout-item md-medium-size-33 md-small-size-50 md-xsmall-size-100">
               <md-button @click="resetNetwork" style="width: 100%">
                 <md-icon>close</md-icon>
-                <span>Reset Network</span>
+                <span>AI 巴赫重生</span>
               </md-button>
               <!-- <md-button @click="writeStates" style="width: 100%">
                 <md-icon>close</md-icon>
@@ -217,20 +215,16 @@
               </md-button> -->
             </div>
           </div>
-          <p class="settingsSubtitle">Privacy</p>
+          <p class="settingsSubtitle">隐私</p>
           <div class="md-layout md-gutter md-alignment-center">
             <div class="md-layout-item md-medium-size-33 md-small-size-50 md-xsmall-size-100">
               <span>
-                If you chose to send us your data, all your data is gathered
-                anonymously, and would only be used for research purposes.<br />
-                If you want to delete all data sent to our server, click the big
-                red button. It would destroy all your play data and all app
-                performance data.
+                如果您选择向我们发送数据，则所有数据都将匿名收集，并且仅用于研究目的。<br />
               </span>
             </div>
             <div class="md-layout-item md-medium-size-33 md-small-size-50 md-xsmall-size-100">
-              <md-button @click="killData" class="md-raised md-accent" style="height: 100%; width: 100%">Kill Your
-                Data<br /><br />Session ID:<br />{{
+              <md-button @click="killData" class="md-raised md-accent" style="height: 100%; width: 100%">清除数据
+              <br /><br />Session ID:<br />{{
                   this.$store.getters.getSessionID
                 }}</md-button>
             </div>
@@ -250,39 +244,22 @@
               padding-top: 20px;
               padding-bottom: 10px;
             ">
-            Introduction
+            简介
           </p>
           <p>
-            Hi! This is BachDuet, your AI partner for collaborative
-            improvisation in the style of Bach chorales. We recommend using
-            <span style="font-weight: 600">Chrome</span> and desktop/laptop
-            computers for best support. <br /><br />
-
-            Simply click on the “Play” button and start playing. You could use
-            your computer keyboard, the on-screen keyboard or an external MIDI
-            keyboard.
+            你好！这是 AI 巴赫。我师从巴赫 —— 严格来说，我身体里的 LSTM 部分会以巴赫赞美诗的风格进行合作即兴演奏。我们建议使用 <span style="font-weight: 600">Chrome</span> 和台式机/笔记本电脑以获得最佳支持。<br /><br />
+            简简单单点一下 "开始" 按钮，然后开始演奏。你可以使用电脑键盘、屏幕上的键盘或外接的 MIDI 键盘。<br /><br />
+            在 “设置” 中，你可以重置或改变 AI 模型的随机性，你可以改变节拍器、音量，或选择在演奏后删除所有数据。<br /><br />
             <br /><br />
-
-            In “Settings”, you can reset or change the randomness of the AI model,
-            you can change the metronome, the volume, or choose to delete all of
-            your data after playing.
-            <br /><br />
-            For better results:
+            为了获得更好的效果：<br />
           <ul>
-            <li>Try to play <i>legato</i></li>
-            <li>Try to play in sync with the metronome</li>
-            <li>Try to interact with Bachduet. BachDuet aims to be an equal improvisation partner and not a passive
-              accompaniment system</li>
-            <li>Feel free to change keys. The more naturally you modulate (i.e using a cadence) the better BachDuet will
-              follow.</li>
+            <li>试着演奏<i>连奏。</i></li>
+            <li>试着与节拍器同步演奏。</li>
+            <li>试着和 AI 巴赫进行互动！AI 巴赫的目标是成为一个平等的即兴演奏伙伴，而不是一个被动的伴奏系统。</li>
+            <li>随便转调！你转调得越自然（例如使用一个终止），AI 巴赫就会跟得越好。</li>
           </ul>
-          If you encounter many pop up "bug" messages, it might be because the
-          neural network is not running fast enough on your device. You can
-          try decreasing the metronome's BPM or using a more powerful device.
-          <br /><br />
-
-          If you encounter any problem, please let us know. We would greatly
-          appreciate your input!
+          如果你遇到了很多弹出的 “bug” 消息，可能是因为神经网络在你的设备上运行得不够快。你可以尝试降低节拍器的 BPM 或使用更强大的设备。
+          如果你遇到了任何问题，请告诉我们。我们非常感谢你的反馈！<br /><br />
           <br /><br />
           </p>
         </div>
@@ -457,7 +434,7 @@ export default {
       // Enable WebMIDI, then call onEnabled method.
       WebMidi.enable()
         .then(vm.onEnabled)
-        .catch((err) => this.$toasted.show("WebMIDI Error: " + err));
+        .catch((err) => this.$toasted.show("WebMIDI 错误: " + err));
     }
     /*
      * Initialize computer keyboard logic
@@ -610,7 +587,7 @@ export default {
       handler(newValue) {
         if (newValue == 10) {
           this.$toasted.show(
-            "We cannot collect data from your session. Don't worry, your application will still run smoothly!"
+            "我们无法收集您的数据。不用担心，AI 巴赫仍将正常运行！"
           );
         }
       },
@@ -620,7 +597,7 @@ export default {
       handler(newValue) {
         if (newValue == 10) {
           this.$toasted.show(
-            "Your local machine cannot run inference at this speed. Try lowering the BPM."
+            "你的电脑无法以这个速度运行 AI 巴赫。尝试降低 BPM。"
           );
         }
       },
@@ -784,7 +761,7 @@ export default {
       const workerStatus = vm.$refs.workerStatus;
       // If the worker is giving us only string
       if (typeof e.data === "string" || e.data instanceof String) {
-        if (e.data == "Neural Network is ready to play with you!") {
+        if (e.data == "AI 巴赫热身完毕！") {
           vm.$refs.entryBtn.classList.add("fade-in");
           vm.$refs.entryBtn.style.visibility = "visible";
           vm.modelLoadTime = Date.now() - vm.modelLoadTime;

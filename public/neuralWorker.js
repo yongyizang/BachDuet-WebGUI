@@ -10,7 +10,7 @@ async function loadModels(){
     
     // Post this message to UI
     // TODO: explain what is service worker and what is post message
-    postMessage("Neural Network is loaded!");
+    postMessage("AI 巴赫已经加载好啦！");
 
     // tf backend doc
     tf.setBackend('webgl');
@@ -29,7 +29,7 @@ async function loadModels(){
     self.first2B = self.states2B;
 
     for (let i = 0; i < warmupRounds; i++) {
-        postMessage("Network is warming up. Current round: " + (i+1) + "/" + warmupRounds);
+        postMessage("AI 巴赫正在热身。现在在第 " + (i+1) + "/" + warmupRounds + " 轮");
         var exodos = self.modelEmb.predict([midiInp, cpcInp, rhyInp]);
         var embMidi = exodos[0];
         var embCpc = exodos[1];
@@ -40,7 +40,7 @@ async function loadModels(){
         var out = self.modelLstm.predict([totalInp, self.states1A, self.states1B, self.states2A, self.states2B]);
     }
     // console.log(self.states1A.dataSync())
-    postMessage("Neural Network is ready to play with you!");
+    postMessage("AI 巴赫热身完毕！");
 }
 
 loadModels()
